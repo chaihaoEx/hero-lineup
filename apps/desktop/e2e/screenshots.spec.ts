@@ -61,3 +61,17 @@ test("生成线上同款配装交互验收截图", async ({ page }) => {
   await page.screenshot({ path: path.join(outputDirectory, "local-skill-picker-1440x900.png") });
   await assertOffline(remoteRequests);
 });
+
+test("生成体系创建与本地收藏验收截图", async ({ page }) => {
+  const remoteRequests = await installOfflineGuard(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "新增体系" }).click();
+  await expect(page.getByRole("dialog", { name: "新增体系" })).toBeVisible();
+  await page.screenshot({ path: path.join(outputDirectory, "local-system-create-1440x900.png") });
+  await page.getByRole("button", { name: "取消", exact: true }).click();
+  await page.getByRole("button", { name: "本地收藏" }).click();
+  await expect(page.getByLabel("搜索本地收藏")).toBeVisible();
+  await page.screenshot({ path: path.join(outputDirectory, "local-collection-1440x900.png") });
+  await assertOffline(remoteRequests);
+});

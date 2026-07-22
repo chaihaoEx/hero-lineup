@@ -228,3 +228,22 @@ body { background: #f3f5fa; }
 .system-edit-dialog > footer { display:flex; align-items:center; justify-content:flex-end; gap:14px; padding:18px 24px 24px; }
 .system-edit-dialog > footer button { min-width:64px; }
 .system-edit-cancel { color:#444653; border:0; background:transparent; }
+.system-create-tabs { display:flex; gap:0; padding:0 24px; border-bottom:1px solid #ececf2; }
+.system-create-tabs button { padding:12px 16px 10px; color:#777b87; font-weight:700; border:0; border-bottom:3px solid transparent; background:transparent; }
+.system-create-tabs button.active { color:#574de0; border-bottom-color:#574de0; }
+.system-import-form { padding:24px; border-bottom:1px solid #ececf2; }
+.system-import-form textarea { width:100%; min-height:126px; padding:13px; color:#272936; font:inherit; border:1px solid #d5d7df; border-radius:7px; resize:vertical; outline:none; }
+.system-import-form textarea:focus { border-color:#675de4; box-shadow:0 0 0 3px rgba(103,93,228,.12); }
+.system-import-form p { margin:9px 0 0; color:#c43d48; font-size:12px; }
+.local-collection { padding-right:210px; }
+.collection-search { display:flex; gap:8px; margin-bottom:13px; }
+.collection-search input { min-width:280px; padding:9px 12px; border:1px solid #d9dbe5; border-radius:7px; outline:none; background:#fff; }
+.collection-search input:focus { border-color:#6258df; box-shadow:0 0 0 3px rgba(98,88,223,.12); }
+.collection-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(225px,1fr)); gap:12px; }
+.collection-card { position:relative; min-height:145px; padding:17px; text-align:center; border:1px solid #dedfe7; border-radius:9px; background:#fff; box-shadow:0 4px 12px rgba(42,45,70,.06); }
+.collection-card > strong,.collection-card > small { display:block; }
+.collection-card > strong { color:#40399d; }
+.collection-card > small { min-height:30px; margin-top:6px; color:#858b9a; font-size:10px; }
+.collection-card p { margin:14px 0 10px; color:#555b6a; font-size:11px; }.collection-card p span { color:#aaa; }
+.collection-source { position:absolute; top:9px; left:9px; padding:2px 6px; color:#fff; font-size:9px; border-radius:9px; background:#6258df; }
+@media (max-width:900px) { .local-collection { padding-right:0; }.collection-search input { min-width:0; flex:1; } }

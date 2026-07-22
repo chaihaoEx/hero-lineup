@@ -41,6 +41,35 @@ test("creates and persists a local system", async () => {
   await waitFor(() => expect(localStorage.getItem("zys.hero-lineup.systems.v1")).toContain("离线测试阵容"));
 });
 
+test("creates a system through the same two-tab dialog flow as online", async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  await appReady();
+  await user.click(screen.getByRole("button", { name: "新增体系" }));
+  expect(screen.getByRole("dialog", { name: "新增体系" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "创建新体系" })).toHaveClass("active");
+  expect(screen.getByRole("button", { name: "口令导入" })).toBeInTheDocument();
+  await user.type(screen.getByLabelText("新体系名称"), "线上流程体系");
+  await user.type(screen.getByLabelText("新体系描述"), "由创建弹窗生成");
+  await user.click(screen.getByRole("radio", { name: /私有（仅当前/ }));
+  await user.click(screen.getByRole("button", { name: /^创建$/ }));
+  expect(screen.queryByRole("dialog", { name: "新增体系" })).not.toBeInTheDocument();
+  expect(document.querySelector(".online-system-card.active > strong")).toHaveTextContent("线上流程体系");
+  expect(document.querySelector(".online-system-card.active p")).toHaveTextContent("私有");
+});
+
+test("uses a public system from the offline collection as an editable private copy", async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  await appReady();
+  await user.click(screen.getByRole("button", { name: "本地收藏" }));
+  expect(screen.getByLabelText("搜索本地收藏")).toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "使用体系" }));
+  expect(document.querySelectorAll(".online-system-card")).toHaveLength(2);
+  expect(document.querySelector(".online-system-card.active > strong")).toHaveTextContent("默认体系");
+  expect(document.querySelector(".online-system-card.active p")).toHaveTextContent("私有");
+});
+
 test("adds a hero and edits equipment", async () => {
   const user = userEvent.setup();
   const calculateHero = desktopBridge.calculateHero.bind(desktopBridge);

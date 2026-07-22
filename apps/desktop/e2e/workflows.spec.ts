@@ -6,10 +6,10 @@ test.describe("浏览器预览中的主要离线工作流", () => {
     const remoteRequests = await openPreview(page);
 
     await page.getByRole("button", { name: "新增体系" }).click();
-    await expect(page.locator(".online-system-card.active > strong")).toHaveText("新体系 2");
-    await page.locator(".online-system-card.active").getByRole("button", { name: "编辑" }).click();
-    await page.getByLabel("体系名称").fill("E2E 离线体系");
-    await page.getByRole("button", { name: "保存", exact: true }).click();
+    await expect(page.getByRole("dialog", { name: "新增体系" })).toBeVisible();
+    await page.getByLabel("新体系名称").fill("E2E 离线体系");
+    await page.getByRole("button", { name: "创建", exact: true }).click();
+    await expect(page.locator(".online-system-card.active > strong")).toHaveText("E2E 离线体系");
     await page.getByRole("button", { name: /保存当前体系/ }).click();
     await expect(page.getByRole("button", { name: "当前体系已保存" })).toBeVisible();
 

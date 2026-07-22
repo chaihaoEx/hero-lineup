@@ -656,23 +656,66 @@ function SystemEditModal({ system, onClose, onSave }: { system: LineupSystem; on
   </div>;
 }
 
-function SystemSidebar({ systems, activeId, dirty, contentVersion, onSelect, onCreate, onDuplicate, onDelete, onSave, onImport, onExport, onBackup, onRestore, onDataUpdate, onRename }: {
-  systems: LineupSystem[]; activeId: string; dirty: boolean; onSelect: (id: string) => boolean; onCreate: () => void;
+function SystemCreateModal({ onClose, onCreate, onImport }: {
+  onClose: () => void;
+  onCreate: (name: string, description: string, localPublic: boolean) => void;
+  onImport: (code: string) => string | undefined;
+}) {
+  const [mode, setMode] = useState<"create" | "import">("create");
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [localPublic, setLocalPublic] = useState(true);
+  const [code, setCode] = useState("");
+  const [error, setError] = useState("");
+  const commit = () => {
+    if (mode === "create") {
+      const trimmed = name.trim();
+      if (!trimmed) return;
+      onCreate(trimmed, description, localPublic);
+      onClose();
+      return;
+    }
+    const nextError = onImport(code.trim());
+    if (nextError) setError(nextError);
+    else onClose();
+  };
+  return <div className="modal-backdrop system-edit-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+    <section className="system-edit-dialog system-create-dialog" role="dialog" aria-modal="true" aria-labelledby="system-create-title">
+      <header><h3 id="system-create-title">新增体系</h3><button aria-label="关闭新增体系" onClick={onClose}>×</button></header>
+      <nav className="system-create-tabs" aria-label="新增体系方式"><button className={mode === "create" ? "active" : ""} onClick={() => { setMode("create"); setError(""); }}>创建新体系</button><button className={mode === "import" ? "active" : ""} onClick={() => { setMode("import"); setError(""); }}>口令导入</button></nav>
+      {mode === "create" ? <div className="system-edit-form">
+        <label>体系名称<input type="text" aria-label="新体系名称" maxLength={40} placeholder="请输入体系名称" value={name} onChange={(event) => setName(event.target.value)} /></label>
+        <label>体系描述（选填）<textarea aria-label="新体系描述" maxLength={200} placeholder="用于在本地收藏中展示该体系的简介" value={description} onChange={(event) => setDescription(event.target.value)} /><small>{description.length}/200</small></label>
+        <fieldset><legend>公开设置</legend><label><input type="radio" name="new-system-visibility" checked={localPublic} onChange={() => setLocalPublic(true)} />公开（允许在本地收藏中展示，便于从本机一键导入）</label><label><input type="radio" name="new-system-visibility" checked={!localPublic} onChange={() => setLocalPublic(false)} />私有（仅当前体系列表可见，不在本地收藏展示）</label></fieldset>
+      </div> : <div className="system-import-form"><textarea aria-label="粘贴体系配置码" placeholder="粘贴体系配置码" value={code} onChange={(event) => { setCode(event.target.value); setError(""); }} />{error && <p role="alert">{error}</p>}</div>}
+      <footer><button className="system-edit-cancel" onClick={onClose}>取消</button><button className="zys-button blue" disabled={mode === "create" ? !name.trim() : !code.trim()} onClick={commit}>{mode === "create" ? "创建" : "导入体系"}</button></footer>
+    </section>
+  </div>;
+}
+
+function SystemSidebar({ systems, activeId, dirty, contentVersion, onSelect, onCreate, onDuplicate, onDelete, onSave, onImport, onExport, onBackup, onRestore, onDataUpdate, onRename, onImportCode, onUseCollection }: {
+  systems: LineupSystem[]; activeId: string; dirty: boolean; onSelect: (id: string) => boolean; onCreate: (name: string, description: string, localPublic: boolean) => void;
   contentVersion: string; onDuplicate: () => void; onDelete: () => void; onSave: () => void; onImport: () => void; onExport: (system?: LineupSystem) => void;
   onBackup: () => void; onRestore: () => void; onDataUpdate: () => void; onRename: (name: string, description: string, localPublic: boolean) => void;
+  onImportCode: (code: string) => string | undefined; onUseCollection: (system: LineupSystem) => void;
 }) {
   const [editingSystemId, setEditingSystemId] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [managerTab, setManagerTab] = useState<"mine" | "collection">("mine");
+  const [collectionSearch, setCollectionSearch] = useState("");
   const editingSystem = systems.find((system) => system.id === editingSystemId);
+  const collection = systems.filter((system) => system.localPublic && `${system.name}\n${system.description}`.toLocaleLowerCase().includes(collectionSearch.trim().toLocaleLowerCase()));
   return <section className="system-manager" aria-labelledby="system-manager-title">
-    <header className="system-manager-header"><div className="system-manager-title"><h2 id="system-manager-title">体系管理</h2><button className="manager-tab active">我的体系</button><button className="manager-tab">本地收藏</button></div><div className="manager-actions"><button className="zys-button purple" onClick={onCreate}>新增体系</button><button className="zys-button green" onClick={onSave}>{dirty ? "保存当前体系" : "当前体系已保存"}</button></div></header>
-    <div className="system-manager-body"><nav className="system-card-list">{systems.map((system) => <article key={system.id} className={`online-system-card ${system.id === activeId ? "active" : ""}`} onClick={() => onSelect(system.id)}>
+    <header className="system-manager-header"><div className="system-manager-title"><h2 id="system-manager-title">体系管理</h2><button className={`manager-tab ${managerTab === "mine" ? "active" : ""}`} onClick={() => setManagerTab("mine")}>我的体系</button><button className={`manager-tab ${managerTab === "collection" ? "active" : ""}`} onClick={() => setManagerTab("collection")}>本地收藏</button></div><div className="manager-actions"><button className="zys-button purple" onClick={() => setCreating(true)}>新增体系</button><button className="zys-button green" onClick={onSave}>{dirty ? "保存当前体系" : "当前体系已保存"}</button></div></header>
+    <div className="system-manager-body">{managerTab === "mine" ? <nav className="system-card-list">{systems.map((system) => <article key={system.id} className={`online-system-card ${system.id === activeId ? "active" : ""}`} onClick={() => onSelect(system.id)}>
       <strong>{system.name}</strong>{system.description && <small>{system.description}</small>}
       <p>英雄: {system.heroes.length} <span>|</span> 任务: {system.taskGroups.reduce((sum, group) => sum + group.tasks.length, 0)} <span>|</span> {system.localPublic ? "公开" : "私有"}</p>
       <div><button className="zys-button blue" onClick={(event) => { event.stopPropagation(); if (system.id === activeId || onSelect(system.id)) setEditingSystemId(system.id); }}>编辑</button><button className="zys-button violet" onClick={(event) => { event.stopPropagation(); onExport(system); }}>导出口令</button></div>
-    </article>)}</nav>
+    </article>)}</nav> : <section className="local-collection"><div className="collection-search"><input aria-label="搜索本地收藏" placeholder="搜索体系名称 / 描述" value={collectionSearch} onChange={(event) => setCollectionSearch(event.target.value)} /><button className="zys-button blue">搜索</button></div><div className="collection-grid">{collection.map((system) => <article key={system.id} className="collection-card"><span className="collection-source">本地</span><strong>{system.name}</strong>{system.description && <small>{system.description}</small>}<p>英雄: {system.heroes.length} <span>|</span> 任务: {system.taskGroups.reduce((sum, group) => sum + group.tasks.length, 0)}</p><button className="zys-button blue" onClick={() => { onUseCollection(system); setManagerTab("mine"); }}>使用体系</button></article>)}{!collection.length && <div className="empty-state"><Archive size={26} /><h3>没有匹配的本地收藏</h3><p>把体系设置为“公开”后会出现在这里。</p></div>}</div></section>}
       <details className="local-maintenance"><summary><HardDrive size={15} />本地数据与备份 <small>{contentVersion}</small></summary><div><button onClick={onImport}><Upload size={15} />导入体系</button><button onClick={() => onExport()}><Download size={15} />导出体系</button><button onClick={onDuplicate}><Copy size={15} />复制当前</button><button onClick={onBackup}><Archive size={15} />完整备份</button><button onClick={onRestore}><PackageOpen size={15} />恢复备份</button><button onClick={onDataUpdate} disabled={!desktopBridge.isDesktop()}><HardDrive size={15} />更新本地数据</button><button className="danger-link" onClick={onDelete}><Trash2 size={15} />删除当前</button></div></details>
     </div>
     {editingSystem && <SystemEditModal system={editingSystem} onClose={() => setEditingSystemId(null)} onSave={onRename} />}
+    {creating && <SystemCreateModal onClose={() => setCreating(false)} onCreate={onCreate} onImport={onImportCode} />}
   </section>;
 }
 
@@ -780,6 +823,18 @@ function WorkspaceApp({ catalog, onCatalogChange }: { catalog: Catalog; onCatalo
     } catch (error) { setToast(error instanceof Error ? error.message : "粘贴导入失败"); }
   };
 
+  const importSystemCode = (code: string): string | undefined => {
+    try {
+      const imported = decodeClipboard(code, "system");
+      if (imported.gameDataVersion !== catalog.gameDataVersion) throw new Error(`数据版本不兼容：${imported.gameDataVersion}`);
+      workspace.importSystem(imported);
+      setToast(`已导入体系“${imported.name}”，请保存后持久化`);
+      return undefined;
+    } catch (error) {
+      return error instanceof Error ? error.message : "体系配置码无效";
+    }
+  };
+
   const exportCurrentPng = async () => {
     if (!workspace.active) return;
     try { await exportLineupPng(workspace.active, workspace.units); setToast("阵容已导出为 PNG 图片"); }
@@ -819,7 +874,7 @@ function WorkspaceApp({ catalog, onCatalogChange }: { catalog: Catalog; onCatalo
     <header className="offline-site-header"><div className="offline-site-inner"><div className="online-brand"><span><Sword size={20} /></span><strong>传奇智游社</strong><small>完全离线版</small></div><nav><button className={tab === "champions" ? "active" : ""} onClick={() => jumpTo("champions", "champions-section")}>勇士阵容</button><button className={tab === "heroes" ? "active" : ""} onClick={() => jumpTo("heroes", "heroes-section")}>英雄阵容</button><button className={tab === "adventures" ? "active" : ""} onClick={() => jumpTo("adventures", "adventures-section")}>冒险任务</button><button onClick={() => setShowTemplates(true)}>配装模板</button></nav><div className="site-header-actions"><button aria-label="粘贴配置" className="zys-button blue" onClick={() => void pasteSystemConfig()}>导入口令</button><button aria-label="复制配置" className="zys-button violet" onClick={() => void copySystemConfig()}>导出口令</button><button className="zys-button green" onClick={() => document.getElementById("system-manager-title")?.scrollIntoView?.({ behavior: "smooth" })}>本地管理</button></div></div></header>
     <main className="workspace">
       <div className="tool-container"><section className="tool-hero"><h1>英雄体系搭配平台</h1><div className="offline-warning"><HardDrive size={17} />当前为完全离线版，所有体系、配装、模拟记录和图片均保存在本机；数据版本 {catalog.gameDataVersion}</div></section>
-        <SystemSidebar systems={workspace.systems} activeId={workspace.activeId} dirty={workspace.dirty} contentVersion={catalog.gameDataVersion} onSelect={selectSystem} onCreate={workspace.createSystem} onDuplicate={workspace.duplicateSystem} onDelete={() => { if (window.confirm("确定删除当前体系吗？")) void workspace.deleteActive(); }} onSave={() => void workspace.save().then(() => setToast("所有更改已保存在本机"))} onImport={() => { if (desktopBridge.isDesktop()) void importFromDialog(); else fileInput.current?.click(); }} onExport={(system) => void exportCurrent(system)} onBackup={() => void exportBackup()} onRestore={() => void restoreBackup()} onDataUpdate={() => void installDataPackage()} onRename={(name, description, localPublic) => workspace.updateActive((system) => ({ ...system, name, description, localPublic }))} />
+        <SystemSidebar systems={workspace.systems} activeId={workspace.activeId} dirty={workspace.dirty} contentVersion={catalog.gameDataVersion} onSelect={selectSystem} onCreate={(name, description, localPublic) => workspace.createSystem({ name, description, localPublic })} onImportCode={importSystemCode} onUseCollection={(system) => { const imported = workspace.importSystem(system); setToast(`已从本地收藏导入“${imported.name}”，请保存后持久化`); }} onDuplicate={workspace.duplicateSystem} onDelete={() => { if (window.confirm("确定删除当前体系吗？")) void workspace.deleteActive(); }} onSave={() => void workspace.save().then(() => setToast("所有更改已保存在本机"))} onImport={() => { if (desktopBridge.isDesktop()) void importFromDialog(); else fileInput.current?.click(); }} onExport={(system) => void exportCurrent(system)} onBackup={() => void exportBackup()} onRestore={() => void restoreBackup()} onDataUpdate={() => void installDataPackage()} onRename={(name, description, localPublic) => workspace.updateActive((system) => ({ ...system, name, description, localPublic }))} />
       <div className="content online-content">
         <section id="champions-section" className="flow-section"><section className="section-heading"><div><h2>勇士阵容</h2><p>点击勇士图标进行配装，可拖动到下方任务卡片中组队冒险</p></div><button className="zys-button blue" onClick={() => setShowTemplates(true)}><BarChart3 size={16} />装备统计</button></section><div className="champion-grid">{champions.map((unit) => { const loadout = workspace.active!.championLoadouts?.[unit.id]; return <ChampionCard key={unit.id} unit={{ ...unit, ...(loadout ?? {}), stats: loadout?.stats ?? unit.stats }} onEdit={() => setEditingChampion(unit)} />; })}</div></section>
         <section id="heroes-section" className="flow-section"><section className="section-heading"><div><h2>英雄阵容 ({workspace.active.heroes.length}/41)</h2><p>点击英雄图标进行配装，可拖动到下方任务卡片中组队冒险</p></div><div className="toolbar"><button className="zys-button blue" onClick={() => setShowTemplates(true)}>装备统计</button><button className="zys-button violet" onClick={() => void exportCurrentPng()}>导出阵容</button><button className="zys-button green" disabled={workspace.active.heroes.length >= 41} onClick={() => setShowClassPicker(true)}>添加英雄</button><button className={`manager-tab ${sortMode === "class" ? "active" : ""}`} onClick={() => setSortMode("class")}>职业排序</button><button className={`manager-tab ${sortMode === "element" ? "active" : ""}`} onClick={() => setSortMode("element")}>元素排序</button></div></section><div className="hero-list">{heroes.map((hero) => <HeroCard key={hero.id} hero={hero} onEdit={() => setEditingHero(hero)} onCopy={() => workspace.duplicateHero(hero)} onDelete={() => workspace.deleteHero(hero.id)} />)}{!heroes.length && <div className="empty-state"><Users size={30} /><h3>还没有英雄</h3><p>点击“添加英雄”选择职业。</p></div>}</div></section>

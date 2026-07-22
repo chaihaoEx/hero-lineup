@@ -45,15 +45,35 @@ export function useWorkspace(catalog: Catalog) {
     setDirty(false);
   }, [active]);
 
-  const createSystem = useCallback(() => {
+  const createSystem = useCallback((metadata?: { name?: string; description?: string; localPublic?: boolean }) => {
     const next = makeDefaultSystem(catalog);
-    next.name = `新体系 ${systems.length + 1}`;
+    next.name = metadata?.name?.trim() || `新体系 ${systems.length + 1}`;
+    next.description = metadata?.description ?? "";
+    next.localPublic = metadata?.localPublic ?? true;
     next.heroes = [];
     next.taskGroups = [];
     setSystems((current) => [...current, next]);
     setActiveId(next.id);
     setDirty(true);
   }, [catalog, systems.length]);
+
+  const importSystem = useCallback((source: LineupSystem) => {
+    const now = new Date().toISOString();
+    const next: LineupSystem = {
+      ...clone(source),
+      id: crypto.randomUUID(),
+      localPublic: false,
+      localTag: "收藏",
+      heroes: source.heroes.map(normalizeHeroEquipmentSlots),
+      championIds: catalog.champions.map((champion) => champion.id),
+      createdAt: now,
+      updatedAt: now,
+    };
+    setSystems((current) => [...current, next]);
+    setActiveId(next.id);
+    setDirty(true);
+    return next;
+  }, [catalog.champions]);
 
   const duplicateSystem = useCallback(() => {
     if (!active) return;
@@ -227,7 +247,7 @@ export function useWorkspace(catalog: Catalog) {
 
   return {
     systems, setSystems, active, activeId, setActiveId, dirty, setDirty, loading, updateActive, save,
-    createSystem, duplicateSystem, deleteActive, addHero, updateHero, updateChampionLoadout, deleteHero, duplicateHero,
+    createSystem, importSystem, duplicateSystem, deleteActive, addHero, updateHero, updateChampionLoadout, deleteHero, duplicateHero,
     toggleChampion, addGroup, moveGroup, updateGroup, deleteGroup, addTask, duplicateTask, deleteTask, moveTask,
     dropUnit, removeUnit, setTaskResult, updateTask, replaceActive, units,
   };
