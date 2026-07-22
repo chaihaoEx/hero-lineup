@@ -65,6 +65,9 @@ export interface CatalogItem {
   itemType: string;
   typeName: string;
   tier: number;
+  /** Upstream crafting unlock level; online uses it as the same-tier secondary order. */
+  level?: number;
+  sourceOrder?: number;
   restrictedClass?: string;
   spritePath?: string;
   attack?: number;
@@ -97,6 +100,7 @@ export interface CatalogSkill {
   /** Element points required for this tier. */
   elements: number;
   rank: number;
+  sourceOrder?: number;
   spritePath?: string;
   effects: string[];
 }
@@ -150,7 +154,7 @@ export const previewCatalog: Catalog = {
   ], stats: defaultStats }],
   quests: [{ id: "forest01", name: "咆哮森林", mapName: "咆哮森林", mapKey: "forest:normal", category: "普通冒险", difficulty: "简单", difficultyLevel: 0, isBoss: false, maxMembers: 4, barrierPower: 0 }],
   items: [
-    { id: "shortsword", name: "学徒短剑", itemType: "ws", typeName: "剑", tier: 1, attack: 16, shinyMultiplier: 1, transcendMultiplier: 1.1, transcendAttack: 2, transcendDefense: 1 },
+    { id: "shortsword", name: "学徒短剑", itemType: "ws", typeName: "剑", tier: 1, level: 1, attack: 16, shinyMultiplier: 1, transcendMultiplier: 1.1, transcendAttack: 2, transcendDefense: 1, elementAffinity: "ember", spiritAffinity: "behemoth" },
     { id: "ember", name: "余烬元素", itemType: "z", typeName: "元素附魔", tier: 4, attack: 16, defense: 11, health: 3, elements: "fire+5" },
     { id: "behemoth", name: "比蒙精魂", itemType: "z", typeName: "精萃附魔", tier: 14, attack: 164, defense: 109, health: 33, skill: "i_behemoth" },
   ],
@@ -184,7 +188,7 @@ export function skillsForClass(catalog: Catalog, classId: string): CatalogSkill[
   return catalog.skills.filter((skill) => skill.tier === 1
     && skill.family !== heroClass.innateSkillFamily
     && (skill.classes.includes("*") || skill.classes.includes(heroClass.id) || skill.classes.includes(heroClass.type)))
-    .sort((left, right) => right.rarity - left.rarity || left.rank - right.rank || left.name.localeCompare(right.name));
+    .sort((left, right) => right.rarity - left.rarity || (right.sourceOrder ?? right.rank) - (left.sourceOrder ?? left.rank));
 }
 
 export function makeHero(catalog: Catalog, classId = catalog.classes[0]?.id ?? "knight", index = 1): Hero {

@@ -45,6 +45,12 @@ function enchantFamily(item: CatalogItem | undefined): Hero["element"] | undefin
   return elementCode[item.elements.split("+")[0] ?? ""];
 }
 
+function hasAttachmentAffinity(item: CatalogItem | undefined, attachmentId: string | undefined, kind: "element" | "spirit"): boolean {
+  if (!item || !attachmentId) return false;
+  const affinity = kind === "element" ? item.elementAffinity : item.spiritAffinity;
+  return Boolean(affinity?.split(/[;,]/).map((value) => value.trim()).some((value) => value === attachmentId || (kind === "element" && value === "all")));
+}
+
 function IconButton({ label, children, onClick, danger = false, disabled = false }: {
   label: string; children: React.ReactNode; onClick: () => void; danger?: boolean; disabled?: boolean;
 }) {
@@ -223,8 +229,8 @@ function EquipmentModal({ hero, catalog, templates, onClose, onPrevious, onNext,
   };
   const currentInnateSkill = currentSkill(heroClass?.innateSkillFamily) ?? innateSkill;
   const slot = draft.equipment[selectedSlot]!;
-  const slotItems = useMemo(() => itemsForSlot(catalog, hero.classId, selectedSlot).filter((item) => !itemSearch.trim() || `${item.name} ${item.typeName} ${item.tier}`.toLowerCase().includes(itemSearch.trim().toLowerCase()))
-    .sort((left, right) => right.tier - left.tier || left.name.localeCompare(right.name)), [catalog, hero.classId, itemSearch, selectedSlot]);
+  const slotItems = useMemo(() => itemsForSlot(catalog, hero.classId, selectedSlot).filter((item) => item.tier <= maxEquipmentTier(draft.level) && (!itemSearch.trim() || `${item.name} ${item.typeName} ${item.tier}`.toLowerCase().includes(itemSearch.trim().toLowerCase())))
+    .sort((left, right) => right.tier - left.tier || (right.level ?? 0) - (left.level ?? 0) || (left.sourceOrder ?? 0) - (right.sourceOrder ?? 0)), [catalog, draft.level, hero.classId, itemSearch, selectedSlot]);
   const elementItems = useMemo(() => catalog.items.filter((item) => item.itemType === "z" && Boolean(item.elements) && (!itemSearch.trim() || `${item.name} ${item.typeName} ${item.tier}`.toLowerCase().includes(itemSearch.trim().toLowerCase())))
     .sort((left, right) => right.tier - left.tier || left.name.localeCompare(right.name)), [catalog, itemSearch]);
   const spiritItems = useMemo(() => catalog.items.filter((item) => item.itemType === "z" && Boolean(item.skill) && (!itemSearch.trim() || `${item.name} ${item.typeName} ${item.tier}`.toLowerCase().includes(itemSearch.trim().toLowerCase())))
@@ -342,8 +348,10 @@ function EquipmentModal({ hero, catalog, templates, onClose, onPrevious, onNext,
         </aside>
         <section className="equipment-slot-stage"><div className="workbench-title"><div><strong>六槽装备</strong><small>点击装备槽打开装备、元素附魔和精萃附魔选择</small></div></div><div className="equipment-slot-grid">{draft.equipment.map((entry, index) => {
           const item = catalog.items.find((candidate) => candidate.id === entry.itemId);
+          const elementAffinity = hasAttachmentAffinity(item, entry.element, "element");
+          const spiritAffinity = hasAttachmentAffinity(item, entry.spirit, "spirit");
           return <button key={entry.slot} aria-label={`${entry.slot}装备槽`} className={`overview-slot quality-${entry.quality}`} onClick={() => { setSelectedSlot(index); setItemSearch(""); setPickerOpen(true); }}>
-            <span className="overview-slot-art">{item ? <AssetImage path={item.spritePath} alt={item.name} /> : <span>{entry.slot.slice(0, 1)}</span>}</span><strong>{item?.name ?? entry.slot}</strong><small>{item ? `T${item.tier} · ${qualityDisplay[entry.quality]}` : "点击选择装备"}</small>{entry.element && (() => { const family = enchantFamily(catalog.items.find((candidate) => candidate.id === entry.element)) ?? (elements.includes(entry.element as Hero["element"]) ? entry.element as Hero["element"] : undefined); return family ? <i className={`element-${family}`}>{family}</i> : null; })()}
+            <span className="overview-slot-art">{item ? <AssetImage path={item.spritePath} alt={item.name} /> : <span>{entry.slot.slice(0, 1)}</span>}</span><strong>{item?.name ?? entry.slot}</strong><small>{item ? `T${item.tier} · ${qualityDisplay[entry.quality]}` : "点击选择装备"}</small>{entry.element && (() => { const family = enchantFamily(catalog.items.find((candidate) => candidate.id === entry.element)) ?? (elements.includes(entry.element as Hero["element"]) ? entry.element as Hero["element"] : undefined); return family ? <i className={`element-${family}`}>{family}</i> : null; })()}<span className="slot-affinity-badges">{elementAffinity && <b title="元素附魔获得 50% 亲和加成">元素亲和</b>}{spiritAffinity && <b title="精萃附魔获得 50% 亲和加成">精萃亲和</b>}</span>
           </button>;
         })}</div></section>
       </div>

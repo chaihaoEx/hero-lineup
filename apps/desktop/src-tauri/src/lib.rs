@@ -118,6 +118,8 @@ struct CatalogItem {
     item_type: String,
     type_name: String,
     tier: u64,
+    level: u64,
+    source_order: u64,
     restricted_class: Option<String>,
     sprite_path: Option<String>,
     attack: f64,
@@ -149,6 +151,7 @@ struct CatalogSkill {
     rarity: u64,
     elements: u64,
     rank: u64,
+    source_order: u64,
     sprite_path: Option<String>,
     effects: Vec<String>,
 }
@@ -739,7 +742,8 @@ fn load_catalog_from_content_dir(content_dir: &Path) -> Result<Catalog, String> 
     let type_dict = object_at(&type_dict_value, "items_type_dict")?;
     let mut items = object_at(&items_value, "items")?
         .iter()
-        .filter_map(|(id, value)| {
+        .enumerate()
+        .filter_map(|(source_order, (id, value))| {
             let item_type = value.get("type").and_then(Value::as_str)?;
             let transcend = transcend_catalog_stats(value);
             let translation_key = type_dict
@@ -755,6 +759,11 @@ fn load_catalog_from_content_dir(content_dir: &Path) -> Result<Catalog, String> 
                     .get("tier")
                     .and_then(Value::as_u64)
                     .unwrap_or_default(),
+                level: value
+                    .get("level")
+                    .and_then(Value::as_u64)
+                    .unwrap_or_default(),
+                source_order: source_order as u64,
                 restricted_class: value
                     .get("restrict")
                     .and_then(Value::as_str)
@@ -795,7 +804,8 @@ fn load_catalog_from_content_dir(content_dir: &Path) -> Result<Catalog, String> 
 
     let mut skills = object_at(&skills_value, "skills")?
         .iter()
-        .map(|(id, value)| CatalogSkill {
+        .enumerate()
+        .map(|(source_order, (id, value))| CatalogSkill {
             id: id.clone(),
             name: localized(texts, &[format!("skill_{id}_name")], id),
             family: value
@@ -824,6 +834,7 @@ fn load_catalog_from_content_dir(content_dir: &Path) -> Result<Catalog, String> 
                 .get("rank")
                 .and_then(Value::as_u64)
                 .unwrap_or_default(),
+            source_order: source_order as u64,
             sprite_path: choose_sprite(
                 &sprite_files,
                 &[format!(
@@ -1729,6 +1740,34 @@ mod tests {
             .as_deref()
             .is_some_and(|path| path.contains("p_cleave")));
         assert!(cleave.effects.iter().any(|effect| effect == "攻击 +30%"));
+        let war_master = catalog
+            .skills
+            .iter()
+            .find(|skill| skill.id == "s_warmaster1")
+            .unwrap();
+        assert!(war_master.source_order > cleave.source_order);
+        let boys_axe = catalog
+            .items
+            .iter()
+            .find(|item| item.id == "boysaxe")
+            .unwrap();
+        let wood_spear = catalog
+            .items
+            .iter()
+            .find(|item| item.id == "woodspear")
+            .unwrap();
+        assert_eq!(boys_axe.level, wood_spear.level);
+        assert!(boys_axe.source_order < wood_spear.source_order);
+        let gold_sword = catalog
+            .items
+            .iter()
+            .find(|item| item.id == "goldsword")
+            .unwrap();
+        assert_eq!(gold_sword.element_affinity.as_deref(), Some("gold"));
+        assert_eq!(
+            gold_sword.spirit_affinity.as_deref(),
+            Some("luxuriousspirit")
+        );
         let spellknight = catalog
             .classes
             .iter()

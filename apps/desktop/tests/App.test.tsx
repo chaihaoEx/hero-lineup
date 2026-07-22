@@ -105,6 +105,20 @@ test("updates equipment catalog attributes immediately when Transcend is toggled
   expect(shortSword).toHaveTextContent("◆ +1");
 });
 
+test("shows online affinity badges when the selected equipment matches both attachments", async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  await appReady();
+  await user.click(screen.getByRole("button", { name: "配装" }));
+  await user.click(screen.getByRole("button", { name: "武器装备槽" }));
+  await user.click(screen.getByRole("button", { name: /学徒短剑/ }));
+  await user.click(screen.getByRole("button", { name: /余烬元素/ }));
+  await user.click(screen.getByRole("button", { name: /比蒙精魂/ }));
+  await user.click(screen.getByRole("button", { name: "完成选择" }));
+  expect(screen.getByTitle("元素附魔获得 50% 亲和加成")).toHaveTextContent("元素亲和");
+  expect(screen.getByTitle("精萃附魔获得 50% 亲和加成")).toHaveTextContent("精萃亲和");
+});
+
 test("clones the current hero and navigates circularly like the online editor", async () => {
   const user = userEvent.setup();
   render(<App />);
