@@ -1,6 +1,7 @@
 {
   "bundle": {
     "targets": ["nsis", "msi"],
+    "icon": ["icons/icon.ico"],
     "windows": {
       "webviewInstallMode": { "type": "offlineInstaller" },
       "nsis": { "installMode": "currentUser" }

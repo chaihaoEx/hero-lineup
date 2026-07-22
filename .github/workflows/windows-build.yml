@@ -52,7 +52,7 @@ jobs:
         run: npm --prefix apps/desktop test
 
       - name: Run Rust workspace tests
-        run: cargo test --workspace --locked
+        run: cargo test --workspace --release --locked
 
       - name: Build NSIS and MSI installers
         run: npm --prefix apps/desktop run tauri build -- --bundles nsis,msi
