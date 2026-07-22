@@ -1,0 +1,22 @@
+{
+  "name": "hero-lineup-offline",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "npm --prefix apps/desktop run tauri dev",
+    "build": "npm --prefix apps/desktop run tauri build",
+    "build:web": "npm --prefix apps/desktop run build",
+    "test": "npm --prefix apps/desktop test -- --run && cargo test --workspace",
+    "test:e2e": "npm --prefix apps/desktop run test:e2e",
+    "check": "npm --prefix apps/desktop run typecheck && npm --prefix apps/desktop run lint && cargo fmt --all -- --check && cargo clippy --workspace --all-targets -- -D warnings",
+    "verify:offline": "node scripts/verify-offline.mjs apps/desktop/dist apps/desktop/src apps/desktop/src-tauri",
+    "verify:content": "node scripts/verify-content.mjs content",
+    "reference:hashes": "node scripts/refresh-reference-hashes.mjs reference",
+    "templates:snapshot": "node scripts/snapshot-hero-templates.mjs",
+    "data:validate": "cargo run -p hero-data -- validate content",
+    "data:build": "cargo run -p hero-data -- build content --output dist/hero-data.zysdata --game-data-version web-snapshot-2026-07-22 --simulator-version hero-simulator-0.1.0 --asset-version sha256:5c46fdf3e1b5c6b3dac29cf26c1bc7353b9770baf0069ffced39f1dbc3c689d4"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,37 @@
+HTTP/2 301 
+server: nginx/1.18.0 (Ubuntu)
+date: Wed, 22 Jul 2026 03:31:20 GMT
+content-type: text/html
+content-length: 178
+location: https://cdn.cq-zys.cn/assets/TextAsset/items.json
+x-frame-options: SAMEORIGIN
+x-xss-protection: 1; mode=block
+x-content-type-options: nosniff
+referrer-policy: no-referrer-when-downgrade
+content-security-policy: default-src 'self' http: https: data: blob: 'unsafe-inline'
+
+HTTP/1.1 200 OK
+Server: openresty
+Date: Wed, 22 Jul 2026 03:31:22 GMT
+Content-Type: image/png
+Content-Length: 4760086
+Connection: keep-alive
+Accept-Ranges: bytes
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: Content-Type,    Content-Length,    Access-Control-Allow-Origin,    Access-Control-Allow-Methods,    Access-Control-Allow-Headers, X-Log, X-Reqid
+Age: 449437
+Cache-Control: public, max-age=0, must-revalidate
+Content-Disposition: inline; filename="items.json"; filename*=utf-8''items.json
+Content-Md5: hh5eTvgqdXWyEeNcty0OKg==
+Content-Transfer-Encoding: binary
+Etag: "lpl9jCK4f4zmNn7l0GG90aj_6aTl"
+Last-Modified: Thu, 16 Jul 2026 13:32:38 GMT
+Vary: Origin
+X-Log: X-Log
+X-M-Log: QNM:cdn-cache-dls-zjwz-wz-19;QNM3:2245
+X-M-Reqid: wAG4fx2hh
+X-Qiniu-Zone: 2
+X-Qnm-Cache: Hit
+X-Reqid: vAgAAADtLbRS5sIY
+X-Svr: IO
+

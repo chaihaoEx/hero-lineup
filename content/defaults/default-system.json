@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "default",
+  "name": "默认体系",
+  "description": "随离线应用提供的空白体系",
+  "isPublic": false,
+  "groups": [
+    {
+      "id": "default-group",
+      "name": "默认分组",
+      "sortOrder": 0
+    }
+  ],
+  "heroes": [],
+  "champions": [],
+  "adventureTasks": [],
+  "heroEquipment": {},
+  "championEquipment": {}
+}

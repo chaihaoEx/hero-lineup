@@ -1,0 +1,1 @@
+import{r as e}from"./ui-vendor-lbjxNtHs.js";const c=({toolId:t,enabled:r=!0})=>{e.useEffect(()=>{if(!r)return;(async()=>{try{await fetch(`/api/tool-visit/visit/${t}`,{method:"POST",headers:{"Content-Type":"application/json"}})}catch(o){console.error("记录工具访问失败:",o)}})()},[t,r])};export{c as u};

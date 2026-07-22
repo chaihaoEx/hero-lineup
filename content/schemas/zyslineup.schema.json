@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:zys:schema:lineup:1",
+  "title": "Canonical ZYS single-system export v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "exportedAt", "versions", "checksumSha256", "payload"],
+  "properties": {
+    "format": { "const": "zyslineup" },
+    "schemaVersion": { "const": 1 },
+    "exportedAt": { "type": "string", "format": "date-time" },
+    "versions": { "$ref": "#/$defs/versions" },
+    "checksumSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "payload": { "$ref": "#/$defs/system" }
+  },
+  "$defs": {
+    "versions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["appVersion", "gameDataVersion", "simulatorVersion", "assetVersion"],
+      "properties": {
+        "appVersion": { "type": "string", "minLength": 1 },
+        "gameDataVersion": { "type": "string", "minLength": 1 },
+        "simulatorVersion": { "type": "string", "minLength": 1 },
+        "assetVersion": { "type": "string", "minLength": 1 }
+      }
+    },
+    "system": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "description", "localPublic", "localTag", "schemaVersion", "gameDataVersion", "groups", "heroes", "champions", "adventureTasks", "createdAt", "updatedAt"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "name": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "localPublic": { "type": "boolean" },
+        "localTag": { "type": "string" },
+        "schemaVersion": { "type": "integer", "minimum": 1 },
+        "gameDataVersion": { "type": "string" },
+        "groups": { "type": "array", "items": { "$ref": "#/$defs/group" } },
+        "heroes": { "type": "array", "items": { "$ref": "#/$defs/hero" } },
+        "champions": { "type": "array", "items": { "$ref": "#/$defs/champion" } },
+        "adventureTasks": { "type": "array", "items": { "$ref": "#/$defs/task" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "group": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "name", "sortOrder"],
+      "properties": { "id": { "type": "string", "format": "uuid" }, "name": { "type": "string", "minLength": 1 }, "sortOrder": { "type": "integer" } }
+    },
+    "hero": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "classId", "name", "level", "rank", "seed", "cardLevel", "className", "element", "stats", "titan", "seedPoints", "equipment", "skillIds", "cardLevels"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" }, "classId": { "type": "string", "minLength": 1 }, "name": { "type": "string", "minLength": 1 },
+        "level": { "type": "integer", "minimum": 1 }, "rank": { "type": "integer", "minimum": 0 }, "seed": { "type": "integer", "minimum": 0 }, "cardLevel": { "type": "integer", "minimum": 0 },
+        "className": { "type": "string" }, "spritePath": { "type": ["string", "null"] }, "element": { "type": "string" }, "stats": { "$ref": "#/$defs/stats" }, "titan": { "type": "boolean" },
+        "seedPoints": { "type": "object", "additionalProperties": { "type": "integer" } },
+        "equipment": { "type": "array", "items": { "$ref": "#/$defs/equipment" } },
+        "skillIds": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "cardLevels": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } }
+      }
+    },
+    "champion": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "loadoutPresent", "name", "element", "level", "rank", "cardLevel", "familiarId", "auraSongId", "stats", "cardLevels"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 }, "loadoutPresent": { "type": "boolean" }, "name": { "type": "string" }, "classId": { "type": ["string", "null"] }, "spritePath": { "type": ["string", "null"] }, "element": { "type": "string" }, "level": { "type": "integer", "minimum": 1 }, "rank": { "type": "integer", "minimum": 0 }, "seed": { "type": "integer", "minimum": 0, "default": 0 }, "cardLevel": { "type": "integer", "minimum": 0 }, "titan": { "type": "boolean", "default": false }, "familiarId": { "type": "string" }, "auraSongId": { "type": "string" }, "stats": { "$ref": "#/$defs/stats" },
+        "familiar": { "anyOf": [{ "$ref": "#/$defs/equipment" }, { "type": "null" }] },
+        "auraSong": { "anyOf": [{ "$ref": "#/$defs/equipment" }, { "type": "null" }] },
+        "cardLevels": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } }
+      }
+    },
+    "equipment": {
+      "type": "object", "additionalProperties": false,
+      "required": ["itemId", "slot", "quality", "shiny", "transcended", "transcendence"],
+      "properties": {
+        "itemId": { "type": "string" }, "name": { "type": ["string", "null"] },
+        "slot": { "enum": ["weapon", "head", "body", "hands", "feet", "accessory", "familiar", "auraSong"] },
+        "quality": { "enum": ["normal", "superior", "flawless", "epic", "legendary"] },
+        "element": { "type": ["string", "null"] }, "spirit": { "type": ["string", "null"] }, "shiny": { "type": "boolean" }, "transcended": { "type": "boolean" }, "transcendence": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "task": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "questId", "name", "map", "groupId", "heroIds", "championIds", "difficulty", "maxMembers", "barrier", "config", "modifiers"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" }, "questId": { "type": "string", "minLength": 1 }, "name": { "type": "string" }, "map": { "type": "string" }, "groupId": { "type": ["string", "null"], "format": "uuid" },
+        "heroIds": { "type": "array", "items": { "type": "string", "format": "uuid" } }, "championIds": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "difficulty": { "type": "integer", "minimum": 1 }, "maxMembers": { "type": "integer", "minimum": 1 }, "barrier": { "type": "object", "additionalProperties": { "type": "number" } }, "config": { "$ref": "#/$defs/simulationConfig" }, "result": { "type": ["object", "null"] }, "modifiers": { "type": "array", "items": { "type": "string" } }, "simulation": { "type": ["object", "null"] }
+      }
+    },
+    "stats": {
+      "type": "object", "additionalProperties": false,
+      "required": ["attack", "defense", "health", "evasion", "crit"],
+      "properties": { "attack": { "type": "number" }, "defense": { "type": "number" }, "health": { "type": "number" }, "evasion": { "type": "number" }, "crit": { "type": "number" } }
+    },
+    "simulationConfig": {
+      "type": "object", "additionalProperties": false,
+      "required": ["iterations", "seed", "booster", "elite", "titanTower"],
+      "properties": { "iterations": { "type": "integer", "minimum": 1 }, "seed": { "type": "integer", "minimum": 0 }, "booster": { "type": "boolean" }, "elite": { "type": "boolean" }, "titanTower": { "type": "boolean" } }
+    }
+  }
+}

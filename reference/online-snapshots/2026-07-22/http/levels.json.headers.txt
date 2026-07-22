@@ -1,0 +1,38 @@
+HTTP/2 301 
+server: nginx/1.18.0 (Ubuntu)
+date: Wed, 22 Jul 2026 03:31:24 GMT
+content-type: text/html
+content-length: 178
+location: https://cdn.cq-zys.cn/assets/TextAsset/levels.json
+x-frame-options: SAMEORIGIN
+x-xss-protection: 1; mode=block
+x-content-type-options: nosniff
+referrer-policy: no-referrer-when-downgrade
+content-security-policy: default-src 'self' http: https: data: blob: 'unsafe-inline'
+
+HTTP/1.1 200 OK
+Server: openresty
+Date: Wed, 22 Jul 2026 03:31:25 GMT
+Content-Type: application/json
+Content-Length: 548
+Connection: keep-alive
+Accept-Ranges: bytes
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: Content-Type,    Content-Length,    Access-Control-Allow-Origin,    Access-Control-Allow-Methods,    Access-Control-Allow-Headers, X-Log, X-Reqid
+Age: 481412
+Cache-Control: public, max-age=0, must-revalidate
+Content-Disposition: inline; filename="levels.json"; filename*=utf-8''levels.json
+Content-Encoding: gzip
+Content-Md5: DRiuauXqKc5VgQObA9ba2w==
+Content-Transfer-Encoding: binary
+Etag: "FjLW-Q0QLk5CESRvlYuQ2zc7VhsN"
+Last-Modified: Tue, 19 May 2026 10:54:12 GMT
+Vary: Origin, Accept-Encoding
+X-Log: X-Log
+X-M-Log: QNM:cdn-cache-dls-zjwz-wz-26;QNM3
+X-M-Reqid: tOwq82sg6
+X-Qiniu-Zone: 2
+X-Qnm-Cache: Hit
+X-Reqid: wK8AAAC5upPQ9bAY
+X-Svr: IO
+

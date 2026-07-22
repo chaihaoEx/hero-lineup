@@ -1,0 +1,309 @@
+{
+    "skillTreePoints": [
+        {
+            "minLevel": 40,
+            "goldCost": 1000000,
+            "gemsCost": 250
+        },
+        {
+            "minLevel": 41,
+            "goldCost": 2000000,
+            "gemsCost": 275
+        },
+        {
+            "minLevel": 42,
+            "goldCost": 3000000,
+            "gemsCost": 300
+        },
+        {
+            "minLevel": 43,
+            "goldCost": 4000000,
+            "gemsCost": 325
+        },
+        {
+            "minLevel": 44,
+            "goldCost": 5000000,
+            "gemsCost": 350
+        },
+        {
+            "minLevel": 45,
+            "goldCost": 6000000,
+            "gemsCost": 375
+        },
+        {
+            "minLevel": 46,
+            "goldCost": 7000000,
+            "gemsCost": 400
+        },
+        {
+            "minLevel": 47,
+            "goldCost": 8000000,
+            "gemsCost": 425
+        },
+        {
+            "minLevel": 48,
+            "goldCost": 10000000,
+            "gemsCost": 450
+        },
+        {
+            "minLevel": 49,
+            "goldCost": 14000000,
+            "gemsCost": 475
+        },
+        {
+            "minLevel": 50,
+            "goldCost": 16000000,
+            "gemsCost": 500
+        },
+        {
+            "minLevel": 51,
+            "goldCost": 18000000,
+            "gemsCost": 525
+        },
+        {
+            "minLevel": 52,
+            "goldCost": 20000000,
+            "gemsCost": 550
+        },
+        {
+            "minLevel": 53,
+            "goldCost": 22000000,
+            "gemsCost": 575
+        },
+        {
+            "minLevel": 54,
+            "goldCost": 28000000,
+            "gemsCost": 600
+        },
+        {
+            "minLevel": 55,
+            "goldCost": 32000000,
+            "gemsCost": 625
+        },
+        {
+            "minLevel": 56,
+            "goldCost": 50000000,
+            "gemsCost": 650
+        },
+        {
+            "minLevel": 57,
+            "goldCost": 55000000,
+            "gemsCost": 675
+        },
+        {
+            "minLevel": 58,
+            "goldCost": 75000000,
+            "gemsCost": 700
+        },
+        {
+            "minLevel": 59,
+            "goldCost": 80000000,
+            "gemsCost": 725
+        },
+        {
+            "minLevel": 60,
+            "goldCost": 100000000,
+            "gemsCost": 750
+        },
+        {
+            "minLevel": 61,
+            "goldCost": 120000000,
+            "gemsCost": 775
+        },
+        {
+            "minLevel": 62,
+            "goldCost": 200000000,
+            "gemsCost": 800
+        },
+        {
+            "minLevel": 63,
+            "goldCost": 225000000,
+            "gemsCost": 825
+        },
+        {
+            "minLevel": 64,
+            "goldCost": 300000000,
+            "gemsCost": 850
+        },
+        {
+            "minLevel": 65,
+            "goldCost": 400000000,
+            "gemsCost": 875
+        },
+        {
+            "minLevel": 66,
+            "goldCost": 500000000,
+            "gemsCost": 900
+        },
+        {
+            "minLevel": 67,
+            "goldCost": 550000000,
+            "gemsCost": 925
+        },
+        {
+            "minLevel": 68,
+            "goldCost": 750000000,
+            "gemsCost": 950
+        },
+        {
+            "minLevel": 69,
+            "goldCost": 800000000,
+            "gemsCost": 975
+        },
+        {
+            "minLevel": 70,
+            "goldCost": 1000000000,
+            "gemsCost": 1000
+        },
+        {
+            "minLevel": 71,
+            "goldCost": 1100000000,
+            "gemsCost": 1025
+        },
+        {
+            "minLevel": 72,
+            "goldCost": 1200000000,
+            "gemsCost": 1050
+        },
+        {
+            "minLevel": 73,
+            "goldCost": 1400000000,
+            "gemsCost": 1075
+        },
+        {
+            "minLevel": 74,
+            "goldCost": 1500000000,
+            "gemsCost": 1100
+        },
+        {
+            "minLevel": 75,
+            "goldCost": 1700000000,
+            "gemsCost": 1125
+        },
+        {
+            "minLevel": 76,
+            "goldCost": 1800000000,
+            "gemsCost": 1150
+        },
+        {
+            "minLevel": 77,
+            "goldCost": 2000000000,
+            "gemsCost": 1175
+        },
+        {
+            "minLevel": 78,
+            "goldCost": 2200000000,
+            "gemsCost": 1200
+        },
+        {
+            "minLevel": 79,
+            "goldCost": 2400000000,
+            "gemsCost": 1225
+        },
+        {
+            "minLevel": 80,
+            "goldCost": 2600000000,
+            "gemsCost": 1250
+        },
+        {
+            "minLevel": 81,
+            "goldCost": 2800000000,
+            "gemsCost": 1275
+        },
+        {
+            "minLevel": 82,
+            "goldCost": 3000000000,
+            "gemsCost": 1300
+        },
+        {
+            "minLevel": 83,
+            "goldCost": 3250000000,
+            "gemsCost": 1325
+        },
+        {
+            "minLevel": 84,
+            "goldCost": 3500000000,
+            "gemsCost": 1350
+        },
+        {
+            "minLevel": 85,
+            "goldCost": 3750000000,
+            "gemsCost": 1375
+        },
+        {
+            "minLevel": 86,
+            "goldCost": 4000000000,
+            "gemsCost": 1400
+        },
+        {
+            "minLevel": 87,
+            "goldCost": 4250000000,
+            "gemsCost": 1425
+        },
+        {
+            "minLevel": 88,
+            "goldCost": 4500000000,
+            "gemsCost": 1450
+        },
+        {
+            "minLevel": 89,
+            "goldCost": 4750000000,
+            "gemsCost": 1475
+        },
+        {
+            "minLevel": 90,
+            "goldCost": 5000000000,
+            "gemsCost": 1500
+        },
+        {
+            "minLevel": 91,
+            "goldCost": 5500000000,
+            "gemsCost": 1525
+        },
+        {
+            "minLevel": 92,
+            "goldCost": 6000000000,
+            "gemsCost": 1550
+        },
+        {
+            "minLevel": 93,
+            "goldCost": 6500000000,
+            "gemsCost": 1575
+        },
+        {
+            "minLevel": 94,
+            "goldCost": 7000000000,
+            "gemsCost": 1600
+        },
+        {
+            "minLevel": 95,
+            "goldCost": 8000000000,
+            "gemsCost": 1625
+        },
+        {
+            "minLevel": 96,
+            "goldCost": 9000000000,
+            "gemsCost": 1650
+        },
+        {
+            "minLevel": 97,
+            "goldCost": 10000000000,
+            "gemsCost": 1675
+        },
+        {
+            "minLevel": 98,
+            "goldCost": 11000000000,
+            "gemsCost": 1700
+        },
+        {
+            "minLevel": 99,
+            "goldCost": 12000000000,
+            "gemsCost": 1750
+        },
+        {
+            "minLevel": 100,
+            "goldCost": 13000000000,
+            "gemsCost": 2000
+        }
+    ]
+}

@@ -1,0 +1,1 @@
+import{r as t}from"./ui-vendor-lbjxNtHs.js";const d=()=>{const[a,s]=t.useState(1),[i,r]=t.useState(!1);return t.useEffect(()=>{const e=()=>{const o=window.innerWidth,n=o<=768;if(r(n),n)s(1);else{const c=Math.max(.72,Math.min(1,o/1280));s(c)}};return e(),window.addEventListener("resize",e),()=>window.removeEventListener("resize",e)},[]),{modalScale:a,isMobile:i}};export{d as u};

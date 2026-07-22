@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:zys:schema:backup:1",
+  "title": "Canonical ZYS full backup v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "exportedAt", "versions", "checksumSha256", "payload"],
+  "properties": {
+    "format": { "const": "zysbackup" },
+    "schemaVersion": { "const": 1 },
+    "exportedAt": { "type": "string", "format": "date-time" },
+    "versions": { "$ref": "zyslineup.schema.json#/$defs/versions" },
+    "checksumSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "payload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["systems", "templates", "settings"],
+      "properties": {
+        "systems": { "type": "array", "items": { "$ref": "zyslineup.schema.json#/$defs/system" } },
+        "templates": { "type": "array", "items": { "type": "object" } },
+        "settings": { "type": "object" }
+      }
+    }
+  }
+}

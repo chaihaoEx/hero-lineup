@@ -1,0 +1,36 @@
+HTTP/2 301 
+server: nginx/1.18.0 (Ubuntu)
+date: Wed, 22 Jul 2026 03:31:25 GMT
+content-type: text/html
+content-length: 178
+location: https://cdn.cq-zys.cn/assets/TextAsset/chestodds.json
+x-frame-options: SAMEORIGIN
+x-xss-protection: 1; mode=block
+x-content-type-options: nosniff
+referrer-policy: no-referrer-when-downgrade
+content-security-policy: default-src 'self' http: https: data: blob: 'unsafe-inline'
+
+HTTP/1.1 200 OK
+Server: openresty
+Date: Wed, 22 Jul 2026 03:31:26 GMT
+Content-Type: image/png
+Content-Length: 34105
+Connection: keep-alive
+Accept-Ranges: bytes
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: X-Log, X-Reqid
+Access-Control-Max-Age: 2592000
+Cache-Control: public, max-age=0, must-revalidate
+Content-Disposition: inline; filename="chestodds.json"; filename*=utf-8''chestodds.json
+Content-Md5: XpqdNRmWvbHadYFqhGUx/A==
+Content-Transfer-Encoding: binary
+Etag: "Fg808YpXy2kyaN9pmBHfekY8xGOZ"
+Last-Modified: Thu, 16 Jul 2026 13:31:53 GMT
+X-Log: X-Log
+X-M-Log: QNM:cdn-cache-dls-zjwz-wz-28;QNM:yzh164;SRCPROXY:yzh150;SRC_***:31;SRCPROXY:31;QNM3:35;QNM3:99
+X-M-Reqid: HXirlxdqG
+X-Qiniu-Zone: 2
+X-Qnm-Cache: Miss
+X-Reqid: ON8AAABqpVMWf8QY
+X-Svr: IO
+

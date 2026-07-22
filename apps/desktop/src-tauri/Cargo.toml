@@ -1,0 +1,31 @@
+[package]
+name = "hero-lineup-desktop"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[lib]
+name = "hero_lineup_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+chrono.workspace = true
+rusqlite.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tauri = { version = "2", features = ["protocol-asset"] }
+tauri-plugin-dialog = "2"
+hero-simulator = { path = "../../../crates/hero-simulator" }
+hero-domain = { path = "../../../crates/hero-domain" }
+hero-storage = { path = "../../../crates/hero-storage" }
+hero-catalog = { path = "../../../crates/hero-catalog" }
+hero-data = { path = "../../../crates/hero-data" }
+semver = "1"
+uuid.workspace = true
+
+[dev-dependencies]
+tempfile = "3"

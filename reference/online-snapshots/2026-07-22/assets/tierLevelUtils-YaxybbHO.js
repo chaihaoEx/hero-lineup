@@ -1,0 +1,1 @@
+function a(u,s){const n=Number(u);if(!Number.isFinite(n))return null;let e=null;for(const[r,i]of Object.entries(s)){const[t,l]=i;if(n>=t&&n<=l){const f=parseInt(r,10);(e===null||f>e)&&(e=f)}}if(e!==null)return e;let c=null,o=-1/0;for(const[r,i]of Object.entries(s)){const[t]=i,l=parseInt(r,10);n>=t&&t>o&&(o=t,c=l)}return c}export{a as g};

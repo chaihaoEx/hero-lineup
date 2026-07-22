@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "英雄体系搭配",
+  "version": "0.1.0",
+  "identifier": "cn.cq-zys.hero-lineup",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [{
+      "title": "英雄体系搭配 · 离线版",
+      "width": 1440,
+      "height": 900,
+      "minWidth": 880,
+      "minHeight": 680,
+      "center": true
+    }],
+    "security": {
+      "csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' asset: http://asset.localhost data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' ipc: http://ipc.localhost; font-src 'self' data:; object-src 'none'; frame-src 'none'; base-uri 'self'",
+      "assetProtocol": { "enable": true, "scope": ["$RESOURCE/**", "$APPDATA/content/**"] }
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "resources": { "../../../content/": "content/" },
+    "category": "Productivity",
+    "shortDescription": "完全离线的英雄阵容、配装与冒险模拟工具"
+  }
+}

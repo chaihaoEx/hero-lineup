@@ -1,0 +1,5855 @@
+{
+  "success": true,
+  "system": {
+    "isPublic": true,
+    "description": "",
+    "id": "default",
+    "name": "丛林究极",
+    "shortCode": "V6D8J7",
+    "groups": [
+      {
+        "id": "default",
+        "name": "默认分组",
+        "_id": "698d211d5b1788352dbec11f"
+      },
+      {
+        "id": "group-1770858820425",
+        "name": "分组 2",
+        "_id": "698d2d5d5b1788352dbed4bd"
+      }
+    ],
+    "heroes": [
+      {
+        "id": "lord-1770856912070",
+        "class": "lord",
+        "_id": "698d2f8a5b1788352dbedb09"
+      },
+      {
+        "id": "lord-1770856952829",
+        "class": "lord",
+        "_id": "698d2f8a5b1788352dbedb0a"
+      },
+      {
+        "id": "warden-1770856966619",
+        "class": "warden",
+        "_id": "698d2f8a5b1788352dbedb0b"
+      },
+      {
+        "id": "warden-1770857066208",
+        "class": "warden",
+        "_id": "698d2f8a5b1788352dbedb0c"
+      },
+      {
+        "id": "jarl-1770857100847",
+        "class": "jarl",
+        "_id": "698d2f8a5b1788352dbedb0d"
+      },
+      {
+        "id": "deathknight-1770857220921",
+        "class": "deathknight",
+        "_id": "698d2f8a5b1788352dbedb0e"
+      },
+      {
+        "id": "deathknight-1770857331481",
+        "class": "deathknight",
+        "_id": "698d2f8a5b1788352dbedb0f"
+      },
+      {
+        "id": "mastermonk-1770857375915",
+        "class": "mastermonk",
+        "_id": "698d2f8a5b1788352dbedb10"
+      },
+      {
+        "id": "pathfinder-1770857475013",
+        "class": "pathfinder",
+        "_id": "698d2f8a5b1788352dbedb11"
+      },
+      {
+        "id": "pathfinder-1770857615400",
+        "class": "pathfinder",
+        "_id": "698d2f8a5b1788352dbedb12"
+      },
+      {
+        "id": "pathfinder-1770857616033",
+        "class": "pathfinder",
+        "_id": "698d2f8a5b1788352dbedb13"
+      },
+      {
+        "id": "acrobat-1770859832129",
+        "class": "acrobat",
+        "_id": "698d2f8a5b1788352dbedb14"
+      },
+      {
+        "id": "praetorian-1770857628551",
+        "class": "praetorian",
+        "_id": "698d2f8a5b1788352dbedb15"
+      },
+      {
+        "id": "praetorian-1770857714389",
+        "class": "praetorian",
+        "_id": "698d2f8a5b1788352dbedb16"
+      },
+      {
+        "id": "archmage-1770857742669",
+        "class": "archmage",
+        "_id": "698d2f8a5b1788352dbedb17"
+      },
+      {
+        "id": "archmage-1770857893969",
+        "class": "archmage",
+        "_id": "698d2f8a5b1788352dbedb18"
+      },
+      {
+        "id": "bishop-1770859856878",
+        "class": "bishop",
+        "_id": "698d2f8a5b1788352dbedb19"
+      },
+      {
+        "id": "archdruid-1770857904898",
+        "class": "archdruid",
+        "_id": "698d2f8a5b1788352dbedb1a"
+      },
+      {
+        "id": "archdruid-1770857983670",
+        "class": "archdruid",
+        "_id": "698d2f8a5b1788352dbedb1b"
+      },
+      {
+        "id": "warlock-1770858153835",
+        "class": "warlock",
+        "_id": "698d2f8a5b1788352dbedb1c"
+      },
+      {
+        "id": "warlock-1770858213470",
+        "class": "warlock",
+        "_id": "698d2f8a5b1788352dbedb1d"
+      },
+      {
+        "id": "spellknight-1770858261029",
+        "class": "spellknight",
+        "_id": "698d2f8a5b1788352dbedb1e"
+      },
+      {
+        "id": "spellknight-1770858412338",
+        "class": "spellknight",
+        "_id": "698d2f8a5b1788352dbedb1f"
+      },
+      {
+        "id": "spellknight-1770858413083",
+        "class": "spellknight",
+        "_id": "698d2f8a5b1788352dbedb20"
+      },
+      {
+        "id": "spellknight-1770858413694",
+        "class": "spellknight",
+        "_id": "698d2f8a5b1788352dbedb21"
+      },
+      {
+        "id": "spellknight-1770858414283",
+        "class": "spellknight",
+        "_id": "698d2f8a5b1788352dbedb22"
+      },
+      {
+        "id": "spellknight-1770858415142",
+        "class": "spellknight",
+        "_id": "698d2f8a5b1788352dbedb23"
+      },
+      {
+        "id": "astramancer-1770858450881",
+        "class": "astramancer",
+        "_id": "698d2f8a5b1788352dbedb24"
+      },
+      {
+        "id": "astramancer-1770858683473",
+        "class": "astramancer",
+        "_id": "698d2f8a5b1788352dbedb25"
+      },
+      {
+        "id": "astramancer-1770858683893",
+        "class": "astramancer",
+        "_id": "698d2f8a5b1788352dbedb26"
+      },
+      {
+        "id": "astramancer-1770858684664",
+        "class": "astramancer",
+        "_id": "698d2f8a5b1788352dbedb27"
+      },
+      {
+        "id": "timekeeper-1770858708261",
+        "class": "timekeeper",
+        "_id": "698d2f8a5b1788352dbedb28"
+      },
+      {
+        "id": "timekeeper-1770858800876",
+        "class": "timekeeper",
+        "_id": "698d2f8a5b1788352dbedb29"
+      }
+    ],
+    "champions": [
+      {
+        "id": "argon",
+        "_id": "698d2f8a5b1788352dbedb2a"
+      },
+      {
+        "id": "lilu",
+        "_id": "698d2f8a5b1788352dbedb2b"
+      },
+      {
+        "id": "sia",
+        "_id": "698d2f8a5b1788352dbedb2c"
+      },
+      {
+        "id": "yami",
+        "_id": "698d2f8a5b1788352dbedb2d"
+      },
+      {
+        "id": "rudo",
+        "_id": "698d2f8a5b1788352dbedb2e"
+      },
+      {
+        "id": "polonia",
+        "_id": "698d2f8a5b1788352dbedb2f"
+      },
+      {
+        "id": "donovan",
+        "_id": "698d2f8a5b1788352dbedb30"
+      },
+      {
+        "id": "hemma",
+        "_id": "698d2f8a5b1788352dbedb31"
+      },
+      {
+        "id": "ashley",
+        "_id": "698d2f8a5b1788352dbedb32"
+      },
+      {
+        "id": "bjorn",
+        "_id": "698d2f8a5b1788352dbedb33"
+      },
+      {
+        "id": "malady",
+        "_id": "698d2f8a5b1788352dbedb34"
+      },
+      {
+        "id": "leather",
+        "_id": "698d2f8a5b1788352dbedb35"
+      },
+      {
+        "id": "king",
+        "_id": "698d2f8a5b1788352dbedb36"
+      }
+    ],
+    "adventureTasks": [
+      {
+        "id": "task-1770858820425",
+        "questId": "jurassic04",
+        "heroes": [
+          "lord-1770856912070",
+          "warlock-1770858153835",
+          "warlock-1770858213470"
+        ],
+        "champions": [
+          "malady"
+        ],
+        "groupId": "group-1770858820425",
+        "simulationConfig": {
+          "booster": 0,
+          "miniboss": "none",
+          "selectedElement": "light"
+        },
+        "simulationResult": {
+          "successRate": 98.21,
+          "averageRounds": 34.07942164749007,
+          "minRounds": 29,
+          "maxRounds": 83,
+          "simulationCount": 10000,
+          "heroStats": [
+            {
+              "id": "lord-1770856912070",
+              "name": "领主1",
+              "class": "lord",
+              "survivalRate": 98.09,
+              "averageDamage": 141027.0465,
+              "averageFinalHp": 1962.175,
+              "initialHp": 3637
+            },
+            {
+              "id": "warlock-1770858153835",
+              "name": "术士1",
+              "class": "warlock",
+              "survivalRate": 93.8,
+              "averageDamage": 3314608.545,
+              "averageFinalHp": 1098.4784,
+              "initialHp": 2621
+            },
+            {
+              "id": "warlock-1770858213470",
+              "name": "术士2",
+              "class": "warlock",
+              "survivalRate": 94,
+              "averageDamage": 3321868.887,
+              "averageFinalHp": 1099.368,
+              "initialHp": 2621
+            }
+          ],
+          "championStats": [
+            {
+              "id": "malady",
+              "name": "玛拉蒂",
+              "survivalRate": 1.72,
+              "averageDamage": 311003.6688,
+              "averageFinalHp": 4.5386,
+              "initialHp": 1121
+            }
+          ]
+        },
+        "simulationResultOverall": {
+          "successRate": 98.21,
+          "firstAttempt": {
+            "successRate": 98.21,
+            "averageRounds": 34.07942164749007,
+            "minRounds": 29,
+            "maxRounds": 83,
+            "simulationCount": 10000,
+            "heroStats": [
+              {
+                "id": "lord-1770856912070",
+                "name": "领主1",
+                "class": "lord",
+                "survivalRate": 98.09,
+                "averageDamage": 141027.0465,
+                "averageFinalHp": 1962.175,
+                "initialHp": 3637
+              },
+              {
+                "id": "warlock-1770858153835",
+                "name": "术士1",
+                "class": "warlock",
+                "survivalRate": 93.8,
+                "averageDamage": 3314608.545,
+                "averageFinalHp": 1098.4784,
+                "initialHp": 2621
+              },
+              {
+                "id": "warlock-1770858213470",
+                "name": "术士2",
+                "class": "warlock",
+                "survivalRate": 94,
+                "averageDamage": 3321868.887,
+                "averageFinalHp": 1099.368,
+                "initialHp": 2621
+              }
+            ],
+            "championStats": [
+              {
+                "id": "malady",
+                "name": "玛拉蒂",
+                "survivalRate": 1.72,
+                "averageDamage": 311003.6688,
+                "averageFinalHp": 4.5386,
+                "initialHp": 1121
+              }
+            ]
+          },
+          "hasSecondAttempt": false,
+          "heroNameSnapshot": {
+            "lord-1770856912070": "领主1",
+            "lord-1770856952829": "领主2",
+            "warden-1770856966619": "守望者1",
+            "warden-1770857066208": "守望者2",
+            "jarl-1770857100847": "头领1",
+            "deathknight-1770857220921": "慈悲骑士1",
+            "deathknight-1770857331481": "慈悲骑士2",
+            "mastermonk-1770857375915": "宗师1",
+            "pathfinder-1770857475013": "开拓者1",
+            "pathfinder-1770857615400": "开拓者2",
+            "pathfinder-1770857616033": "开拓者3",
+            "praetorian-1770857628551": "禁卫军1",
+            "praetorian-1770857714389": "禁卫军2",
+            "archmage-1770857742669": "大法师1",
+            "archmage-1770857893969": "大法师2",
+            "archdruid-1770857904898": "大德鲁伊1",
+            "archdruid-1770857983670": "大德鲁伊2",
+            "warlock-1770858153835": "术士1",
+            "warlock-1770858213470": "术士2",
+            "spellknight-1770858261029": "咒术骑士1",
+            "spellknight-1770858412338": "咒术骑士2",
+            "spellknight-1770858413083": "咒术骑士3",
+            "spellknight-1770858413694": "咒术骑士4",
+            "spellknight-1770858414283": "咒术骑士5",
+            "spellknight-1770858415142": "咒术骑士6",
+            "astramancer-1770858450881": "星术师1",
+            "astramancer-1770858683473": "星术师2",
+            "astramancer-1770858683893": "星术师3",
+            "astramancer-1770858684664": "星术师4",
+            "timekeeper-1770858708261": "织命者1",
+            "timekeeper-1770858800876": "织命者2"
+          },
+          "heroEquipmentSnapshot": {
+            "lord-1770856912070": {
+              "heroId": "lord-1770856912070",
+              "heroName": "领主1",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "s_megaevasion4",
+                "s_megahp4",
+                "p_extraplating4",
+                "s_defevasion4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "shoprdualwield",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "titan"
+                },
+                "slot2": {
+                  "itemId": "plushieheavyarmor",
+                  "quality": "uncommon",
+                  "elementId": "t14light",
+                  "spiritId": "griffin"
+                },
+                "slot3": {
+                  "itemId": "darkgauntlets",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "griffin"
+                },
+                "slot4": {
+                  "itemId": "plushiehelm",
+                  "quality": "uncommon",
+                  "elementId": "t14light",
+                  "spiritId": "griffin"
+                },
+                "slot5": {
+                  "itemId": "plushieboots",
+                  "quality": "uncommon",
+                  "elementId": "t14light",
+                  "spiritId": "griffin"
+                },
+                "slot6": {
+                  "itemId": "cardshield",
+                  "quality": "uncommon",
+                  "elementId": "t14light",
+                  "spiritId": "griffin"
+                }
+              }
+            },
+            "warlock-1770858153835": {
+              "heroId": "warlock-1770858153835",
+              "heroName": "术士1",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "s_megahp4",
+                "s_megabreak4",
+                "p_manashield4",
+                "p_petrify4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "porcelainwand",
+                  "quality": "common",
+                  "elementId": "t14dark",
+                  "spiritId": "ouroboros"
+                },
+                "slot2": {
+                  "itemId": "maladyrobe",
+                  "quality": "common",
+                  "elementId": "t14dark",
+                  "spiritId": "ouroboros"
+                },
+                "slot3": {
+                  "itemId": "shoprgloves",
+                  "quality": "common",
+                  "elementId": "t14dark",
+                  "spiritId": "ouroboros"
+                },
+                "slot4": {
+                  "itemId": "shoprshoes",
+                  "quality": "common",
+                  "elementId": "t14dark",
+                  "spiritId": "ouroboros"
+                },
+                "slot5": {
+                  "itemId": "gb_scroll",
+                  "quality": "uncommon",
+                  "elementId": "t14dark",
+                  "spiritId": "ouroboros"
+                },
+                "slot6": {
+                  "itemId": "gb_scroll",
+                  "quality": "uncommon",
+                  "elementId": "t14dark",
+                  "spiritId": "ouroboros"
+                }
+              }
+            },
+            "warlock-1770858213470": {
+              "heroId": "warlock-1770858213470",
+              "heroName": "术士2",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "s_megahp4",
+                "s_megabreak4",
+                "p_manashield4",
+                "p_petrify4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "porcelainwand",
+                  "quality": "common",
+                  "elementId": "t14dark",
+                  "spiritId": "ouroboros"
+                },
+                "slot2": {
+                  "itemId": "maladyrobe",
+                  "quality": "common",
+                  "elementId": "t14dark",
+                  "spiritId": "ouroboros"
+                },
+                "slot3": {
+                  "itemId": "shoprgloves",
+                  "quality": "common",
+                  "elementId": "t14dark",
+                  "spiritId": "ouroboros"
+                },
+                "slot4": {
+                  "itemId": "shoprshoes",
+                  "quality": "common",
+                  "elementId": "t14dark",
+                  "spiritId": "ouroboros"
+                },
+                "slot5": {
+                  "itemId": "gb_scroll",
+                  "quality": "uncommon",
+                  "elementId": "t14dark",
+                  "spiritId": "ouroboros"
+                },
+                "slot6": {
+                  "itemId": "gb_scroll",
+                  "quality": "uncommon",
+                  "elementId": "t14dark",
+                  "spiritId": "ouroboros"
+                }
+              }
+            }
+          },
+          "championEquipmentSnapshot": {
+            "malady": {
+              "championId": "malady",
+              "level": 40,
+              "rank": 10,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "isTitan": false,
+              "cardLevel": 0,
+              "equipment": {
+                "familiar": {
+                  "itemId": "demigod",
+                  "quality": "common",
+                  "elementId": null,
+                  "spiritId": "bahamut"
+                },
+                "aurasong": {
+                  "itemId": "paintaura",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "bahamut"
+                }
+              }
+            }
+          }
+        },
+        "_id": "698d2f8a5b1788352dbedb37"
+      },
+      {
+        "id": "task-1770858866309",
+        "questId": "jurassic04",
+        "heroes": [
+          "jarl-1770857100847",
+          "archmage-1770857742669",
+          "mastermonk-1770857375915"
+        ],
+        "champions": [
+          "polonia"
+        ],
+        "groupId": "group-1770858820425",
+        "simulationConfig": {
+          "booster": 0,
+          "miniboss": "none",
+          "selectedElement": "fire"
+        },
+        "simulationResult": {
+          "successRate": 100,
+          "averageRounds": 87.8539,
+          "minRounds": 75,
+          "maxRounds": 126,
+          "simulationCount": 10000,
+          "heroStats": [
+            {
+              "id": "jarl-1770857100847",
+              "name": "头领1",
+              "class": "jarl",
+              "survivalRate": 98.61999999999999,
+              "averageDamage": 441220.1819,
+              "averageFinalHp": 1629.0726,
+              "initialHp": 4551
+            },
+            {
+              "id": "archmage-1770857742669",
+              "name": "大法师1",
+              "class": "archmage",
+              "survivalRate": 99.79,
+              "averageDamage": 3825685.1552,
+              "averageFinalHp": 2014.2984,
+              "initialHp": 2770
+            },
+            {
+              "id": "mastermonk-1770857375915",
+              "name": "宗师1",
+              "class": "mastermonk",
+              "survivalRate": 99.89,
+              "averageDamage": 2721770.8776,
+              "averageFinalHp": 2193.533,
+              "initialHp": 2533
+            }
+          ],
+          "championStats": [
+            {
+              "id": "polonia",
+              "name": "波洛尼亚",
+              "survivalRate": 0,
+              "averageDamage": 56611.6992,
+              "averageFinalHp": 0,
+              "initialHp": 1070
+            }
+          ]
+        },
+        "simulationResultOverall": {
+          "successRate": 100,
+          "firstAttempt": {
+            "successRate": 100,
+            "averageRounds": 87.8539,
+            "minRounds": 75,
+            "maxRounds": 126,
+            "simulationCount": 10000,
+            "heroStats": [
+              {
+                "id": "jarl-1770857100847",
+                "name": "头领1",
+                "class": "jarl",
+                "survivalRate": 98.61999999999999,
+                "averageDamage": 441220.1819,
+                "averageFinalHp": 1629.0726,
+                "initialHp": 4551
+              },
+              {
+                "id": "archmage-1770857742669",
+                "name": "大法师1",
+                "class": "archmage",
+                "survivalRate": 99.79,
+                "averageDamage": 3825685.1552,
+                "averageFinalHp": 2014.2984,
+                "initialHp": 2770
+              },
+              {
+                "id": "mastermonk-1770857375915",
+                "name": "宗师1",
+                "class": "mastermonk",
+                "survivalRate": 99.89,
+                "averageDamage": 2721770.8776,
+                "averageFinalHp": 2193.533,
+                "initialHp": 2533
+              }
+            ],
+            "championStats": [
+              {
+                "id": "polonia",
+                "name": "波洛尼亚",
+                "survivalRate": 0,
+                "averageDamage": 56611.6992,
+                "averageFinalHp": 0,
+                "initialHp": 1070
+              }
+            ]
+          },
+          "hasSecondAttempt": false,
+          "heroNameSnapshot": {
+            "lord-1770856912070": "领主1",
+            "lord-1770856952829": "领主2",
+            "warden-1770856966619": "守望者1",
+            "warden-1770857066208": "守望者2",
+            "jarl-1770857100847": "头领1",
+            "deathknight-1770857220921": "慈悲骑士1",
+            "deathknight-1770857331481": "慈悲骑士2",
+            "mastermonk-1770857375915": "宗师1",
+            "pathfinder-1770857475013": "开拓者1",
+            "pathfinder-1770857615400": "开拓者2",
+            "pathfinder-1770857616033": "开拓者3",
+            "praetorian-1770857628551": "禁卫军1",
+            "praetorian-1770857714389": "禁卫军2",
+            "archmage-1770857742669": "大法师1",
+            "archmage-1770857893969": "大法师2",
+            "archdruid-1770857904898": "大德鲁伊1",
+            "archdruid-1770857983670": "大德鲁伊2",
+            "warlock-1770858153835": "术士1",
+            "warlock-1770858213470": "术士2",
+            "spellknight-1770858261029": "咒术骑士1",
+            "spellknight-1770858412338": "咒术骑士2",
+            "spellknight-1770858413083": "咒术骑士3",
+            "spellknight-1770858413694": "咒术骑士4",
+            "spellknight-1770858414283": "咒术骑士5",
+            "spellknight-1770858415142": "咒术骑士6",
+            "astramancer-1770858450881": "星术师1",
+            "astramancer-1770858683473": "星术师2",
+            "astramancer-1770858683893": "星术师3",
+            "astramancer-1770858684664": "星术师4",
+            "timekeeper-1770858708261": "织命者1",
+            "timekeeper-1770858800876": "织命者2"
+          },
+          "heroEquipmentSnapshot": {
+            "jarl-1770857100847": {
+              "heroId": "jarl-1770857100847",
+              "heroName": "头领1",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "s_megahp4",
+                "s_megaevasion4",
+                "s_defevasion4",
+                "p_extraplating4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "artifactgun",
+                  "quality": "common",
+                  "elementId": "t14fire",
+                  "spiritId": "bahamut"
+                },
+                "slot2": {
+                  "itemId": "plushieheavyarmor",
+                  "quality": "uncommon",
+                  "elementId": "t14fire",
+                  "spiritId": "griffin"
+                },
+                "slot3": {
+                  "itemId": "plushiehelm",
+                  "quality": "uncommon",
+                  "elementId": "t14fire",
+                  "spiritId": "ouroboros"
+                },
+                "slot4": {
+                  "itemId": "plushieboots",
+                  "quality": "uncommon",
+                  "elementId": "t14fire",
+                  "spiritId": "griffin"
+                },
+                "slot5": {
+                  "itemId": "siacloak",
+                  "quality": "common",
+                  "elementId": "t14fire",
+                  "spiritId": "griffin"
+                },
+                "slot6": {
+                  "itemId": "firecrabdessert",
+                  "quality": "uncommon",
+                  "elementId": "t14fire",
+                  "spiritId": "ouroboros"
+                }
+              }
+            },
+            "archmage-1770857742669": {
+              "heroId": "archmage-1770857742669",
+              "heroName": "大法师1",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "s_megahp4",
+                "p_perfectform4",
+                "p_manashield4",
+                "s_megabreak4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "paintstaff",
+                  "quality": "common",
+                  "elementId": "t14fire",
+                  "spiritId": "ouroboros"
+                },
+                "slot2": {
+                  "itemId": "maladyrobe",
+                  "quality": "common",
+                  "elementId": "t14fire",
+                  "spiritId": "ouroboros"
+                },
+                "slot3": {
+                  "itemId": "pumpkinmagehat",
+                  "quality": "common",
+                  "elementId": "t14fire",
+                  "spiritId": "ouroboros"
+                },
+                "slot4": {
+                  "itemId": "shoprshoes",
+                  "quality": "common",
+                  "elementId": "t14fire",
+                  "spiritId": "ouroboros"
+                },
+                "slot5": {
+                  "itemId": "chronoscroll",
+                  "quality": "common",
+                  "elementId": "t14fire",
+                  "spiritId": "ouroboros"
+                },
+                "slot6": {
+                  "itemId": "t15idol",
+                  "quality": "common",
+                  "elementId": "t14fire",
+                  "spiritId": "ouroboros"
+                }
+              }
+            },
+            "mastermonk-1770857375915": {
+              "heroId": "mastermonk-1770857375915",
+              "heroName": "宗师1",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "s_megaevasion4",
+                "s_megahp4",
+                "p_bladedance4",
+                "p_cloakndagger4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "maladyrobe",
+                  "quality": "uncommon",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot2": {
+                  "itemId": "maladyamulet",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot3": {
+                  "itemId": "artifactamulet",
+                  "quality": "uncommon",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot4": {
+                  "itemId": "t15idol",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot5": {
+                  "itemId": "porcelainring",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot6": {
+                  "itemId": "porcelainring",
+                  "quality": "uncommon",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                }
+              }
+            }
+          },
+          "championEquipmentSnapshot": {
+            "polonia": {
+              "championId": "polonia",
+              "level": 40,
+              "rank": 10,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "isTitan": false,
+              "cardLevel": 0,
+              "equipment": {
+                "familiar": {
+                  "itemId": "demigod",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "bahamut"
+                },
+                "aurasong": {
+                  "itemId": "paintaura",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "bahamut"
+                }
+              }
+            }
+          }
+        },
+        "_id": "698d2f8a5b1788352dbedb38"
+      },
+      {
+        "id": "task-1770858936173",
+        "questId": "jurassic04",
+        "heroes": [
+          "archmage-1770857893969",
+          "deathknight-1770857220921",
+          "archdruid-1770857983670"
+        ],
+        "champions": [
+          "donovan"
+        ],
+        "groupId": "group-1770858820425",
+        "simulationConfig": {
+          "booster": 0,
+          "miniboss": "none",
+          "selectedElement": "fire"
+        },
+        "simulationResult": {
+          "successRate": 99.94,
+          "averageRounds": 52.88773263958375,
+          "minRounds": 46,
+          "maxRounds": 73,
+          "simulationCount": 10000,
+          "heroStats": [
+            {
+              "id": "archmage-1770857893969",
+              "name": "大法师2",
+              "class": "archmage",
+              "survivalRate": 99.86,
+              "averageDamage": 2717286.948,
+              "averageFinalHp": 2105.3301,
+              "initialHp": 2943
+            },
+            {
+              "id": "deathknight-1770857220921",
+              "name": "慈悲骑士1",
+              "class": "deathknight",
+              "survivalRate": 96.26,
+              "averageDamage": 235848.852,
+              "averageFinalHp": 1428.9954,
+              "initialHp": 4572
+            },
+            {
+              "id": "archdruid-1770857983670",
+              "name": "大德鲁伊2",
+              "class": "archdruid",
+              "survivalRate": 99.72,
+              "averageDamage": 3242189.7606,
+              "averageFinalHp": 2245.1206,
+              "initialHp": 3478
+            }
+          ],
+          "championStats": [
+            {
+              "id": "donovan",
+              "name": "多诺万",
+              "survivalRate": 0,
+              "averageDamage": 244910.82,
+              "averageFinalHp": 0,
+              "initialHp": 931
+            }
+          ]
+        },
+        "simulationResultOverall": {
+          "successRate": 99.94,
+          "firstAttempt": {
+            "successRate": 99.94,
+            "averageRounds": 52.88773263958375,
+            "minRounds": 46,
+            "maxRounds": 73,
+            "simulationCount": 10000,
+            "heroStats": [
+              {
+                "id": "archmage-1770857893969",
+                "name": "大法师2",
+                "class": "archmage",
+                "survivalRate": 99.86,
+                "averageDamage": 2717286.948,
+                "averageFinalHp": 2105.3301,
+                "initialHp": 2943
+              },
+              {
+                "id": "deathknight-1770857220921",
+                "name": "慈悲骑士1",
+                "class": "deathknight",
+                "survivalRate": 96.26,
+                "averageDamage": 235848.852,
+                "averageFinalHp": 1428.9954,
+                "initialHp": 4572
+              },
+              {
+                "id": "archdruid-1770857983670",
+                "name": "大德鲁伊2",
+                "class": "archdruid",
+                "survivalRate": 99.72,
+                "averageDamage": 3242189.7606,
+                "averageFinalHp": 2245.1206,
+                "initialHp": 3478
+              }
+            ],
+            "championStats": [
+              {
+                "id": "donovan",
+                "name": "多诺万",
+                "survivalRate": 0,
+                "averageDamage": 244910.82,
+                "averageFinalHp": 0,
+                "initialHp": 931
+              }
+            ]
+          },
+          "hasSecondAttempt": false,
+          "heroNameSnapshot": {
+            "lord-1770856912070": "领主1",
+            "lord-1770856952829": "领主2",
+            "warden-1770856966619": "守望者1",
+            "warden-1770857066208": "守望者2",
+            "jarl-1770857100847": "头领1",
+            "deathknight-1770857220921": "慈悲骑士1",
+            "deathknight-1770857331481": "慈悲骑士2",
+            "mastermonk-1770857375915": "宗师1",
+            "pathfinder-1770857475013": "开拓者1",
+            "pathfinder-1770857615400": "开拓者2",
+            "pathfinder-1770857616033": "开拓者3",
+            "praetorian-1770857628551": "禁卫军1",
+            "praetorian-1770857714389": "禁卫军2",
+            "archmage-1770857742669": "大法师1",
+            "archmage-1770857893969": "大法师2",
+            "archdruid-1770857904898": "大德鲁伊1",
+            "archdruid-1770857983670": "大德鲁伊2",
+            "warlock-1770858153835": "术士1",
+            "warlock-1770858213470": "术士2",
+            "spellknight-1770858261029": "咒术骑士1",
+            "spellknight-1770858412338": "咒术骑士2",
+            "spellknight-1770858413083": "咒术骑士3",
+            "spellknight-1770858413694": "咒术骑士4",
+            "spellknight-1770858414283": "咒术骑士5",
+            "spellknight-1770858415142": "咒术骑士6",
+            "astramancer-1770858450881": "星术师1",
+            "astramancer-1770858683473": "星术师2",
+            "astramancer-1770858683893": "星术师3",
+            "astramancer-1770858684664": "星术师4",
+            "timekeeper-1770858708261": "织命者1",
+            "timekeeper-1770858800876": "织命者2"
+          },
+          "heroEquipmentSnapshot": {
+            "archmage-1770857893969": {
+              "heroId": "archmage-1770857893969",
+              "heroName": "大法师2",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "s_megahp4",
+                "p_perfectform4",
+                "p_manashield4",
+                "s_megabreak4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "paintstaff",
+                  "quality": "common",
+                  "elementId": "t14fire",
+                  "spiritId": "ouroboros"
+                },
+                "slot2": {
+                  "itemId": "maladyrobe",
+                  "quality": "common",
+                  "elementId": "t14fire",
+                  "spiritId": "ouroboros"
+                },
+                "slot3": {
+                  "itemId": "pumpkinmagehat",
+                  "quality": "common",
+                  "elementId": "t14fire",
+                  "spiritId": "ouroboros"
+                },
+                "slot4": {
+                  "itemId": "shoprshoes",
+                  "quality": "common",
+                  "elementId": "t14fire",
+                  "spiritId": "ouroboros"
+                },
+                "slot5": {
+                  "itemId": "chronoscroll",
+                  "quality": "common",
+                  "elementId": "t14fire",
+                  "spiritId": "ouroboros"
+                },
+                "slot6": {
+                  "itemId": "t15idol",
+                  "quality": "common",
+                  "elementId": "t14fire",
+                  "spiritId": "ouroboros"
+                }
+              }
+            },
+            "deathknight-1770857220921": {
+              "heroId": "deathknight-1770857220921",
+              "heroName": "慈悲骑士1",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "s_megahp4",
+                "s_megaevasion4",
+                "p_extraplating4",
+                "s_defevasion4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "thiefcrossbow",
+                  "quality": "uncommon",
+                  "elementId": "t14dark",
+                  "spiritId": "griffin"
+                },
+                "slot2": {
+                  "itemId": "plushieheavyarmor",
+                  "quality": "uncommon",
+                  "elementId": "t14dark",
+                  "spiritId": "griffin"
+                },
+                "slot3": {
+                  "itemId": "plushiehelm",
+                  "quality": "uncommon",
+                  "elementId": "t14dark",
+                  "spiritId": "griffin"
+                },
+                "slot4": {
+                  "itemId": "plushieboots",
+                  "quality": "uncommon",
+                  "elementId": "t14dark",
+                  "spiritId": "griffin"
+                },
+                "slot5": {
+                  "itemId": "t15idol",
+                  "quality": "uncommon",
+                  "elementId": "t14dark",
+                  "spiritId": "griffin"
+                },
+                "slot6": {
+                  "itemId": "t15idol",
+                  "quality": "uncommon",
+                  "elementId": "t14dark",
+                  "spiritId": "griffin"
+                }
+              }
+            },
+            "archdruid-1770857983670": {
+              "heroId": "archdruid-1770857983670",
+              "heroName": "大德鲁伊2",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "s_megahp4",
+                "s_megabreak4",
+                "p_manashield4",
+                "p_perfectform4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "froginstrument",
+                  "quality": "common",
+                  "elementId": "t14earth",
+                  "spiritId": "ouroboros"
+                },
+                "slot2": {
+                  "itemId": "maladyrobe",
+                  "quality": "common",
+                  "elementId": "t14earth",
+                  "spiritId": "ouroboros"
+                },
+                "slot3": {
+                  "itemId": "darkmeal",
+                  "quality": "common",
+                  "elementId": "t14earth",
+                  "spiritId": "ouroboros"
+                },
+                "slot4": {
+                  "itemId": "firecrabherb",
+                  "quality": "common",
+                  "elementId": "t14earth",
+                  "spiritId": "ouroboros"
+                },
+                "slot5": {
+                  "itemId": "maladyamulet",
+                  "quality": "common",
+                  "elementId": "t14earth",
+                  "spiritId": "ouroboros"
+                },
+                "slot6": {
+                  "itemId": "gb_scroll",
+                  "quality": "uncommon",
+                  "elementId": "t14earth",
+                  "spiritId": "ouroboros"
+                }
+              }
+            }
+          },
+          "championEquipmentSnapshot": {
+            "donovan": {
+              "championId": "donovan",
+              "level": 40,
+              "rank": 10,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "isTitan": false,
+              "cardLevel": 0,
+              "equipment": {
+                "familiar": {
+                  "itemId": "demigod",
+                  "quality": "common",
+                  "elementId": "t14fire",
+                  "spiritId": "bahamut"
+                },
+                "aurasong": {
+                  "itemId": "paintaura",
+                  "quality": "common",
+                  "elementId": "t14fire",
+                  "spiritId": "bahamut"
+                }
+              }
+            }
+          }
+        },
+        "_id": "698d2f8a5b1788352dbedb39"
+      },
+      {
+        "id": "task-1770859014643",
+        "questId": "jurassic04",
+        "heroes": [
+          "warden-1770856966619",
+          "timekeeper-1770858708261",
+          "astramancer-1770858450881"
+        ],
+        "champions": [
+          "lilu"
+        ],
+        "groupId": "group-1770858820425",
+        "simulationConfig": {
+          "booster": 0,
+          "miniboss": "none",
+          "selectedElement": "air"
+        },
+        "simulationResult": {
+          "successRate": 99.82,
+          "averageRounds": 30.870767381286317,
+          "minRounds": 7,
+          "maxRounds": 274,
+          "simulationCount": 10000,
+          "heroStats": [
+            {
+              "id": "warden-1770856966619",
+              "name": "守望者1",
+              "class": "warden",
+              "survivalRate": 99.81,
+              "averageDamage": 85210.8165,
+              "averageFinalHp": 3453.4277,
+              "initialHp": 3902
+            },
+            {
+              "id": "timekeeper-1770858708261",
+              "name": "织命者1",
+              "class": "timekeeper",
+              "survivalRate": 99.69,
+              "averageDamage": 1713435.0758,
+              "averageFinalHp": 2474.3145,
+              "initialHp": 2971
+            },
+            {
+              "id": "astramancer-1770858450881",
+              "name": "星术师1",
+              "class": "astramancer",
+              "survivalRate": 48.22,
+              "averageDamage": 5274617.3824,
+              "averageFinalHp": 205.5361,
+              "initialHp": 997
+            }
+          ],
+          "championStats": [
+            {
+              "id": "lilu",
+              "name": "里路",
+              "survivalRate": 38.34,
+              "averageDamage": 168743.692,
+              "averageFinalHp": 180.958,
+              "initialHp": 1018
+            }
+          ]
+        },
+        "simulationResultSecond": {
+          "successRate": 100,
+          "averageRounds": 17.333333333333332,
+          "minRounds": 6,
+          "maxRounds": 73,
+          "simulationCount": 18,
+          "heroStats": [
+            {
+              "id": "warden-1770856966619",
+              "name": "守望者1",
+              "class": "warden",
+              "survivalRate": 100,
+              "averageDamage": 62142.88888888889,
+              "averageFinalHp": 3601.5,
+              "initialHp": 3902
+            },
+            {
+              "id": "timekeeper-1770858708261",
+              "name": "织命者1",
+              "class": "timekeeper",
+              "survivalRate": 100,
+              "averageDamage": 1250229.888888889,
+              "averageFinalHp": 2817.5555555555557,
+              "initialHp": 2971
+            },
+            {
+              "id": "astramancer-1770858450881",
+              "name": "星术师1",
+              "class": "astramancer",
+              "survivalRate": 55.55555555555556,
+              "averageDamage": 5885671.444444444,
+              "averageFinalHp": 243.77777777777777,
+              "initialHp": 997
+            }
+          ],
+          "championStats": [
+            {
+              "id": "lilu",
+              "name": "里路",
+              "survivalRate": 55.55555555555556,
+              "averageDamage": 225201.66666666666,
+              "averageFinalHp": 274.5,
+              "initialHp": 1018
+            }
+          ]
+        },
+        "simulationResultOverall": {
+          "successRate": 100,
+          "firstAttempt": {
+            "successRate": 99.82,
+            "averageRounds": 30.870767381286317,
+            "minRounds": 7,
+            "maxRounds": 274,
+            "simulationCount": 10000,
+            "heroStats": [
+              {
+                "id": "warden-1770856966619",
+                "name": "守望者1",
+                "class": "warden",
+                "survivalRate": 99.81,
+                "averageDamage": 85210.8165,
+                "averageFinalHp": 3453.4277,
+                "initialHp": 3902
+              },
+              {
+                "id": "timekeeper-1770858708261",
+                "name": "织命者1",
+                "class": "timekeeper",
+                "survivalRate": 99.69,
+                "averageDamage": 1713435.0758,
+                "averageFinalHp": 2474.3145,
+                "initialHp": 2971
+              },
+              {
+                "id": "astramancer-1770858450881",
+                "name": "星术师1",
+                "class": "astramancer",
+                "survivalRate": 48.22,
+                "averageDamage": 5274617.3824,
+                "averageFinalHp": 205.5361,
+                "initialHp": 997
+              }
+            ],
+            "championStats": [
+              {
+                "id": "lilu",
+                "name": "里路",
+                "survivalRate": 38.34,
+                "averageDamage": 168743.692,
+                "averageFinalHp": 180.958,
+                "initialHp": 1018
+              }
+            ]
+          },
+          "secondAttempt": {
+            "successRate": 100,
+            "averageRounds": 17.333333333333332,
+            "minRounds": 6,
+            "maxRounds": 73,
+            "simulationCount": 18,
+            "heroStats": [
+              {
+                "id": "warden-1770856966619",
+                "name": "守望者1",
+                "class": "warden",
+                "survivalRate": 100,
+                "averageDamage": 62142.88888888889,
+                "averageFinalHp": 3601.5,
+                "initialHp": 3902
+              },
+              {
+                "id": "timekeeper-1770858708261",
+                "name": "织命者1",
+                "class": "timekeeper",
+                "survivalRate": 100,
+                "averageDamage": 1250229.888888889,
+                "averageFinalHp": 2817.5555555555557,
+                "initialHp": 2971
+              },
+              {
+                "id": "astramancer-1770858450881",
+                "name": "星术师1",
+                "class": "astramancer",
+                "survivalRate": 55.55555555555556,
+                "averageDamage": 5885671.444444444,
+                "averageFinalHp": 243.77777777777777,
+                "initialHp": 997
+              }
+            ],
+            "championStats": [
+              {
+                "id": "lilu",
+                "name": "里路",
+                "survivalRate": 55.55555555555556,
+                "averageDamage": 225201.66666666666,
+                "averageFinalHp": 274.5,
+                "initialHp": 1018
+              }
+            ]
+          },
+          "hasSecondAttempt": true,
+          "overallHeroStats": [
+            {
+              "id": "warden-1770856966619",
+              "name": "守望者1",
+              "class": "warden",
+              "overallSurvivalRate": 99.99
+            },
+            {
+              "id": "timekeeper-1770858708261",
+              "name": "织命者1",
+              "class": "timekeeper",
+              "overallSurvivalRate": 99.87
+            },
+            {
+              "id": "astramancer-1770858450881",
+              "name": "星术师1",
+              "class": "astramancer",
+              "overallSurvivalRate": 48.32
+            }
+          ],
+          "overallChampionStats": [
+            {
+              "id": "lilu",
+              "name": "里路",
+              "overallSurvivalRate": 38.440000000000005
+            }
+          ],
+          "heroNameSnapshot": {
+            "lord-1770856912070": "领主1",
+            "lord-1770856952829": "领主2",
+            "warden-1770856966619": "守望者1",
+            "warden-1770857066208": "守望者2",
+            "jarl-1770857100847": "头领1",
+            "deathknight-1770857220921": "慈悲骑士1",
+            "deathknight-1770857331481": "慈悲骑士2",
+            "mastermonk-1770857375915": "宗师1",
+            "pathfinder-1770857475013": "开拓者1",
+            "pathfinder-1770857615400": "开拓者2",
+            "pathfinder-1770857616033": "开拓者3",
+            "praetorian-1770857628551": "禁卫军1",
+            "praetorian-1770857714389": "禁卫军2",
+            "archmage-1770857742669": "大法师1",
+            "archmage-1770857893969": "大法师2",
+            "archdruid-1770857904898": "大德鲁伊1",
+            "archdruid-1770857983670": "大德鲁伊2",
+            "warlock-1770858153835": "术士1",
+            "warlock-1770858213470": "术士2",
+            "spellknight-1770858261029": "咒术骑士1",
+            "spellknight-1770858412338": "咒术骑士2",
+            "spellknight-1770858413083": "咒术骑士3",
+            "spellknight-1770858413694": "咒术骑士4",
+            "spellknight-1770858414283": "咒术骑士5",
+            "spellknight-1770858415142": "咒术骑士6",
+            "astramancer-1770858450881": "星术师1",
+            "astramancer-1770858683473": "星术师2",
+            "astramancer-1770858683893": "星术师3",
+            "astramancer-1770858684664": "星术师4",
+            "timekeeper-1770858708261": "织命者1",
+            "timekeeper-1770858800876": "织命者2"
+          },
+          "heroEquipmentSnapshot": {
+            "warden-1770856966619": {
+              "heroId": "warden-1770856966619",
+              "heroName": "守望者1",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "s_megaevasion4",
+                "s_megahp4",
+                "p_extraplating4",
+                "s_defevasion4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "thiefcrossbow",
+                  "quality": "common",
+                  "elementId": "t14air",
+                  "spiritId": "ouroboros"
+                },
+                "slot2": {
+                  "itemId": "plushieheavyarmor",
+                  "quality": "uncommon",
+                  "elementId": "t14air",
+                  "spiritId": "ouroboros"
+                },
+                "slot3": {
+                  "itemId": "darkgauntlets",
+                  "quality": "common",
+                  "elementId": "t14air",
+                  "spiritId": "ouroboros"
+                },
+                "slot4": {
+                  "itemId": "plushiehelm",
+                  "quality": "uncommon",
+                  "elementId": "t14air",
+                  "spiritId": "ouroboros"
+                },
+                "slot5": {
+                  "itemId": "demigodpotion",
+                  "quality": "common",
+                  "elementId": "t14air",
+                  "spiritId": "ouroboros"
+                },
+                "slot6": {
+                  "itemId": "siacloak",
+                  "quality": "common",
+                  "elementId": "t14air",
+                  "spiritId": "ouroboros"
+                }
+              }
+            },
+            "timekeeper-1770858708261": {
+              "heroId": "timekeeper-1770858708261",
+              "heroName": "织命者1",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "p_manashield4",
+                "s_megahp4",
+                "p_perfectform4",
+                "s_megabreak4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "artifactsword",
+                  "quality": "common",
+                  "elementId": "t14air",
+                  "spiritId": "ouroboros"
+                },
+                "slot2": {
+                  "itemId": "maladyrobe",
+                  "quality": "common",
+                  "elementId": "t14air",
+                  "spiritId": "ouroboros"
+                },
+                "slot3": {
+                  "itemId": "pumpkinmagehat",
+                  "quality": "common",
+                  "elementId": "t14air",
+                  "spiritId": "ouroboros"
+                },
+                "slot4": {
+                  "itemId": "shoprshoes",
+                  "quality": "common",
+                  "elementId": "t14air",
+                  "spiritId": "ouroboros"
+                },
+                "slot5": {
+                  "itemId": "chronoscroll",
+                  "quality": "common",
+                  "elementId": "t14air",
+                  "spiritId": "ouroboros"
+                },
+                "slot6": {
+                  "itemId": "maladyamulet",
+                  "quality": "common",
+                  "elementId": "t14air",
+                  "spiritId": "ouroboros"
+                }
+              }
+            },
+            "astramancer-1770858450881": {
+              "heroId": "astramancer-1770858450881",
+              "heroName": "星术师1",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "s_arcanemaster4",
+                "s_megacritmult4",
+                "p_doublecast4",
+                "s_megacrit4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "lightdarkwand",
+                  "quality": "legendary",
+                  "elementId": null,
+                  "spiritId": null
+                },
+                "slot2": {
+                  "itemId": "firemagerobe",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "leviathan"
+                },
+                "slot3": {
+                  "itemId": "phoenixmagehat",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "leviathan"
+                },
+                "slot4": {
+                  "itemId": "pumpkingloves",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "leviathan"
+                },
+                "slot5": {
+                  "itemId": "gb_scroll",
+                  "quality": "uncommon",
+                  "elementId": "t14water",
+                  "spiritId": "leviathan"
+                },
+                "slot6": {
+                  "itemId": "lightdarkherb",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "leviathan"
+                }
+              }
+            }
+          },
+          "championEquipmentSnapshot": {
+            "lilu": {
+              "championId": "lilu",
+              "level": 40,
+              "rank": 10,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "isTitan": false,
+              "cardLevel": 0,
+              "equipment": {
+                "familiar": {
+                  "itemId": "demigod",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "bahamut"
+                },
+                "aurasong": {
+                  "itemId": "paintaura",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "bahamut"
+                }
+              }
+            }
+          }
+        },
+        "_id": "698d2f8a5b1788352dbedb3a"
+      },
+      {
+        "id": "task-1770859050848",
+        "questId": "jurassic04",
+        "heroes": [
+          "pathfinder-1770857475013",
+          "praetorian-1770857714389",
+          "praetorian-1770857628551"
+        ],
+        "champions": [
+          "ashley"
+        ],
+        "groupId": "group-1770858820425",
+        "simulationConfig": {
+          "booster": 0,
+          "miniboss": "none",
+          "selectedElement": "light"
+        },
+        "simulationResult": {
+          "successRate": 100,
+          "averageRounds": 101.1882,
+          "minRounds": 91,
+          "maxRounds": 170,
+          "simulationCount": 10000,
+          "heroStats": [
+            {
+              "id": "pathfinder-1770857475013",
+              "name": "开拓者1",
+              "class": "pathfinder",
+              "survivalRate": 98.65,
+              "averageDamage": 3193492.7141,
+              "averageFinalHp": 1905.0347,
+              "initialHp": 2495
+            },
+            {
+              "id": "praetorian-1770857714389",
+              "name": "禁卫军2",
+              "class": "praetorian",
+              "survivalRate": 99.92,
+              "averageDamage": 1872619.4269,
+              "averageFinalHp": 2044.5098,
+              "initialHp": 2278
+            },
+            {
+              "id": "praetorian-1770857628551",
+              "name": "禁卫军1",
+              "class": "praetorian",
+              "survivalRate": 99.95,
+              "averageDamage": 1873690.6393,
+              "averageFinalHp": 2044.2675,
+              "initialHp": 2278
+            }
+          ],
+          "championStats": [
+            {
+              "id": "ashley",
+              "name": "艾希莉",
+              "survivalRate": 0,
+              "averageDamage": 97226.261,
+              "averageFinalHp": 0,
+              "initialHp": 1831
+            }
+          ]
+        },
+        "simulationResultOverall": {
+          "successRate": 100,
+          "firstAttempt": {
+            "successRate": 100,
+            "averageRounds": 101.1882,
+            "minRounds": 91,
+            "maxRounds": 170,
+            "simulationCount": 10000,
+            "heroStats": [
+              {
+                "id": "pathfinder-1770857475013",
+                "name": "开拓者1",
+                "class": "pathfinder",
+                "survivalRate": 98.65,
+                "averageDamage": 3193492.7141,
+                "averageFinalHp": 1905.0347,
+                "initialHp": 2495
+              },
+              {
+                "id": "praetorian-1770857714389",
+                "name": "禁卫军2",
+                "class": "praetorian",
+                "survivalRate": 99.92,
+                "averageDamage": 1872619.4269,
+                "averageFinalHp": 2044.5098,
+                "initialHp": 2278
+              },
+              {
+                "id": "praetorian-1770857628551",
+                "name": "禁卫军1",
+                "class": "praetorian",
+                "survivalRate": 99.95,
+                "averageDamage": 1873690.6393,
+                "averageFinalHp": 2044.2675,
+                "initialHp": 2278
+              }
+            ],
+            "championStats": [
+              {
+                "id": "ashley",
+                "name": "艾希莉",
+                "survivalRate": 0,
+                "averageDamage": 97226.261,
+                "averageFinalHp": 0,
+                "initialHp": 1831
+              }
+            ]
+          },
+          "hasSecondAttempt": false,
+          "heroNameSnapshot": {
+            "lord-1770856912070": "领主1",
+            "lord-1770856952829": "领主2",
+            "warden-1770856966619": "守望者1",
+            "warden-1770857066208": "守望者2",
+            "jarl-1770857100847": "头领1",
+            "deathknight-1770857220921": "慈悲骑士1",
+            "deathknight-1770857331481": "慈悲骑士2",
+            "mastermonk-1770857375915": "宗师1",
+            "pathfinder-1770857475013": "开拓者1",
+            "pathfinder-1770857615400": "开拓者2",
+            "pathfinder-1770857616033": "开拓者3",
+            "praetorian-1770857628551": "禁卫军1",
+            "praetorian-1770857714389": "禁卫军2",
+            "archmage-1770857742669": "大法师1",
+            "archmage-1770857893969": "大法师2",
+            "archdruid-1770857904898": "大德鲁伊1",
+            "archdruid-1770857983670": "大德鲁伊2",
+            "warlock-1770858153835": "术士1",
+            "warlock-1770858213470": "术士2",
+            "spellknight-1770858261029": "咒术骑士1",
+            "spellknight-1770858412338": "咒术骑士2",
+            "spellknight-1770858413083": "咒术骑士3",
+            "spellknight-1770858413694": "咒术骑士4",
+            "spellknight-1770858414283": "咒术骑士5",
+            "spellknight-1770858415142": "咒术骑士6",
+            "astramancer-1770858450881": "星术师1",
+            "astramancer-1770858683473": "星术师2",
+            "astramancer-1770858683893": "星术师3",
+            "astramancer-1770858684664": "星术师4",
+            "timekeeper-1770858708261": "织命者1",
+            "timekeeper-1770858800876": "织命者2"
+          },
+          "heroEquipmentSnapshot": {
+            "pathfinder-1770857475013": {
+              "heroId": "pathfinder-1770857475013",
+              "heroName": "开拓者1",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "s_megaevasion4",
+                "s_warmaster4",
+                "p_bladedance4",
+                "s_megahp4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "shoprdualwield",
+                  "quality": "common",
+                  "elementId": "t14earth",
+                  "spiritId": "ouroboros"
+                },
+                "slot2": {
+                  "itemId": "lunarmediumarmor",
+                  "quality": "common",
+                  "elementId": "t14earth",
+                  "spiritId": "ouroboros"
+                },
+                "slot3": {
+                  "itemId": "varsityroguehat",
+                  "quality": "common",
+                  "elementId": "t14earth",
+                  "spiritId": "ouroboros"
+                },
+                "slot4": {
+                  "itemId": "shoprshoes",
+                  "quality": "common",
+                  "elementId": "t14earth",
+                  "spiritId": "ouroboros"
+                },
+                "slot5": {
+                  "itemId": "siacloak",
+                  "quality": "common",
+                  "elementId": "t14earth",
+                  "spiritId": "ouroboros"
+                },
+                "slot6": {
+                  "itemId": "t15idol",
+                  "quality": "common",
+                  "elementId": "t14earth",
+                  "spiritId": "ouroboros"
+                }
+              }
+            },
+            "praetorian-1770857714389": {
+              "heroId": "praetorian-1770857714389",
+              "heroName": "禁卫军2",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "s_megaevasion4",
+                "s_megahp4",
+                "p_cloakndagger4",
+                "p_bladedance4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "paladinshield",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                },
+                "slot2": {
+                  "itemId": "lunarmediumarmor",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                },
+                "slot3": {
+                  "itemId": "varsityroguehat",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                },
+                "slot4": {
+                  "itemId": "lunargloves2",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                },
+                "slot5": {
+                  "itemId": "shoprshoes",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                },
+                "slot6": {
+                  "itemId": "artifactamulet",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                }
+              }
+            },
+            "praetorian-1770857628551": {
+              "heroId": "praetorian-1770857628551",
+              "heroName": "禁卫军1",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "s_megaevasion4",
+                "s_megahp4",
+                "p_cloakndagger4",
+                "p_bladedance4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "paladinshield",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                },
+                "slot2": {
+                  "itemId": "lunarmediumarmor",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                },
+                "slot3": {
+                  "itemId": "varsityroguehat",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                },
+                "slot4": {
+                  "itemId": "lunargloves2",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                },
+                "slot5": {
+                  "itemId": "shoprshoes",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                },
+                "slot6": {
+                  "itemId": "artifactamulet",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                }
+              }
+            }
+          },
+          "championEquipmentSnapshot": {
+            "ashley": {
+              "championId": "ashley",
+              "level": 40,
+              "rank": 10,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "isTitan": true,
+              "cardLevel": 0,
+              "equipment": {
+                "familiar": {
+                  "itemId": "demigod",
+                  "quality": "common",
+                  "elementId": "t14earth",
+                  "spiritId": "bahamut"
+                },
+                "aurasong": {
+                  "itemId": "paintaura",
+                  "quality": "common",
+                  "elementId": "t14earth",
+                  "spiritId": "bahamut"
+                }
+              }
+            }
+          }
+        },
+        "_id": "698d2f8a5b1788352dbedb3b"
+      },
+      {
+        "id": "task-1770859142766",
+        "questId": "jurassic04",
+        "heroes": [
+          "spellknight-1770858413694",
+          "spellknight-1770858414283",
+          "astramancer-1770858683893"
+        ],
+        "champions": [
+          "rudo"
+        ],
+        "groupId": "group-1770858820425",
+        "simulationConfig": {
+          "booster": 0,
+          "miniboss": "none",
+          "selectedElement": "fire"
+        },
+        "simulationResult": {
+          "successRate": 98.96000000000001,
+          "averageRounds": 12.05517380759903,
+          "minRounds": 6,
+          "maxRounds": 40,
+          "simulationCount": 10000,
+          "heroStats": [
+            {
+              "id": "spellknight-1770858413694",
+              "name": "咒术骑士4",
+              "class": "spellknight",
+              "survivalRate": 98.24000000000001,
+              "averageDamage": 1137289.8616,
+              "averageFinalHp": 2116.4572,
+              "initialHp": 2847
+            },
+            {
+              "id": "spellknight-1770858414283",
+              "name": "咒术骑士5",
+              "class": "spellknight",
+              "survivalRate": 98.19,
+              "averageDamage": 1138728.7275,
+              "averageFinalHp": 2108.0155,
+              "initialHp": 2847
+            },
+            {
+              "id": "astramancer-1770858683893",
+              "name": "星术师3",
+              "class": "astramancer",
+              "survivalRate": 44.21,
+              "averageDamage": 4981176.2263,
+              "averageFinalHp": 145.8307,
+              "initialHp": 846
+            }
+          ],
+          "championStats": [
+            {
+              "id": "rudo",
+              "name": "鲁多",
+              "survivalRate": 5.970000000000001,
+              "averageDamage": 27908.5986,
+              "averageFinalHp": 19.0019,
+              "initialHp": 1831
+            }
+          ]
+        },
+        "simulationResultOverall": {
+          "successRate": 98.96000000000001,
+          "firstAttempt": {
+            "successRate": 98.96000000000001,
+            "averageRounds": 12.05517380759903,
+            "minRounds": 6,
+            "maxRounds": 40,
+            "simulationCount": 10000,
+            "heroStats": [
+              {
+                "id": "spellknight-1770858413694",
+                "name": "咒术骑士4",
+                "class": "spellknight",
+                "survivalRate": 98.24000000000001,
+                "averageDamage": 1137289.8616,
+                "averageFinalHp": 2116.4572,
+                "initialHp": 2847
+              },
+              {
+                "id": "spellknight-1770858414283",
+                "name": "咒术骑士5",
+                "class": "spellknight",
+                "survivalRate": 98.19,
+                "averageDamage": 1138728.7275,
+                "averageFinalHp": 2108.0155,
+                "initialHp": 2847
+              },
+              {
+                "id": "astramancer-1770858683893",
+                "name": "星术师3",
+                "class": "astramancer",
+                "survivalRate": 44.21,
+                "averageDamage": 4981176.2263,
+                "averageFinalHp": 145.8307,
+                "initialHp": 846
+              }
+            ],
+            "championStats": [
+              {
+                "id": "rudo",
+                "name": "鲁多",
+                "survivalRate": 5.970000000000001,
+                "averageDamage": 27908.5986,
+                "averageFinalHp": 19.0019,
+                "initialHp": 1831
+              }
+            ]
+          },
+          "hasSecondAttempt": false,
+          "heroNameSnapshot": {
+            "lord-1770856912070": "领主1",
+            "lord-1770856952829": "领主2",
+            "warden-1770856966619": "守望者1",
+            "warden-1770857066208": "守望者2",
+            "jarl-1770857100847": "头领1",
+            "deathknight-1770857220921": "慈悲骑士1",
+            "deathknight-1770857331481": "慈悲骑士2",
+            "mastermonk-1770857375915": "宗师1",
+            "pathfinder-1770857475013": "开拓者1",
+            "pathfinder-1770857615400": "开拓者2",
+            "pathfinder-1770857616033": "开拓者3",
+            "praetorian-1770857628551": "禁卫军1",
+            "praetorian-1770857714389": "禁卫军2",
+            "archmage-1770857742669": "大法师1",
+            "archmage-1770857893969": "大法师2",
+            "archdruid-1770857904898": "大德鲁伊1",
+            "archdruid-1770857983670": "大德鲁伊2",
+            "warlock-1770858153835": "术士1",
+            "warlock-1770858213470": "术士2",
+            "spellknight-1770858261029": "咒术骑士1",
+            "spellknight-1770858412338": "咒术骑士2",
+            "spellknight-1770858413083": "咒术骑士3",
+            "spellknight-1770858413694": "咒术骑士4",
+            "spellknight-1770858414283": "咒术骑士5",
+            "spellknight-1770858415142": "咒术骑士6",
+            "astramancer-1770858450881": "星术师1",
+            "astramancer-1770858683473": "星术师2",
+            "astramancer-1770858683893": "星术师3",
+            "astramancer-1770858684664": "星术师4",
+            "timekeeper-1770858708261": "织命者1",
+            "timekeeper-1770858800876": "织命者2"
+          },
+          "heroEquipmentSnapshot": {
+            "spellknight-1770858413694": {
+              "heroId": "spellknight-1770858413694",
+              "heroName": "咒术骑士4",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "s_warmaster4",
+                "p_doublecast4",
+                "p_batteringblows4",
+                "p_extraplating4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "artifactsword",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot2": {
+                  "itemId": "maladyrobe",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                },
+                "slot3": {
+                  "itemId": "plushiehelm",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot4": {
+                  "itemId": "plushieboots",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot5": {
+                  "itemId": "gb_scroll",
+                  "quality": "uncommon",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot6": {
+                  "itemId": "maladyamulet",
+                  "quality": "uncommon",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                }
+              }
+            },
+            "spellknight-1770858414283": {
+              "heroId": "spellknight-1770858414283",
+              "heroName": "咒术骑士5",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "s_warmaster4",
+                "p_doublecast4",
+                "p_batteringblows4",
+                "p_extraplating4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "artifactsword",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot2": {
+                  "itemId": "maladyrobe",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                },
+                "slot3": {
+                  "itemId": "plushiehelm",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot4": {
+                  "itemId": "plushieboots",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot5": {
+                  "itemId": "gb_scroll",
+                  "quality": "uncommon",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot6": {
+                  "itemId": "maladyamulet",
+                  "quality": "uncommon",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                }
+              }
+            },
+            "astramancer-1770858683893": {
+              "heroId": "astramancer-1770858683893",
+              "heroName": "星术师3",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "s_arcanemaster4",
+                "s_megacritmult4",
+                "p_doublecast4",
+                "s_megacrit4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "lightdarkwand",
+                  "quality": "legendary",
+                  "elementId": null,
+                  "spiritId": null
+                },
+                "slot2": {
+                  "itemId": "firemagerobe",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "leviathan"
+                },
+                "slot3": {
+                  "itemId": "phoenixmagehat",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "leviathan"
+                },
+                "slot4": {
+                  "itemId": "pumpkingloves",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "leviathan"
+                },
+                "slot5": {
+                  "itemId": "gb_scroll",
+                  "quality": "uncommon",
+                  "elementId": "t14water",
+                  "spiritId": "leviathan"
+                },
+                "slot6": {
+                  "itemId": "lightdarkherb",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "leviathan"
+                }
+              }
+            }
+          },
+          "championEquipmentSnapshot": {
+            "rudo": {
+              "championId": "rudo",
+              "level": 40,
+              "rank": 10,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "isTitan": false,
+              "cardLevel": 0,
+              "equipment": {
+                "familiar": {
+                  "itemId": "demigod",
+                  "quality": "common",
+                  "elementId": "t14fire",
+                  "spiritId": "bahamut"
+                },
+                "aurasong": {
+                  "itemId": "paintaura",
+                  "quality": "common",
+                  "elementId": "t14fire",
+                  "spiritId": "bahamut"
+                }
+              }
+            }
+          }
+        },
+        "_id": "698d2f8a5b1788352dbedb3c"
+      },
+      {
+        "id": "task-1770859181074",
+        "questId": "jurassic04",
+        "heroes": [
+          "spellknight-1770858261029",
+          "spellknight-1770858415142",
+          "deathknight-1770857331481"
+        ],
+        "champions": [
+          "sia"
+        ],
+        "groupId": "group-1770858820425",
+        "simulationConfig": {
+          "booster": 0,
+          "miniboss": "none",
+          "selectedElement": "air"
+        },
+        "simulationResult": {
+          "successRate": 100,
+          "averageRounds": 28.8993,
+          "minRounds": 20,
+          "maxRounds": 41,
+          "simulationCount": 10000,
+          "heroStats": [
+            {
+              "id": "spellknight-1770858261029",
+              "name": "咒术骑士1",
+              "class": "spellknight",
+              "survivalRate": 100,
+              "averageDamage": 3175629.4358,
+              "averageFinalHp": 2201.3696,
+              "initialHp": 2847
+            },
+            {
+              "id": "spellknight-1770858415142",
+              "name": "咒术骑士6",
+              "class": "spellknight",
+              "survivalRate": 99.99,
+              "averageDamage": 3185241.2289,
+              "averageFinalHp": 2206.5363,
+              "initialHp": 2847
+            },
+            {
+              "id": "deathknight-1770857331481",
+              "name": "慈悲骑士2",
+              "class": "deathknight",
+              "survivalRate": 99.98,
+              "averageDamage": 129988.284,
+              "averageFinalHp": 2662.1676,
+              "initialHp": 4303
+            }
+          ],
+          "championStats": [
+            {
+              "id": "sia",
+              "name": "西亚",
+              "survivalRate": 0.13,
+              "averageDamage": 62810.4557,
+              "averageFinalHp": 0.4022,
+              "initialHp": 942
+            }
+          ]
+        },
+        "simulationResultOverall": {
+          "successRate": 100,
+          "firstAttempt": {
+            "successRate": 100,
+            "averageRounds": 28.8993,
+            "minRounds": 20,
+            "maxRounds": 41,
+            "simulationCount": 10000,
+            "heroStats": [
+              {
+                "id": "spellknight-1770858261029",
+                "name": "咒术骑士1",
+                "class": "spellknight",
+                "survivalRate": 100,
+                "averageDamage": 3175629.4358,
+                "averageFinalHp": 2201.3696,
+                "initialHp": 2847
+              },
+              {
+                "id": "spellknight-1770858415142",
+                "name": "咒术骑士6",
+                "class": "spellknight",
+                "survivalRate": 99.99,
+                "averageDamage": 3185241.2289,
+                "averageFinalHp": 2206.5363,
+                "initialHp": 2847
+              },
+              {
+                "id": "deathknight-1770857331481",
+                "name": "慈悲骑士2",
+                "class": "deathknight",
+                "survivalRate": 99.98,
+                "averageDamage": 129988.284,
+                "averageFinalHp": 2662.1676,
+                "initialHp": 4303
+              }
+            ],
+            "championStats": [
+              {
+                "id": "sia",
+                "name": "西亚",
+                "survivalRate": 0.13,
+                "averageDamage": 62810.4557,
+                "averageFinalHp": 0.4022,
+                "initialHp": 942
+              }
+            ]
+          },
+          "hasSecondAttempt": false,
+          "heroNameSnapshot": {
+            "lord-1770856912070": "领主1",
+            "lord-1770856952829": "领主2",
+            "warden-1770856966619": "守望者1",
+            "warden-1770857066208": "守望者2",
+            "jarl-1770857100847": "头领1",
+            "deathknight-1770857220921": "慈悲骑士1",
+            "deathknight-1770857331481": "慈悲骑士2",
+            "mastermonk-1770857375915": "宗师1",
+            "pathfinder-1770857475013": "开拓者1",
+            "pathfinder-1770857615400": "开拓者2",
+            "pathfinder-1770857616033": "开拓者3",
+            "praetorian-1770857628551": "禁卫军1",
+            "praetorian-1770857714389": "禁卫军2",
+            "archmage-1770857742669": "大法师1",
+            "archmage-1770857893969": "大法师2",
+            "archdruid-1770857904898": "大德鲁伊1",
+            "archdruid-1770857983670": "大德鲁伊2",
+            "warlock-1770858153835": "术士1",
+            "warlock-1770858213470": "术士2",
+            "spellknight-1770858261029": "咒术骑士1",
+            "spellknight-1770858412338": "咒术骑士2",
+            "spellknight-1770858413083": "咒术骑士3",
+            "spellknight-1770858413694": "咒术骑士4",
+            "spellknight-1770858414283": "咒术骑士5",
+            "spellknight-1770858415142": "咒术骑士6",
+            "astramancer-1770858450881": "星术师1",
+            "astramancer-1770858683473": "星术师2",
+            "astramancer-1770858683893": "星术师3",
+            "astramancer-1770858684664": "星术师4",
+            "timekeeper-1770858708261": "织命者1",
+            "timekeeper-1770858800876": "织命者2"
+          },
+          "heroEquipmentSnapshot": {
+            "spellknight-1770858261029": {
+              "heroId": "spellknight-1770858261029",
+              "heroName": "咒术骑士1",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "s_warmaster4",
+                "p_doublecast4",
+                "p_batteringblows4",
+                "p_extraplating4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "artifactsword",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot2": {
+                  "itemId": "maladyrobe",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                },
+                "slot3": {
+                  "itemId": "plushiehelm",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot4": {
+                  "itemId": "plushieboots",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot5": {
+                  "itemId": "gb_scroll",
+                  "quality": "uncommon",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot6": {
+                  "itemId": "maladyamulet",
+                  "quality": "uncommon",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                }
+              }
+            },
+            "spellknight-1770858415142": {
+              "heroId": "spellknight-1770858415142",
+              "heroName": "咒术骑士6",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "s_warmaster4",
+                "p_doublecast4",
+                "p_batteringblows4",
+                "p_extraplating4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "artifactsword",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot2": {
+                  "itemId": "maladyrobe",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                },
+                "slot3": {
+                  "itemId": "plushiehelm",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot4": {
+                  "itemId": "plushieboots",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot5": {
+                  "itemId": "gb_scroll",
+                  "quality": "uncommon",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot6": {
+                  "itemId": "maladyamulet",
+                  "quality": "uncommon",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                }
+              }
+            },
+            "deathknight-1770857331481": {
+              "heroId": "deathknight-1770857331481",
+              "heroName": "慈悲骑士2",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "s_megahp4",
+                "s_megaevasion4",
+                "p_extraplating4",
+                "s_defevasion4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "thiefcrossbow",
+                  "quality": "uncommon",
+                  "elementId": "t14dark",
+                  "spiritId": "griffin"
+                },
+                "slot2": {
+                  "itemId": "plushieheavyarmor",
+                  "quality": "uncommon",
+                  "elementId": "t14dark",
+                  "spiritId": "griffin"
+                },
+                "slot3": {
+                  "itemId": "plushiehelm",
+                  "quality": "uncommon",
+                  "elementId": "t14dark",
+                  "spiritId": "griffin"
+                },
+                "slot4": {
+                  "itemId": "plushieboots",
+                  "quality": "uncommon",
+                  "elementId": "t14dark",
+                  "spiritId": "griffin"
+                },
+                "slot5": {
+                  "itemId": "t15idol",
+                  "quality": "uncommon",
+                  "elementId": "t14dark",
+                  "spiritId": "griffin"
+                },
+                "slot6": {
+                  "itemId": "t15idol",
+                  "quality": "uncommon",
+                  "elementId": "t14dark",
+                  "spiritId": "griffin"
+                }
+              }
+            }
+          },
+          "championEquipmentSnapshot": {
+            "sia": {
+              "championId": "sia",
+              "level": 40,
+              "rank": 10,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "isTitan": false,
+              "cardLevel": 0,
+              "equipment": {
+                "familiar": {
+                  "itemId": "demigod",
+                  "quality": "uncommon",
+                  "elementId": "t14air",
+                  "spiritId": "bahamut"
+                },
+                "aurasong": {
+                  "itemId": "paintaura",
+                  "quality": "common",
+                  "elementId": "t14air",
+                  "spiritId": "bahamut"
+                }
+              }
+            }
+          }
+        },
+        "_id": "698d2f8a5b1788352dbedb3d"
+      },
+      {
+        "id": "task-1770859272023",
+        "questId": "jurassic04",
+        "heroes": [
+          "warden-1770857066208",
+          "timekeeper-1770858800876",
+          "astramancer-1770858684664"
+        ],
+        "champions": [
+          "hemma"
+        ],
+        "groupId": "group-1770858820425",
+        "simulationConfig": {
+          "booster": 0,
+          "miniboss": "none",
+          "selectedElement": "air"
+        },
+        "simulationResult": {
+          "successRate": 89.11,
+          "averageRounds": 23.868477163056895,
+          "minRounds": 6,
+          "maxRounds": 217,
+          "simulationCount": 10000,
+          "heroStats": [
+            {
+              "id": "warden-1770857066208",
+              "name": "守望者2",
+              "class": "warden",
+              "survivalRate": 88.81,
+              "averageDamage": 83801.7135,
+              "averageFinalHp": 1895.3320159999087,
+              "initialHp": 3754
+            },
+            {
+              "id": "timekeeper-1770858800876",
+              "name": "织命者2",
+              "class": "timekeeper",
+              "survivalRate": 88.33,
+              "averageDamage": 1474529.5734,
+              "averageFinalHp": 1351.9745399999501,
+              "initialHp": 2859
+            },
+            {
+              "id": "astramancer-1770858684664",
+              "name": "星术师4",
+              "class": "astramancer",
+              "survivalRate": 45.629999999999995,
+              "averageDamage": 5007924.7386,
+              "averageFinalHp": 135.28350800000533,
+              "initialHp": 959
+            }
+          ],
+          "championStats": [
+            {
+              "id": "hemma",
+              "name": "赫马",
+              "survivalRate": 41.5,
+              "averageDamage": 551943.1039,
+              "averageFinalHp": 189.3821,
+              "initialHp": 966
+            }
+          ]
+        },
+        "simulationResultSecond": {
+          "successRate": 98.43893480257117,
+          "averageRounds": 15.666977611940299,
+          "minRounds": 6,
+          "maxRounds": 109,
+          "simulationCount": 1089,
+          "heroStats": [
+            {
+              "id": "warden-1770857066208",
+              "name": "守望者2",
+              "class": "warden",
+              "survivalRate": 98.34710743801654,
+              "averageDamage": 58824.387511478424,
+              "averageFinalHp": 2423.8575206611713,
+              "initialHp": 3754
+            },
+            {
+              "id": "timekeeper-1770858800876",
+              "name": "织命者2",
+              "class": "timekeeper",
+              "survivalRate": 98.16345270890724,
+              "averageDamage": 1036597.3728191,
+              "averageFinalHp": 1818.3842791552186,
+              "initialHp": 2859
+            },
+            {
+              "id": "astramancer-1770858684664",
+              "name": "星术师4",
+              "class": "astramancer",
+              "survivalRate": 65.10560146923783,
+              "averageDamage": 5773326.7456382,
+              "averageFinalHp": 240.69634527089022,
+              "initialHp": 959
+            }
+          ],
+          "championStats": [
+            {
+              "id": "hemma",
+              "name": "赫马",
+              "survivalRate": 64.00367309458218,
+              "averageDamage": 558420.315886134,
+              "averageFinalHp": 318.1735537190083,
+              "initialHp": 966
+            }
+          ]
+        },
+        "simulationResultOverall": {
+          "successRate": 99.83,
+          "firstAttempt": {
+            "successRate": 89.11,
+            "averageRounds": 23.868477163056895,
+            "minRounds": 6,
+            "maxRounds": 217,
+            "simulationCount": 10000,
+            "heroStats": [
+              {
+                "id": "warden-1770857066208",
+                "name": "守望者2",
+                "class": "warden",
+                "survivalRate": 88.81,
+                "averageDamage": 83801.7135,
+                "averageFinalHp": 1895.3320159999087,
+                "initialHp": 3754
+              },
+              {
+                "id": "timekeeper-1770858800876",
+                "name": "织命者2",
+                "class": "timekeeper",
+                "survivalRate": 88.33,
+                "averageDamage": 1474529.5734,
+                "averageFinalHp": 1351.9745399999501,
+                "initialHp": 2859
+              },
+              {
+                "id": "astramancer-1770858684664",
+                "name": "星术师4",
+                "class": "astramancer",
+                "survivalRate": 45.629999999999995,
+                "averageDamage": 5007924.7386,
+                "averageFinalHp": 135.28350800000533,
+                "initialHp": 959
+              }
+            ],
+            "championStats": [
+              {
+                "id": "hemma",
+                "name": "赫马",
+                "survivalRate": 41.5,
+                "averageDamage": 551943.1039,
+                "averageFinalHp": 189.3821,
+                "initialHp": 966
+              }
+            ]
+          },
+          "secondAttempt": {
+            "successRate": 98.43893480257117,
+            "averageRounds": 15.666977611940299,
+            "minRounds": 6,
+            "maxRounds": 109,
+            "simulationCount": 1089,
+            "heroStats": [
+              {
+                "id": "warden-1770857066208",
+                "name": "守望者2",
+                "class": "warden",
+                "survivalRate": 98.34710743801654,
+                "averageDamage": 58824.387511478424,
+                "averageFinalHp": 2423.8575206611713,
+                "initialHp": 3754
+              },
+              {
+                "id": "timekeeper-1770858800876",
+                "name": "织命者2",
+                "class": "timekeeper",
+                "survivalRate": 98.16345270890724,
+                "averageDamage": 1036597.3728191,
+                "averageFinalHp": 1818.3842791552186,
+                "initialHp": 2859
+              },
+              {
+                "id": "astramancer-1770858684664",
+                "name": "星术师4",
+                "class": "astramancer",
+                "survivalRate": 65.10560146923783,
+                "averageDamage": 5773326.7456382,
+                "averageFinalHp": 240.69634527089022,
+                "initialHp": 959
+              }
+            ],
+            "championStats": [
+              {
+                "id": "hemma",
+                "name": "赫马",
+                "survivalRate": 64.00367309458218,
+                "averageDamage": 558420.315886134,
+                "averageFinalHp": 318.1735537190083,
+                "initialHp": 966
+              }
+            ]
+          },
+          "hasSecondAttempt": true,
+          "overallHeroStats": [
+            {
+              "id": "warden-1770857066208",
+              "name": "守望者2",
+              "class": "warden",
+              "overallSurvivalRate": 99.52
+            },
+            {
+              "id": "timekeeper-1770858800876",
+              "name": "织命者2",
+              "class": "timekeeper",
+              "overallSurvivalRate": 99.02
+            },
+            {
+              "id": "astramancer-1770858684664",
+              "name": "星术师4",
+              "class": "astramancer",
+              "overallSurvivalRate": 52.72
+            }
+          ],
+          "overallChampionStats": [
+            {
+              "id": "hemma",
+              "name": "赫马",
+              "overallSurvivalRate": 48.47
+            }
+          ],
+          "heroNameSnapshot": {
+            "lord-1770856912070": "领主1",
+            "lord-1770856952829": "领主2",
+            "warden-1770856966619": "守望者1",
+            "warden-1770857066208": "守望者2",
+            "jarl-1770857100847": "头领1",
+            "deathknight-1770857220921": "慈悲骑士1",
+            "deathknight-1770857331481": "慈悲骑士2",
+            "mastermonk-1770857375915": "宗师1",
+            "pathfinder-1770857475013": "开拓者1",
+            "pathfinder-1770857615400": "开拓者2",
+            "pathfinder-1770857616033": "开拓者3",
+            "praetorian-1770857628551": "禁卫军1",
+            "praetorian-1770857714389": "禁卫军2",
+            "archmage-1770857742669": "大法师1",
+            "archmage-1770857893969": "大法师2",
+            "archdruid-1770857904898": "大德鲁伊1",
+            "archdruid-1770857983670": "大德鲁伊2",
+            "warlock-1770858153835": "术士1",
+            "warlock-1770858213470": "术士2",
+            "spellknight-1770858261029": "咒术骑士1",
+            "spellknight-1770858412338": "咒术骑士2",
+            "spellknight-1770858413083": "咒术骑士3",
+            "spellknight-1770858413694": "咒术骑士4",
+            "spellknight-1770858414283": "咒术骑士5",
+            "spellknight-1770858415142": "咒术骑士6",
+            "astramancer-1770858450881": "星术师1",
+            "astramancer-1770858683473": "星术师2",
+            "astramancer-1770858683893": "星术师3",
+            "astramancer-1770858684664": "星术师4",
+            "timekeeper-1770858708261": "织命者1",
+            "timekeeper-1770858800876": "织命者2"
+          },
+          "heroEquipmentSnapshot": {
+            "warden-1770857066208": {
+              "heroId": "warden-1770857066208",
+              "heroName": "守望者2",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "s_megaevasion4",
+                "s_megahp4",
+                "p_extraplating4",
+                "s_defevasion4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "thiefcrossbow",
+                  "quality": "common",
+                  "elementId": "t14air",
+                  "spiritId": "ouroboros"
+                },
+                "slot2": {
+                  "itemId": "plushieheavyarmor",
+                  "quality": "uncommon",
+                  "elementId": "t14air",
+                  "spiritId": "ouroboros"
+                },
+                "slot3": {
+                  "itemId": "darkgauntlets",
+                  "quality": "common",
+                  "elementId": "t14air",
+                  "spiritId": "ouroboros"
+                },
+                "slot4": {
+                  "itemId": "plushiehelm",
+                  "quality": "uncommon",
+                  "elementId": "t14air",
+                  "spiritId": "ouroboros"
+                },
+                "slot5": {
+                  "itemId": "demigodpotion",
+                  "quality": "common",
+                  "elementId": "t14air",
+                  "spiritId": "ouroboros"
+                },
+                "slot6": {
+                  "itemId": "siacloak",
+                  "quality": "common",
+                  "elementId": "t14air",
+                  "spiritId": "ouroboros"
+                }
+              }
+            },
+            "timekeeper-1770858800876": {
+              "heroId": "timekeeper-1770858800876",
+              "heroName": "织命者2",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "p_manashield4",
+                "s_megahp4",
+                "p_perfectform4",
+                "s_megabreak4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "artifactsword",
+                  "quality": "common",
+                  "elementId": "t14air",
+                  "spiritId": "ouroboros"
+                },
+                "slot2": {
+                  "itemId": "maladyrobe",
+                  "quality": "common",
+                  "elementId": "t14air",
+                  "spiritId": "ouroboros"
+                },
+                "slot3": {
+                  "itemId": "pumpkinmagehat",
+                  "quality": "common",
+                  "elementId": "t14air",
+                  "spiritId": "ouroboros"
+                },
+                "slot4": {
+                  "itemId": "shoprshoes",
+                  "quality": "common",
+                  "elementId": "t14air",
+                  "spiritId": "ouroboros"
+                },
+                "slot5": {
+                  "itemId": "chronoscroll",
+                  "quality": "common",
+                  "elementId": "t14air",
+                  "spiritId": "ouroboros"
+                },
+                "slot6": {
+                  "itemId": "maladyamulet",
+                  "quality": "common",
+                  "elementId": "t14air",
+                  "spiritId": "ouroboros"
+                }
+              }
+            },
+            "astramancer-1770858684664": {
+              "heroId": "astramancer-1770858684664",
+              "heroName": "星术师4",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "s_arcanemaster4",
+                "s_megacritmult4",
+                "p_doublecast4",
+                "s_megacrit4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "lightdarkwand",
+                  "quality": "legendary",
+                  "elementId": null,
+                  "spiritId": null
+                },
+                "slot2": {
+                  "itemId": "firemagerobe",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "leviathan"
+                },
+                "slot3": {
+                  "itemId": "phoenixmagehat",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "leviathan"
+                },
+                "slot4": {
+                  "itemId": "pumpkingloves",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "leviathan"
+                },
+                "slot5": {
+                  "itemId": "gb_scroll",
+                  "quality": "uncommon",
+                  "elementId": "t14water",
+                  "spiritId": "leviathan"
+                },
+                "slot6": {
+                  "itemId": "lightdarkherb",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "leviathan"
+                }
+              }
+            }
+          },
+          "championEquipmentSnapshot": {
+            "hemma": {
+              "championId": "hemma",
+              "level": 40,
+              "rank": 10,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "isTitan": false,
+              "cardLevel": 0,
+              "equipment": {
+                "familiar": {
+                  "itemId": "demigod",
+                  "quality": "common",
+                  "elementId": "t14dark",
+                  "spiritId": "bahamut"
+                },
+                "aurasong": {
+                  "itemId": "paintaura",
+                  "quality": "common",
+                  "elementId": "t14dark",
+                  "spiritId": "bahamut"
+                }
+              }
+            }
+          }
+        },
+        "_id": "698d2f8a5b1788352dbedb3e"
+      },
+      {
+        "id": "task-1770859299489",
+        "questId": "jurassic04",
+        "heroes": [
+          "lord-1770856952829",
+          "archdruid-1770857904898",
+          "bishop-1770859856878"
+        ],
+        "champions": [
+          "yami"
+        ],
+        "groupId": "group-1770858820425",
+        "simulationConfig": {
+          "booster": 0,
+          "miniboss": "none",
+          "selectedElement": "light"
+        },
+        "simulationResult": {
+          "successRate": 99.53,
+          "averageRounds": 67.58876720586758,
+          "minRounds": 60,
+          "maxRounds": 95,
+          "simulationCount": 10000,
+          "heroStats": [
+            {
+              "id": "lord-1770856952829",
+              "name": "领主2",
+              "class": "lord",
+              "survivalRate": 88.5,
+              "averageDamage": 243130.4446,
+              "averageFinalHp": 919.2567,
+              "initialHp": 3637
+            },
+            {
+              "id": "archdruid-1770857904898",
+              "name": "大德鲁伊1",
+              "class": "archdruid",
+              "survivalRate": 98.67,
+              "averageDamage": 4009445.6212,
+              "averageFinalHp": 1762.651,
+              "initialHp": 3274
+            },
+            {
+              "id": "bishop-1770859856878",
+              "name": "主教1",
+              "class": "bishop",
+              "survivalRate": 99.48,
+              "averageDamage": 2653787.6432,
+              "averageFinalHp": 2603.1087,
+              "initialHp": 3288
+            }
+          ],
+          "championStats": [
+            {
+              "id": "yami",
+              "name": "亚米",
+              "survivalRate": 0,
+              "averageDamage": 144568.7368,
+              "averageFinalHp": 0,
+              "initialHp": 877
+            }
+          ]
+        },
+        "simulationResultOverall": {
+          "successRate": 99.53,
+          "firstAttempt": {
+            "successRate": 99.53,
+            "averageRounds": 67.58876720586758,
+            "minRounds": 60,
+            "maxRounds": 95,
+            "simulationCount": 10000,
+            "heroStats": [
+              {
+                "id": "lord-1770856952829",
+                "name": "领主2",
+                "class": "lord",
+                "survivalRate": 88.5,
+                "averageDamage": 243130.4446,
+                "averageFinalHp": 919.2567,
+                "initialHp": 3637
+              },
+              {
+                "id": "archdruid-1770857904898",
+                "name": "大德鲁伊1",
+                "class": "archdruid",
+                "survivalRate": 98.67,
+                "averageDamage": 4009445.6212,
+                "averageFinalHp": 1762.651,
+                "initialHp": 3274
+              },
+              {
+                "id": "bishop-1770859856878",
+                "name": "主教1",
+                "class": "bishop",
+                "survivalRate": 99.48,
+                "averageDamage": 2653787.6432,
+                "averageFinalHp": 2603.1087,
+                "initialHp": 3288
+              }
+            ],
+            "championStats": [
+              {
+                "id": "yami",
+                "name": "亚米",
+                "survivalRate": 0,
+                "averageDamage": 144568.7368,
+                "averageFinalHp": 0,
+                "initialHp": 877
+              }
+            ]
+          },
+          "hasSecondAttempt": false,
+          "heroNameSnapshot": {
+            "lord-1770856912070": "领主1",
+            "lord-1770856952829": "领主2",
+            "warden-1770856966619": "守望者1",
+            "warden-1770857066208": "守望者2",
+            "jarl-1770857100847": "头领1",
+            "deathknight-1770857220921": "慈悲骑士1",
+            "deathknight-1770857331481": "慈悲骑士2",
+            "mastermonk-1770857375915": "宗师1",
+            "pathfinder-1770857475013": "开拓者1",
+            "pathfinder-1770857615400": "开拓者2",
+            "pathfinder-1770857616033": "开拓者3",
+            "acrobat-1770859832129": "杂耍家1",
+            "praetorian-1770857628551": "禁卫军1",
+            "praetorian-1770857714389": "禁卫军2",
+            "archmage-1770857742669": "大法师1",
+            "archmage-1770857893969": "大法师2",
+            "bishop-1770859856878": "主教1",
+            "archdruid-1770857904898": "大德鲁伊1",
+            "archdruid-1770857983670": "大德鲁伊2",
+            "warlock-1770858153835": "术士1",
+            "warlock-1770858213470": "术士2",
+            "spellknight-1770858261029": "咒术骑士1",
+            "spellknight-1770858412338": "咒术骑士2",
+            "spellknight-1770858413083": "咒术骑士3",
+            "spellknight-1770858413694": "咒术骑士4",
+            "spellknight-1770858414283": "咒术骑士5",
+            "spellknight-1770858415142": "咒术骑士6",
+            "astramancer-1770858450881": "星术师1",
+            "astramancer-1770858683473": "星术师2",
+            "astramancer-1770858683893": "星术师3",
+            "astramancer-1770858684664": "星术师4",
+            "timekeeper-1770858708261": "织命者1",
+            "timekeeper-1770858800876": "织命者2"
+          },
+          "heroEquipmentSnapshot": {
+            "lord-1770856952829": {
+              "heroId": "lord-1770856952829",
+              "heroName": "领主2",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "s_megaevasion4",
+                "s_megahp4",
+                "p_extraplating4",
+                "s_defevasion4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "shoprdualwield",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "titan"
+                },
+                "slot2": {
+                  "itemId": "plushieheavyarmor",
+                  "quality": "uncommon",
+                  "elementId": "t14light",
+                  "spiritId": "griffin"
+                },
+                "slot3": {
+                  "itemId": "darkgauntlets",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "griffin"
+                },
+                "slot4": {
+                  "itemId": "plushiehelm",
+                  "quality": "uncommon",
+                  "elementId": "t14light",
+                  "spiritId": "griffin"
+                },
+                "slot5": {
+                  "itemId": "plushieboots",
+                  "quality": "uncommon",
+                  "elementId": "t14light",
+                  "spiritId": "griffin"
+                },
+                "slot6": {
+                  "itemId": "cardshield",
+                  "quality": "uncommon",
+                  "elementId": "t14light",
+                  "spiritId": "griffin"
+                }
+              }
+            },
+            "archdruid-1770857904898": {
+              "heroId": "archdruid-1770857904898",
+              "heroName": "大德鲁伊1",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "s_megahp4",
+                "s_megabreak4",
+                "p_manashield4",
+                "p_perfectform4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "froginstrument",
+                  "quality": "common",
+                  "elementId": "t14earth",
+                  "spiritId": "ouroboros"
+                },
+                "slot2": {
+                  "itemId": "maladyrobe",
+                  "quality": "common",
+                  "elementId": "t14earth",
+                  "spiritId": "ouroboros"
+                },
+                "slot3": {
+                  "itemId": "darkmeal",
+                  "quality": "common",
+                  "elementId": "t14earth",
+                  "spiritId": "ouroboros"
+                },
+                "slot4": {
+                  "itemId": "firecrabherb",
+                  "quality": "common",
+                  "elementId": "t14earth",
+                  "spiritId": "ouroboros"
+                },
+                "slot5": {
+                  "itemId": "maladyamulet",
+                  "quality": "common",
+                  "elementId": "t14earth",
+                  "spiritId": "ouroboros"
+                },
+                "slot6": {
+                  "itemId": "gb_scroll",
+                  "quality": "uncommon",
+                  "elementId": "t14earth",
+                  "spiritId": "ouroboros"
+                }
+              }
+            },
+            "bishop-1770859856878": {
+              "heroId": "bishop-1770859856878",
+              "heroName": "主教1",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "s_megahp4",
+                "p_manashield4",
+                "s_megabreak4",
+                "p_perfectform4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "porcelainwand",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                },
+                "slot2": {
+                  "itemId": "maladyrobe",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                },
+                "slot3": {
+                  "itemId": "pumpkinmagehat",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                },
+                "slot4": {
+                  "itemId": "shoprshoes",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                },
+                "slot5": {
+                  "itemId": "gb_scroll",
+                  "quality": "uncommon",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                },
+                "slot6": {
+                  "itemId": "t15idol",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                }
+              }
+            }
+          },
+          "championEquipmentSnapshot": {
+            "yami": {
+              "championId": "yami",
+              "level": 40,
+              "rank": 10,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "isTitan": false,
+              "cardLevel": 0,
+              "equipment": {
+                "familiar": {
+                  "itemId": "demigod",
+                  "quality": "common",
+                  "elementId": "t14dark",
+                  "spiritId": "bahamut"
+                },
+                "aurasong": {
+                  "itemId": "paintaura",
+                  "quality": "common",
+                  "elementId": "t14dark",
+                  "spiritId": "bahamut"
+                }
+              }
+            }
+          }
+        },
+        "_id": "698d2f8a5b1788352dbedb3f"
+      },
+      {
+        "id": "task-1770859380899",
+        "questId": "jurassic04",
+        "heroes": [
+          "spellknight-1770858413083",
+          "spellknight-1770858412338",
+          "astramancer-1770858683473"
+        ],
+        "champions": [
+          "argon"
+        ],
+        "groupId": "group-1770858820425",
+        "simulationConfig": {
+          "booster": 0,
+          "miniboss": "none",
+          "selectedElement": "light"
+        },
+        "simulationResult": {
+          "successRate": 99.83999999999999,
+          "averageRounds": 10.969651442307692,
+          "minRounds": 4,
+          "maxRounds": 37,
+          "simulationCount": 10000,
+          "heroStats": [
+            {
+              "id": "spellknight-1770858413083",
+              "name": "咒术骑士3",
+              "class": "spellknight",
+              "survivalRate": 99.44,
+              "averageDamage": 1300621.77,
+              "averageFinalHp": 2294.5116,
+              "initialHp": 2847
+            },
+            {
+              "id": "spellknight-1770858412338",
+              "name": "咒术骑士2",
+              "class": "spellknight",
+              "survivalRate": 99.59,
+              "averageDamage": 1297372.062,
+              "averageFinalHp": 2301.0393,
+              "initialHp": 2847
+            },
+            {
+              "id": "astramancer-1770858683473",
+              "name": "星术师2",
+              "class": "astramancer",
+              "survivalRate": 48.199999999999996,
+              "averageDamage": 4773244.5956,
+              "averageFinalHp": 166.1643,
+              "initialHp": 846
+            }
+          ],
+          "championStats": [
+            {
+              "id": "argon",
+              "name": "阿尔贡",
+              "survivalRate": 8.1,
+              "averageDamage": 21524.5578,
+              "averageFinalHp": 19.9133,
+              "initialHp": 1431
+            }
+          ]
+        },
+        "simulationResultOverall": {
+          "successRate": 99.83999999999999,
+          "firstAttempt": {
+            "successRate": 99.83999999999999,
+            "averageRounds": 10.969651442307692,
+            "minRounds": 4,
+            "maxRounds": 37,
+            "simulationCount": 10000,
+            "heroStats": [
+              {
+                "id": "spellknight-1770858413083",
+                "name": "咒术骑士3",
+                "class": "spellknight",
+                "survivalRate": 99.44,
+                "averageDamage": 1300621.77,
+                "averageFinalHp": 2294.5116,
+                "initialHp": 2847
+              },
+              {
+                "id": "spellknight-1770858412338",
+                "name": "咒术骑士2",
+                "class": "spellknight",
+                "survivalRate": 99.59,
+                "averageDamage": 1297372.062,
+                "averageFinalHp": 2301.0393,
+                "initialHp": 2847
+              },
+              {
+                "id": "astramancer-1770858683473",
+                "name": "星术师2",
+                "class": "astramancer",
+                "survivalRate": 48.199999999999996,
+                "averageDamage": 4773244.5956,
+                "averageFinalHp": 166.1643,
+                "initialHp": 846
+              }
+            ],
+            "championStats": [
+              {
+                "id": "argon",
+                "name": "阿尔贡",
+                "survivalRate": 8.1,
+                "averageDamage": 21524.5578,
+                "averageFinalHp": 19.9133,
+                "initialHp": 1431
+              }
+            ]
+          },
+          "hasSecondAttempt": false,
+          "heroNameSnapshot": {
+            "lord-1770856912070": "领主1",
+            "lord-1770856952829": "领主2",
+            "warden-1770856966619": "守望者1",
+            "warden-1770857066208": "守望者2",
+            "jarl-1770857100847": "头领1",
+            "deathknight-1770857220921": "慈悲骑士1",
+            "deathknight-1770857331481": "慈悲骑士2",
+            "mastermonk-1770857375915": "宗师1",
+            "pathfinder-1770857475013": "开拓者1",
+            "pathfinder-1770857615400": "开拓者2",
+            "pathfinder-1770857616033": "开拓者3",
+            "praetorian-1770857628551": "禁卫军1",
+            "praetorian-1770857714389": "禁卫军2",
+            "archmage-1770857742669": "大法师1",
+            "archmage-1770857893969": "大法师2",
+            "archdruid-1770857904898": "大德鲁伊1",
+            "archdruid-1770857983670": "大德鲁伊2",
+            "warlock-1770858153835": "术士1",
+            "warlock-1770858213470": "术士2",
+            "spellknight-1770858261029": "咒术骑士1",
+            "spellknight-1770858412338": "咒术骑士2",
+            "spellknight-1770858413083": "咒术骑士3",
+            "spellknight-1770858413694": "咒术骑士4",
+            "spellknight-1770858414283": "咒术骑士5",
+            "spellknight-1770858415142": "咒术骑士6",
+            "astramancer-1770858450881": "星术师1",
+            "astramancer-1770858683473": "星术师2",
+            "astramancer-1770858683893": "星术师3",
+            "astramancer-1770858684664": "星术师4",
+            "timekeeper-1770858708261": "织命者1",
+            "timekeeper-1770858800876": "织命者2"
+          },
+          "heroEquipmentSnapshot": {
+            "spellknight-1770858413083": {
+              "heroId": "spellknight-1770858413083",
+              "heroName": "咒术骑士3",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "s_warmaster4",
+                "p_doublecast4",
+                "p_batteringblows4",
+                "p_extraplating4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "artifactsword",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot2": {
+                  "itemId": "maladyrobe",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                },
+                "slot3": {
+                  "itemId": "plushiehelm",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot4": {
+                  "itemId": "plushieboots",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot5": {
+                  "itemId": "gb_scroll",
+                  "quality": "uncommon",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot6": {
+                  "itemId": "maladyamulet",
+                  "quality": "uncommon",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                }
+              }
+            },
+            "spellknight-1770858412338": {
+              "heroId": "spellknight-1770858412338",
+              "heroName": "咒术骑士2",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "s_warmaster4",
+                "p_doublecast4",
+                "p_batteringblows4",
+                "p_extraplating4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "artifactsword",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot2": {
+                  "itemId": "maladyrobe",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                },
+                "slot3": {
+                  "itemId": "plushiehelm",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot4": {
+                  "itemId": "plushieboots",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot5": {
+                  "itemId": "gb_scroll",
+                  "quality": "uncommon",
+                  "elementId": "t14water",
+                  "spiritId": "ouroboros"
+                },
+                "slot6": {
+                  "itemId": "maladyamulet",
+                  "quality": "uncommon",
+                  "elementId": "t14light",
+                  "spiritId": "ouroboros"
+                }
+              }
+            },
+            "astramancer-1770858683473": {
+              "heroId": "astramancer-1770858683473",
+              "heroName": "星术师2",
+              "level": 40,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "skills": [
+                "s_arcanemaster4",
+                "s_megacritmult4",
+                "p_doublecast4",
+                "s_megacrit4"
+              ],
+              "equipment": {
+                "slot1": {
+                  "itemId": "lightdarkwand",
+                  "quality": "legendary",
+                  "elementId": null,
+                  "spiritId": null
+                },
+                "slot2": {
+                  "itemId": "firemagerobe",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "leviathan"
+                },
+                "slot3": {
+                  "itemId": "phoenixmagehat",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "leviathan"
+                },
+                "slot4": {
+                  "itemId": "pumpkingloves",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "leviathan"
+                },
+                "slot5": {
+                  "itemId": "gb_scroll",
+                  "quality": "uncommon",
+                  "elementId": "t14water",
+                  "spiritId": "leviathan"
+                },
+                "slot6": {
+                  "itemId": "lightdarkherb",
+                  "quality": "common",
+                  "elementId": "t14water",
+                  "spiritId": "leviathan"
+                }
+              }
+            }
+          },
+          "championEquipmentSnapshot": {
+            "argon": {
+              "championId": "argon",
+              "level": 40,
+              "rank": 10,
+              "seedHp": 0,
+              "seedAtk": 0,
+              "seedDef": 0,
+              "isTitan": false,
+              "cardLevel": 0,
+              "equipment": {
+                "familiar": {
+                  "itemId": "demigod",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "bahamut"
+                },
+                "aurasong": {
+                  "itemId": "paintaura",
+                  "quality": "common",
+                  "elementId": "t14light",
+                  "spiritId": "bahamut"
+                }
+              }
+            }
+          }
+        },
+        "_id": "698d2f8a5b1788352dbedb40"
+      },
+      {
+        "id": "task-1770859779066",
+        "questId": "jurassic04",
+        "heroes": [
+          "pathfinder-1770857616033",
+          "pathfinder-1770857615400",
+          "acrobat-1770859832129"
+        ],
+        "champions": [
+          "bjorn"
+        ],
+        "groupId": "group-1770858820425",
+        "_id": "698d2f8a5b1788352dbedb41"
+      }
+    ],
+    "heroEquipment": {
+      "lord-1770856912070": {
+        "heroId": "lord-1770856912070",
+        "heroName": "领主1",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_megaevasion1",
+          "s_megahp1",
+          "p_extraplating1",
+          "s_defevasion1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "shoprdualwield",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "titan"
+          },
+          "slot2": {
+            "itemId": "plushieheavyarmor",
+            "quality": "uncommon",
+            "elementId": "t14light",
+            "spiritId": "griffin"
+          },
+          "slot3": {
+            "itemId": "darkgauntlets",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "griffin"
+          },
+          "slot4": {
+            "itemId": "plushiehelm",
+            "quality": "uncommon",
+            "elementId": "t14light",
+            "spiritId": "griffin"
+          },
+          "slot5": {
+            "itemId": "plushieboots",
+            "quality": "uncommon",
+            "elementId": "t14light",
+            "spiritId": "griffin"
+          },
+          "slot6": {
+            "itemId": "cardshield",
+            "quality": "uncommon",
+            "elementId": "t14light",
+            "spiritId": "griffin"
+          }
+        }
+      },
+      "lord-1770856952829": {
+        "heroId": "lord-1770856952829",
+        "heroName": "领主2",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_megaevasion1",
+          "s_megahp1",
+          "p_extraplating1",
+          "s_defevasion1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "shoprdualwield",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "titan"
+          },
+          "slot2": {
+            "itemId": "plushieheavyarmor",
+            "quality": "uncommon",
+            "elementId": "t14light",
+            "spiritId": "griffin"
+          },
+          "slot3": {
+            "itemId": "darkgauntlets",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "griffin"
+          },
+          "slot4": {
+            "itemId": "plushiehelm",
+            "quality": "uncommon",
+            "elementId": "t14light",
+            "spiritId": "griffin"
+          },
+          "slot5": {
+            "itemId": "plushieboots",
+            "quality": "uncommon",
+            "elementId": "t14light",
+            "spiritId": "griffin"
+          },
+          "slot6": {
+            "itemId": "cardshield",
+            "quality": "uncommon",
+            "elementId": "t14light",
+            "spiritId": "griffin"
+          }
+        }
+      },
+      "warden-1770856966619": {
+        "heroId": "warden-1770856966619",
+        "heroName": "守望者1",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_megaevasion1",
+          "s_megahp1",
+          "p_extraplating1",
+          "s_defevasion1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "thiefcrossbow",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "ouroboros"
+          },
+          "slot2": {
+            "itemId": "plushieheavyarmor",
+            "quality": "uncommon",
+            "elementId": "t14air",
+            "spiritId": "ouroboros"
+          },
+          "slot3": {
+            "itemId": "darkgauntlets",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "ouroboros"
+          },
+          "slot4": {
+            "itemId": "plushiehelm",
+            "quality": "uncommon",
+            "elementId": "t14air",
+            "spiritId": "ouroboros"
+          },
+          "slot5": {
+            "itemId": "demigodpotion",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "ouroboros"
+          },
+          "slot6": {
+            "itemId": "siacloak",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "ouroboros"
+          }
+        }
+      },
+      "warden-1770857066208": {
+        "heroId": "warden-1770857066208",
+        "heroName": "守望者2",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_megaevasion1",
+          "s_megahp1",
+          "p_extraplating1",
+          "s_defevasion1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "thiefcrossbow",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "ouroboros"
+          },
+          "slot2": {
+            "itemId": "plushieheavyarmor",
+            "quality": "uncommon",
+            "elementId": "t14air",
+            "spiritId": "ouroboros"
+          },
+          "slot3": {
+            "itemId": "darkgauntlets",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "ouroboros"
+          },
+          "slot4": {
+            "itemId": "plushiehelm",
+            "quality": "uncommon",
+            "elementId": "t14air",
+            "spiritId": "ouroboros"
+          },
+          "slot5": {
+            "itemId": "demigodpotion",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "ouroboros"
+          },
+          "slot6": {
+            "itemId": "siacloak",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "ouroboros"
+          }
+        }
+      },
+      "jarl-1770857100847": {
+        "heroId": "jarl-1770857100847",
+        "heroName": "头领1",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_megahp1",
+          "s_megaevasion1",
+          "s_defevasion1",
+          "p_extraplating1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "artifactgun",
+            "quality": "common",
+            "elementId": "t14fire",
+            "spiritId": "bahamut"
+          },
+          "slot2": {
+            "itemId": "plushieheavyarmor",
+            "quality": "uncommon",
+            "elementId": "t14fire",
+            "spiritId": "griffin"
+          },
+          "slot3": {
+            "itemId": "plushiehelm",
+            "quality": "uncommon",
+            "elementId": "t14fire",
+            "spiritId": "ouroboros"
+          },
+          "slot4": {
+            "itemId": "plushieboots",
+            "quality": "uncommon",
+            "elementId": "t14fire",
+            "spiritId": "griffin"
+          },
+          "slot5": {
+            "itemId": "siacloak",
+            "quality": "common",
+            "elementId": "t14fire",
+            "spiritId": "griffin"
+          },
+          "slot6": {
+            "itemId": "firecrabdessert",
+            "quality": "uncommon",
+            "elementId": "t14fire",
+            "spiritId": "ouroboros"
+          }
+        }
+      },
+      "deathknight-1770857220921": {
+        "heroId": "deathknight-1770857220921",
+        "heroName": "慈悲骑士1",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_megahp4",
+          "s_megaevasion4",
+          "p_extraplating4",
+          "s_defevasion4"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "thiefcrossbow",
+            "quality": "uncommon",
+            "elementId": "t14dark",
+            "spiritId": "griffin"
+          },
+          "slot2": {
+            "itemId": "plushieheavyarmor",
+            "quality": "uncommon",
+            "elementId": "t14dark",
+            "spiritId": "griffin"
+          },
+          "slot3": {
+            "itemId": "plushiehelm",
+            "quality": "uncommon",
+            "elementId": "t14dark",
+            "spiritId": "griffin"
+          },
+          "slot4": {
+            "itemId": "plushieboots",
+            "quality": "uncommon",
+            "elementId": "t14dark",
+            "spiritId": "griffin"
+          },
+          "slot5": {
+            "itemId": "t15idol",
+            "quality": "uncommon",
+            "elementId": "t14dark",
+            "spiritId": "griffin"
+          },
+          "slot6": {
+            "itemId": "t15idol",
+            "quality": "uncommon",
+            "elementId": "t14dark",
+            "spiritId": "griffin"
+          }
+        }
+      },
+      "deathknight-1770857331481": {
+        "heroId": "deathknight-1770857331481",
+        "heroName": "慈悲骑士2",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_megahp4",
+          "s_megaevasion4",
+          "p_extraplating4",
+          "s_defevasion4"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "thiefcrossbow",
+            "quality": "uncommon",
+            "elementId": "t14dark",
+            "spiritId": "griffin"
+          },
+          "slot2": {
+            "itemId": "plushieheavyarmor",
+            "quality": "uncommon",
+            "elementId": "t14dark",
+            "spiritId": "griffin"
+          },
+          "slot3": {
+            "itemId": "plushiehelm",
+            "quality": "uncommon",
+            "elementId": "t14dark",
+            "spiritId": "griffin"
+          },
+          "slot4": {
+            "itemId": "plushieboots",
+            "quality": "uncommon",
+            "elementId": "t14dark",
+            "spiritId": "griffin"
+          },
+          "slot5": {
+            "itemId": "t15idol",
+            "quality": "uncommon",
+            "elementId": "t14dark",
+            "spiritId": "griffin"
+          },
+          "slot6": {
+            "itemId": "t15idol",
+            "quality": "uncommon",
+            "elementId": "t14dark",
+            "spiritId": "griffin"
+          }
+        }
+      },
+      "mastermonk-1770857375915": {
+        "heroId": "mastermonk-1770857375915",
+        "heroName": "宗师1",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_megaevasion4",
+          "s_megahp4",
+          "p_bladedance4",
+          "p_cloakndagger4"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "maladyrobe",
+            "quality": "uncommon",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot2": {
+            "itemId": "maladyamulet",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot3": {
+            "itemId": "artifactamulet",
+            "quality": "uncommon",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot4": {
+            "itemId": "t15idol",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot5": {
+            "itemId": "porcelainring",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot6": {
+            "itemId": "porcelainring",
+            "quality": "uncommon",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          }
+        }
+      },
+      "pathfinder-1770857475013": {
+        "heroId": "pathfinder-1770857475013",
+        "heroName": "开拓者1",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_megaevasion1",
+          "s_warmaster1",
+          "p_bladedance1",
+          "s_megahp1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "shoprdualwield",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          },
+          "slot2": {
+            "itemId": "lunarmediumarmor",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          },
+          "slot3": {
+            "itemId": "varsityroguehat",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          },
+          "slot4": {
+            "itemId": "shoprshoes",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          },
+          "slot5": {
+            "itemId": "siacloak",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          },
+          "slot6": {
+            "itemId": "t15idol",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          }
+        }
+      },
+      "pathfinder-1770857615400": {
+        "heroId": "pathfinder-1770857615400",
+        "heroName": "开拓者2",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_megaevasion1",
+          "s_warmaster1",
+          "p_bladedance1",
+          "s_megahp1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "shoprdualwield",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          },
+          "slot2": {
+            "itemId": "lunarmediumarmor",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          },
+          "slot3": {
+            "itemId": "varsityroguehat",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          },
+          "slot4": {
+            "itemId": "shoprshoes",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          },
+          "slot5": {
+            "itemId": "siacloak",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          },
+          "slot6": {
+            "itemId": "t15idol",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          }
+        }
+      },
+      "pathfinder-1770857616033": {
+        "heroId": "pathfinder-1770857616033",
+        "heroName": "开拓者3",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_megaevasion1",
+          "s_warmaster1",
+          "p_bladedance1",
+          "s_megahp1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "shoprdualwield",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          },
+          "slot2": {
+            "itemId": "lunarmediumarmor",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          },
+          "slot3": {
+            "itemId": "varsityroguehat",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          },
+          "slot4": {
+            "itemId": "shoprshoes",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          },
+          "slot5": {
+            "itemId": "siacloak",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          },
+          "slot6": {
+            "itemId": "t15idol",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          }
+        }
+      },
+      "praetorian-1770857628551": {
+        "heroId": "praetorian-1770857628551",
+        "heroName": "禁卫军1",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_megaevasion1",
+          "s_megahp1",
+          "p_cloakndagger1",
+          "p_bladedance1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "paladinshield",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          },
+          "slot2": {
+            "itemId": "lunarmediumarmor",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          },
+          "slot3": {
+            "itemId": "varsityroguehat",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          },
+          "slot4": {
+            "itemId": "lunargloves2",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          },
+          "slot5": {
+            "itemId": "shoprshoes",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          },
+          "slot6": {
+            "itemId": "artifactamulet",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          }
+        }
+      },
+      "praetorian-1770857714389": {
+        "heroId": "praetorian-1770857714389",
+        "heroName": "禁卫军2",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_megaevasion1",
+          "s_megahp1",
+          "p_cloakndagger1",
+          "p_bladedance1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "paladinshield",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          },
+          "slot2": {
+            "itemId": "lunarmediumarmor",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          },
+          "slot3": {
+            "itemId": "varsityroguehat",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          },
+          "slot4": {
+            "itemId": "lunargloves2",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          },
+          "slot5": {
+            "itemId": "shoprshoes",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          },
+          "slot6": {
+            "itemId": "artifactamulet",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          }
+        }
+      },
+      "archmage-1770857742669": {
+        "heroId": "archmage-1770857742669",
+        "heroName": "大法师1",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_megahp1",
+          "p_perfectform1",
+          "p_manashield1",
+          "s_megabreak1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "paintstaff",
+            "quality": "common",
+            "elementId": "t14fire",
+            "spiritId": "ouroboros"
+          },
+          "slot2": {
+            "itemId": "maladyrobe",
+            "quality": "common",
+            "elementId": "t14fire",
+            "spiritId": "ouroboros"
+          },
+          "slot3": {
+            "itemId": "pumpkinmagehat",
+            "quality": "common",
+            "elementId": "t14fire",
+            "spiritId": "ouroboros"
+          },
+          "slot4": {
+            "itemId": "shoprshoes",
+            "quality": "common",
+            "elementId": "t14fire",
+            "spiritId": "ouroboros"
+          },
+          "slot5": {
+            "itemId": "chronoscroll",
+            "quality": "common",
+            "elementId": "t14fire",
+            "spiritId": "ouroboros"
+          },
+          "slot6": {
+            "itemId": "t15idol",
+            "quality": "common",
+            "elementId": "t14fire",
+            "spiritId": "ouroboros"
+          }
+        }
+      },
+      "archmage-1770857893969": {
+        "heroId": "archmage-1770857893969",
+        "heroName": "大法师2",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_megahp1",
+          "p_perfectform1",
+          "p_manashield1",
+          "s_megabreak1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "paintstaff",
+            "quality": "common",
+            "elementId": "t14fire",
+            "spiritId": "ouroboros"
+          },
+          "slot2": {
+            "itemId": "maladyrobe",
+            "quality": "common",
+            "elementId": "t14fire",
+            "spiritId": "ouroboros"
+          },
+          "slot3": {
+            "itemId": "pumpkinmagehat",
+            "quality": "common",
+            "elementId": "t14fire",
+            "spiritId": "ouroboros"
+          },
+          "slot4": {
+            "itemId": "shoprshoes",
+            "quality": "common",
+            "elementId": "t14fire",
+            "spiritId": "ouroboros"
+          },
+          "slot5": {
+            "itemId": "chronoscroll",
+            "quality": "common",
+            "elementId": "t14fire",
+            "spiritId": "ouroboros"
+          },
+          "slot6": {
+            "itemId": "t15idol",
+            "quality": "common",
+            "elementId": "t14fire",
+            "spiritId": "ouroboros"
+          }
+        }
+      },
+      "archdruid-1770857904898": {
+        "heroId": "archdruid-1770857904898",
+        "heroName": "大德鲁伊1",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_megahp1",
+          "s_megabreak1",
+          "p_manashield1",
+          "p_perfectform1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "froginstrument",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          },
+          "slot2": {
+            "itemId": "maladyrobe",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          },
+          "slot3": {
+            "itemId": "darkmeal",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          },
+          "slot4": {
+            "itemId": "firecrabherb",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          },
+          "slot5": {
+            "itemId": "maladyamulet",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          },
+          "slot6": {
+            "itemId": "gb_scroll",
+            "quality": "uncommon",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          }
+        }
+      },
+      "archdruid-1770857983670": {
+        "heroId": "archdruid-1770857983670",
+        "heroName": "大德鲁伊2",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_megahp1",
+          "s_megabreak1",
+          "p_manashield1",
+          "p_perfectform1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "froginstrument",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          },
+          "slot2": {
+            "itemId": "maladyrobe",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          },
+          "slot3": {
+            "itemId": "darkmeal",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          },
+          "slot4": {
+            "itemId": "firecrabherb",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          },
+          "slot5": {
+            "itemId": "maladyamulet",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          },
+          "slot6": {
+            "itemId": "gb_scroll",
+            "quality": "uncommon",
+            "elementId": "t14earth",
+            "spiritId": "ouroboros"
+          }
+        }
+      },
+      "warlock-1770858153835": {
+        "heroId": "warlock-1770858153835",
+        "heroName": "术士1",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_megahp1",
+          "s_megabreak1",
+          "p_manashield1",
+          "p_petrify1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "porcelainwand",
+            "quality": "common",
+            "elementId": "t14dark",
+            "spiritId": "ouroboros"
+          },
+          "slot2": {
+            "itemId": "maladyrobe",
+            "quality": "common",
+            "elementId": "t14dark",
+            "spiritId": "ouroboros"
+          },
+          "slot3": {
+            "itemId": "shoprgloves",
+            "quality": "common",
+            "elementId": "t14dark",
+            "spiritId": "ouroboros"
+          },
+          "slot4": {
+            "itemId": "shoprshoes",
+            "quality": "common",
+            "elementId": "t14dark",
+            "spiritId": "ouroboros"
+          },
+          "slot5": {
+            "itemId": "gb_scroll",
+            "quality": "uncommon",
+            "elementId": "t14dark",
+            "spiritId": "ouroboros"
+          },
+          "slot6": {
+            "itemId": "gb_scroll",
+            "quality": "uncommon",
+            "elementId": "t14dark",
+            "spiritId": "ouroboros"
+          }
+        }
+      },
+      "warlock-1770858213470": {
+        "heroId": "warlock-1770858213470",
+        "heroName": "术士2",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_megahp1",
+          "s_megabreak1",
+          "p_manashield1",
+          "p_petrify1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "porcelainwand",
+            "quality": "common",
+            "elementId": "t14dark",
+            "spiritId": "ouroboros"
+          },
+          "slot2": {
+            "itemId": "maladyrobe",
+            "quality": "common",
+            "elementId": "t14dark",
+            "spiritId": "ouroboros"
+          },
+          "slot3": {
+            "itemId": "shoprgloves",
+            "quality": "common",
+            "elementId": "t14dark",
+            "spiritId": "ouroboros"
+          },
+          "slot4": {
+            "itemId": "shoprshoes",
+            "quality": "common",
+            "elementId": "t14dark",
+            "spiritId": "ouroboros"
+          },
+          "slot5": {
+            "itemId": "gb_scroll",
+            "quality": "uncommon",
+            "elementId": "t14dark",
+            "spiritId": "ouroboros"
+          },
+          "slot6": {
+            "itemId": "gb_scroll",
+            "quality": "uncommon",
+            "elementId": "t14dark",
+            "spiritId": "ouroboros"
+          }
+        }
+      },
+      "spellknight-1770858261029": {
+        "heroId": "spellknight-1770858261029",
+        "heroName": "咒术骑士1",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_warmaster1",
+          "p_doublecast1",
+          "p_batteringblows1",
+          "p_extraplating1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "artifactsword",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot2": {
+            "itemId": "maladyrobe",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          },
+          "slot3": {
+            "itemId": "plushiehelm",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot4": {
+            "itemId": "plushieboots",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot5": {
+            "itemId": "gb_scroll",
+            "quality": "uncommon",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot6": {
+            "itemId": "maladyamulet",
+            "quality": "uncommon",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          }
+        }
+      },
+      "spellknight-1770858412338": {
+        "heroId": "spellknight-1770858412338",
+        "heroName": "咒术骑士2",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_warmaster1",
+          "p_doublecast1",
+          "p_batteringblows1",
+          "p_extraplating1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "artifactsword",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot2": {
+            "itemId": "maladyrobe",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          },
+          "slot3": {
+            "itemId": "plushiehelm",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot4": {
+            "itemId": "plushieboots",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot5": {
+            "itemId": "gb_scroll",
+            "quality": "uncommon",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot6": {
+            "itemId": "maladyamulet",
+            "quality": "uncommon",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          }
+        }
+      },
+      "spellknight-1770858413083": {
+        "heroId": "spellknight-1770858413083",
+        "heroName": "咒术骑士3",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_warmaster1",
+          "p_doublecast1",
+          "p_batteringblows1",
+          "p_extraplating1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "artifactsword",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot2": {
+            "itemId": "maladyrobe",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          },
+          "slot3": {
+            "itemId": "plushiehelm",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot4": {
+            "itemId": "plushieboots",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot5": {
+            "itemId": "gb_scroll",
+            "quality": "uncommon",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot6": {
+            "itemId": "maladyamulet",
+            "quality": "uncommon",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          }
+        }
+      },
+      "spellknight-1770858413694": {
+        "heroId": "spellknight-1770858413694",
+        "heroName": "咒术骑士4",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_warmaster1",
+          "p_doublecast1",
+          "p_batteringblows1",
+          "p_extraplating1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "artifactsword",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot2": {
+            "itemId": "maladyrobe",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          },
+          "slot3": {
+            "itemId": "plushiehelm",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot4": {
+            "itemId": "plushieboots",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot5": {
+            "itemId": "gb_scroll",
+            "quality": "uncommon",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot6": {
+            "itemId": "maladyamulet",
+            "quality": "uncommon",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          }
+        }
+      },
+      "spellknight-1770858414283": {
+        "heroId": "spellknight-1770858414283",
+        "heroName": "咒术骑士5",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_warmaster1",
+          "p_doublecast1",
+          "p_batteringblows1",
+          "p_extraplating1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "artifactsword",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot2": {
+            "itemId": "maladyrobe",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          },
+          "slot3": {
+            "itemId": "plushiehelm",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot4": {
+            "itemId": "plushieboots",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot5": {
+            "itemId": "gb_scroll",
+            "quality": "uncommon",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot6": {
+            "itemId": "maladyamulet",
+            "quality": "uncommon",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          }
+        }
+      },
+      "spellknight-1770858415142": {
+        "heroId": "spellknight-1770858415142",
+        "heroName": "咒术骑士6",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_warmaster1",
+          "p_doublecast1",
+          "p_batteringblows1",
+          "p_extraplating1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "artifactsword",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot2": {
+            "itemId": "maladyrobe",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          },
+          "slot3": {
+            "itemId": "plushiehelm",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot4": {
+            "itemId": "plushieboots",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot5": {
+            "itemId": "gb_scroll",
+            "quality": "uncommon",
+            "elementId": "t14water",
+            "spiritId": "ouroboros"
+          },
+          "slot6": {
+            "itemId": "maladyamulet",
+            "quality": "uncommon",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          }
+        }
+      },
+      "astramancer-1770858450881": {
+        "heroId": "astramancer-1770858450881",
+        "heroName": "星术师1",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_arcanemaster1",
+          "s_megacritmult1",
+          "p_doublecast1",
+          "s_megacrit1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "lightdarkwand",
+            "quality": "legendary",
+            "elementId": null,
+            "spiritId": null
+          },
+          "slot2": {
+            "itemId": "firemagerobe",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "leviathan"
+          },
+          "slot3": {
+            "itemId": "phoenixmagehat",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "leviathan"
+          },
+          "slot4": {
+            "itemId": "pumpkingloves",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "leviathan"
+          },
+          "slot5": {
+            "itemId": "gb_scroll",
+            "quality": "uncommon",
+            "elementId": "t14water",
+            "spiritId": "leviathan"
+          },
+          "slot6": {
+            "itemId": "lightdarkherb",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "leviathan"
+          }
+        }
+      },
+      "astramancer-1770858683473": {
+        "heroId": "astramancer-1770858683473",
+        "heroName": "星术师2",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_arcanemaster1",
+          "s_megacritmult1",
+          "p_doublecast1",
+          "s_megacrit1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "lightdarkwand",
+            "quality": "legendary",
+            "elementId": null,
+            "spiritId": null
+          },
+          "slot2": {
+            "itemId": "firemagerobe",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "leviathan"
+          },
+          "slot3": {
+            "itemId": "phoenixmagehat",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "leviathan"
+          },
+          "slot4": {
+            "itemId": "pumpkingloves",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "leviathan"
+          },
+          "slot5": {
+            "itemId": "gb_scroll",
+            "quality": "uncommon",
+            "elementId": "t14water",
+            "spiritId": "leviathan"
+          },
+          "slot6": {
+            "itemId": "lightdarkherb",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "leviathan"
+          }
+        }
+      },
+      "astramancer-1770858683893": {
+        "heroId": "astramancer-1770858683893",
+        "heroName": "星术师3",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_arcanemaster1",
+          "s_megacritmult1",
+          "p_doublecast1",
+          "s_megacrit1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "lightdarkwand",
+            "quality": "legendary",
+            "elementId": null,
+            "spiritId": null
+          },
+          "slot2": {
+            "itemId": "firemagerobe",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "leviathan"
+          },
+          "slot3": {
+            "itemId": "phoenixmagehat",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "leviathan"
+          },
+          "slot4": {
+            "itemId": "pumpkingloves",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "leviathan"
+          },
+          "slot5": {
+            "itemId": "gb_scroll",
+            "quality": "uncommon",
+            "elementId": "t14water",
+            "spiritId": "leviathan"
+          },
+          "slot6": {
+            "itemId": "lightdarkherb",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "leviathan"
+          }
+        }
+      },
+      "astramancer-1770858684664": {
+        "heroId": "astramancer-1770858684664",
+        "heroName": "星术师4",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_arcanemaster1",
+          "s_megacritmult1",
+          "p_doublecast1",
+          "s_megacrit1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "lightdarkwand",
+            "quality": "legendary",
+            "elementId": null,
+            "spiritId": null
+          },
+          "slot2": {
+            "itemId": "firemagerobe",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "leviathan"
+          },
+          "slot3": {
+            "itemId": "phoenixmagehat",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "leviathan"
+          },
+          "slot4": {
+            "itemId": "pumpkingloves",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "leviathan"
+          },
+          "slot5": {
+            "itemId": "gb_scroll",
+            "quality": "uncommon",
+            "elementId": "t14water",
+            "spiritId": "leviathan"
+          },
+          "slot6": {
+            "itemId": "lightdarkherb",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "leviathan"
+          }
+        }
+      },
+      "timekeeper-1770858708261": {
+        "heroId": "timekeeper-1770858708261",
+        "heroName": "织命者1",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "p_manashield1",
+          "s_megahp1",
+          "p_perfectform1",
+          "s_megabreak1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "artifactsword",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "ouroboros"
+          },
+          "slot2": {
+            "itemId": "maladyrobe",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "ouroboros"
+          },
+          "slot3": {
+            "itemId": "pumpkinmagehat",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "ouroboros"
+          },
+          "slot4": {
+            "itemId": "shoprshoes",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "ouroboros"
+          },
+          "slot5": {
+            "itemId": "chronoscroll",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "ouroboros"
+          },
+          "slot6": {
+            "itemId": "maladyamulet",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "ouroboros"
+          }
+        }
+      },
+      "timekeeper-1770858800876": {
+        "heroId": "timekeeper-1770858800876",
+        "heroName": "织命者2",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "p_manashield1",
+          "s_megahp1",
+          "p_perfectform1",
+          "s_megabreak1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "artifactsword",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "ouroboros"
+          },
+          "slot2": {
+            "itemId": "maladyrobe",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "ouroboros"
+          },
+          "slot3": {
+            "itemId": "pumpkinmagehat",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "ouroboros"
+          },
+          "slot4": {
+            "itemId": "shoprshoes",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "ouroboros"
+          },
+          "slot5": {
+            "itemId": "chronoscroll",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "ouroboros"
+          },
+          "slot6": {
+            "itemId": "maladyamulet",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "ouroboros"
+          }
+        }
+      },
+      "acrobat-1770859832129": {
+        "heroId": "acrobat-1770859832129",
+        "heroName": "杂耍家1",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_megaevasion4",
+          "s_megahp4",
+          "p_bladedance4",
+          "s_warmaster4"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "shoprdualwield",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "titan"
+          },
+          "slot2": {
+            "itemId": "porcelainmediumarmor",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "ouroboros"
+          },
+          "slot3": {
+            "itemId": "dieselpunkroguehat",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "griffin"
+          },
+          "slot4": {
+            "itemId": "shoprgloves",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "ouroboros"
+          },
+          "slot5": {
+            "itemId": "icecreamshoes",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "ouroboros"
+          },
+          "slot6": {
+            "itemId": "t15idol",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "griffin"
+          }
+        }
+      },
+      "bishop-1770859856878": {
+        "heroId": "bishop-1770859856878",
+        "heroName": "主教1",
+        "level": 40,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "skills": [
+          "s_megahp1",
+          "p_manashield1",
+          "s_megabreak1",
+          "p_perfectform1"
+        ],
+        "equipment": {
+          "slot1": {
+            "itemId": "porcelainwand",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          },
+          "slot2": {
+            "itemId": "maladyrobe",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          },
+          "slot3": {
+            "itemId": "pumpkinmagehat",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          },
+          "slot4": {
+            "itemId": "shoprshoes",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          },
+          "slot5": {
+            "itemId": "gb_scroll",
+            "quality": "uncommon",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          },
+          "slot6": {
+            "itemId": "t15idol",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "ouroboros"
+          }
+        }
+      }
+    },
+    "championEquipment": {
+      "argon": {
+        "championId": "argon",
+        "level": 40,
+        "rank": 10,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "isTitan": false,
+        "cardLevel": 0,
+        "equipment": {
+          "familiar": {
+            "itemId": "demigod",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "bahamut"
+          },
+          "aurasong": {
+            "itemId": "paintaura",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "bahamut"
+          }
+        }
+      },
+      "lilu": {
+        "championId": "lilu",
+        "level": 40,
+        "rank": 10,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "isTitan": false,
+        "cardLevel": 0,
+        "equipment": {
+          "familiar": {
+            "itemId": "demigod",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "bahamut"
+          },
+          "aurasong": {
+            "itemId": "paintaura",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "bahamut"
+          }
+        }
+      },
+      "sia": {
+        "championId": "sia",
+        "level": 40,
+        "rank": 10,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "isTitan": false,
+        "cardLevel": 0,
+        "equipment": {
+          "familiar": {
+            "itemId": "demigod",
+            "quality": "uncommon",
+            "elementId": "t14air",
+            "spiritId": "bahamut"
+          },
+          "aurasong": {
+            "itemId": "paintaura",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "bahamut"
+          }
+        }
+      },
+      "yami": {
+        "championId": "yami",
+        "level": 40,
+        "rank": 10,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "isTitan": false,
+        "cardLevel": 0,
+        "equipment": {
+          "familiar": {
+            "itemId": "demigod",
+            "quality": "common",
+            "elementId": "t14dark",
+            "spiritId": "bahamut"
+          },
+          "aurasong": {
+            "itemId": "paintaura",
+            "quality": "common",
+            "elementId": "t14dark",
+            "spiritId": "bahamut"
+          }
+        }
+      },
+      "rudo": {
+        "championId": "rudo",
+        "level": 40,
+        "rank": 10,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "isTitan": false,
+        "cardLevel": 0,
+        "equipment": {
+          "familiar": {
+            "itemId": "demigod",
+            "quality": "common",
+            "elementId": "t14fire",
+            "spiritId": "bahamut"
+          },
+          "aurasong": {
+            "itemId": "paintaura",
+            "quality": "common",
+            "elementId": "t14fire",
+            "spiritId": "bahamut"
+          }
+        }
+      },
+      "polonia": {
+        "championId": "polonia",
+        "level": 40,
+        "rank": 10,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "isTitan": false,
+        "cardLevel": 0,
+        "equipment": {
+          "familiar": {
+            "itemId": "demigod",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "bahamut"
+          },
+          "aurasong": {
+            "itemId": "paintaura",
+            "quality": "common",
+            "elementId": "t14water",
+            "spiritId": "bahamut"
+          }
+        }
+      },
+      "donovan": {
+        "championId": "donovan",
+        "level": 40,
+        "rank": 10,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "isTitan": false,
+        "cardLevel": 0,
+        "equipment": {
+          "familiar": {
+            "itemId": "demigod",
+            "quality": "common",
+            "elementId": "t14fire",
+            "spiritId": "bahamut"
+          },
+          "aurasong": {
+            "itemId": "paintaura",
+            "quality": "common",
+            "elementId": "t14fire",
+            "spiritId": "bahamut"
+          }
+        }
+      },
+      "hemma": {
+        "championId": "hemma",
+        "level": 40,
+        "rank": 10,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "isTitan": false,
+        "cardLevel": 0,
+        "equipment": {
+          "familiar": {
+            "itemId": "demigod",
+            "quality": "common",
+            "elementId": "t14dark",
+            "spiritId": "bahamut"
+          },
+          "aurasong": {
+            "itemId": "paintaura",
+            "quality": "common",
+            "elementId": "t14dark",
+            "spiritId": "bahamut"
+          }
+        }
+      },
+      "ashley": {
+        "championId": "ashley",
+        "level": 40,
+        "rank": 10,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "isTitan": true,
+        "cardLevel": 0,
+        "equipment": {
+          "familiar": {
+            "itemId": "demigod",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "bahamut"
+          },
+          "aurasong": {
+            "itemId": "paintaura",
+            "quality": "common",
+            "elementId": "t14earth",
+            "spiritId": "bahamut"
+          }
+        }
+      },
+      "bjorn": {
+        "championId": "bjorn",
+        "level": 40,
+        "rank": 10,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "isTitan": false,
+        "cardLevel": 0,
+        "equipment": {
+          "familiar": {
+            "itemId": "demigod",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "bahamut"
+          },
+          "aurasong": {
+            "itemId": "paintaura",
+            "quality": "common",
+            "elementId": "t14air",
+            "spiritId": "bahamut"
+          }
+        }
+      },
+      "malady": {
+        "championId": "malady",
+        "level": 40,
+        "rank": 10,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "isTitan": false,
+        "cardLevel": 0,
+        "equipment": {
+          "familiar": {
+            "itemId": "demigod",
+            "quality": "common",
+            "elementId": null,
+            "spiritId": "bahamut"
+          },
+          "aurasong": {
+            "itemId": "paintaura",
+            "quality": "common",
+            "elementId": "t14light",
+            "spiritId": "bahamut"
+          }
+        }
+      },
+      "leather": {
+        "championId": "leather",
+        "level": 40,
+        "rank": 11,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "isTitan": false,
+        "cardLevel": 0,
+        "equipment": {
+          "familiar": {
+            "itemId": null,
+            "quality": "common",
+            "elementId": null,
+            "spiritId": null
+          },
+          "aurasong": {
+            "itemId": null,
+            "quality": "common",
+            "elementId": null,
+            "spiritId": null
+          }
+        }
+      },
+      "king": {
+        "championId": "king",
+        "level": 40,
+        "rank": 11,
+        "seedHp": 0,
+        "seedAtk": 0,
+        "seedDef": 0,
+        "isTitan": false,
+        "cardLevel": 0,
+        "equipment": {
+          "familiar": {
+            "itemId": null,
+            "quality": "common",
+            "elementId": null,
+            "spiritId": null
+          },
+          "aurasong": {
+            "itemId": null,
+            "quality": "common",
+            "elementId": null,
+            "spiritId": null
+          }
+        }
+      }
+    },
+    "_id": "698d2f8a5b1788352dbedb06",
+    "usageCount": 62,
+    "createdAt": "2026-07-22T03:35:15.430Z",
+    "updatedAt": "2026-07-22T03:35:15.430Z"
+  }
+}

@@ -1,0 +1,37 @@
+HTTP/2 301 
+server: nginx/1.18.0 (Ubuntu)
+date: Wed, 22 Jul 2026 03:31:17 GMT
+content-type: text/html
+content-length: 178
+location: https://cdn.cq-zys.cn/assets/TextAsset/heroes.json
+x-frame-options: SAMEORIGIN
+x-xss-protection: 1; mode=block
+x-content-type-options: nosniff
+referrer-policy: no-referrer-when-downgrade
+content-security-policy: default-src 'self' http: https: data: blob: 'unsafe-inline'
+
+HTTP/1.1 200 OK
+Server: openresty
+Date: Wed, 22 Jul 2026 03:31:19 GMT
+Content-Type: image/png
+Content-Length: 25036
+Connection: keep-alive
+Accept-Ranges: bytes
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: Content-Type,    Content-Length,    Access-Control-Allow-Origin,    Access-Control-Allow-Methods,    Access-Control-Allow-Headers, X-Log, X-Reqid
+Age: 348373
+Cache-Control: public, max-age=0, must-revalidate
+Content-Disposition: inline; filename="heroes.json"; filename*=utf-8''heroes.json
+Content-Md5: bENrY8fPV2vPcCOZqeotxw==
+Content-Transfer-Encoding: binary
+Etag: "FoXMNwMdVslY9ZkoPCG0W8aEQTqL"
+Last-Modified: Thu, 16 Jul 2026 13:31:59 GMT
+Vary: Origin
+X-Log: X-Log
+X-M-Log: QNM:cdn-cache-dls-zjwz-wz-26;QNM3:1892
+X-M-Reqid: JWAl4L7Ya
+X-Qiniu-Zone: 2
+X-Qnm-Cache: Hit
+X-Reqid: 9iQAAADuneY8QsMY
+X-Svr: IO
+

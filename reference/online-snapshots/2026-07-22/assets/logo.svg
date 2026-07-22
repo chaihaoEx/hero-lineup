@@ -1,0 +1,81 @@
+<svg width="200" height="200" viewBox="37 79 125 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 原有渐变 -->
+    <linearGradient id="gradTop" x1="60" y1="60" x2="140" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#A6D9FF"/>
+      <stop offset="1" stop-color="#4FA3E3"/>
+    </linearGradient>
+    <linearGradient id="gradLeft" x1="60" y1="80" x2="100" y2="150" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2980B9"/>
+      <stop offset="1" stop-color="#0A4D8C"/>
+    </linearGradient>
+    <linearGradient id="gradRight" x1="100" y1="80" x2="140" y2="150" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0746A6"/>
+      <stop offset="1" stop-color="#032661"/>
+    </linearGradient>
+    <linearGradient id="gradStem" x1="100" y1="45" x2="100" y2="80" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#888"/>
+      <stop offset="1" stop-color="#333"/>
+    </linearGradient>
+
+    <!-- 更亮的红色球体 -->
+    <radialGradient id="gradBall" cx="100" cy="40" r="12" gradientUnits="userSpaceOnUse">
+      <stop offset="0.15" stop-color="#FFD1D1"/>
+      <stop offset="0.45" stop-color="#FF6B6B"/>
+      <stop offset="1" stop-color="#E53935"/>
+    </radialGradient>
+
+    <!-- 浅亮红色发光（重点优化） -->
+    <filter id="redGlow" x="-140%" y="-140%" width="380%" height="380%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feColorMatrix in="blur" type="matrix"
+        values="
+          1.4 0   0   0   0
+          0   0.8 0   0   0
+          0   0   0.8 0   0
+          0   0   0   1.4 0"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- 赛博蓝发光（底座） -->
+    <filter id="cyberGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="3"/>
+    </filter>
+  </defs>
+
+  <!-- ========== 底座立方体 ========== -->
+  <path d="M100 100 V150 L140 130 V80 Z" fill="url(#gradRight)"/>
+  <path d="M60 80 V130 L100 150 V100 Z" fill="url(#gradLeft)"/>
+  <path d="M100 60 L140 80 L100 100 L60 80 Z" fill="url(#gradTop)"/>
+
+  <!-- 原有结构线 -->
+  <path d="M60 80 L100 100 L140 80" stroke="#CDEBFF" stroke-width="1.5" opacity="0.8"/>
+  <line x1="100" y1="100" x2="100" y2="150" stroke="#CDEBFF" stroke-width="1" opacity="0.4"/>
+
+  <!-- ========== 赛博蓝线条光效 ========== -->
+  <g filter="url(#cyberGlow)" stroke="#60E3FF" stroke-width="2" stroke-linecap="round" opacity="0.85">
+    <line x1="60" y1="80" x2="100" y2="60"/>
+    <line x1="100" y1="60" x2="140" y2="80"/>
+    <line x1="60" y1="80" x2="60" y2="130"/>
+    <line x1="60" y1="130" x2="100" y2="150"/>
+    <line x1="140" y1="80" x2="140" y2="130"/>
+    <line x1="140" y1="130" x2="100" y2="150"/>
+  </g>
+
+  <!-- ========== 向右倾斜 + 浅亮红光摇杆 ========== -->
+  <g transform="rotate(12 100 80)" filter="url(#redGlow)">
+    <line x1="100" y1="80" x2="100" y2="45"
+          stroke="url(#gradStem)" stroke-width="6" stroke-linecap="round"/>
+
+    <ellipse cx="100" cy="80" rx="6" ry="3" fill="#000" opacity="0.28"/>
+
+    <circle cx="100" cy="40" r="12" fill="url(#gradBall)"/>
+
+    <ellipse cx="96" cy="36" rx="3" ry="2"
+             fill="#FFF" opacity="0.95"
+             transform="rotate(-30 96 36)"/>
+  </g>
+</svg>

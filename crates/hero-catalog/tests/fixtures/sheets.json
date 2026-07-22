@@ -1,0 +1,22 @@
+{
+  "knight": {
+    "health": 420,
+    "attack": 560,
+    "defense": 1014,
+    "evasion": 0.0,
+    "critical": 5.0,
+    "criticalDamage": 2.0,
+    "aggro": 90.0,
+    "elementValue": 0
+  },
+  "argon": {
+    "health": 742,
+    "attack": 3211,
+    "defense": 4441,
+    "evasion": 0.0,
+    "critical": 5.0,
+    "criticalDamage": 2.0,
+    "aggro": 90.0,
+    "elementValue": 80
+  }
+}

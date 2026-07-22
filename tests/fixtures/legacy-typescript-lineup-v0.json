@@ -1,0 +1,55 @@
+{
+  "format": "zyslineup",
+  "schemaVersion": 1,
+  "appVersion": "0.1.0",
+  "gameDataVersion": "offline-preview-1",
+  "simulatorVersion": "browser-preview",
+  "assetVersion": "legacy-unknown",
+  "exportedAt": "2026-07-22T00:00:00Z",
+  "systems": [
+    {
+      "id": "10000000-0000-4000-8000-000000000001",
+      "name": "旧版 TypeScript 体系",
+      "description": "迁移测试夹具",
+      "localTag": "本地",
+      "heroes": [
+        {
+          "id": "20000000-0000-4000-8000-000000000002",
+          "kind": "hero",
+          "name": "骑士 1",
+          "classId": "knight",
+          "className": "骑士",
+          "element": "光",
+          "level": 40,
+          "rank": 10,
+          "seed": 0,
+          "titan": false,
+          "cardLevel": 3,
+          "skills": ["p_cleave1"],
+          "equipment": []
+        }
+      ],
+      "championIds": ["argon"],
+      "championLoadouts": {},
+      "taskGroups": [
+        {
+          "id": "30000000-0000-4000-8000-000000000003",
+          "name": "日常冒险",
+          "tasks": [
+            {
+              "id": "40000000-0000-4000-8000-000000000004",
+              "name": "森林",
+              "map": "forest01",
+              "difficulty": "困难",
+              "memberIds": ["20000000-0000-4000-8000-000000000002", "argon"],
+              "config": { "iterations": 10000, "seed": 42 }
+            }
+          ]
+        }
+      ],
+      "createdAt": "2026-07-22T00:00:00Z",
+      "updatedAt": "2026-07-22T00:00:00Z",
+      "gameDataVersion": "offline-preview-1"
+    }
+  ]
+}

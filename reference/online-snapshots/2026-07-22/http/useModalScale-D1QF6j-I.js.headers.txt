@@ -1,0 +1,12 @@
+HTTP/2 200 
+server: nginx/1.18.0 (Ubuntu)
+date: Wed, 22 Jul 2026 03:31:15 GMT
+content-type: application/javascript
+content-length: 381
+last-modified: Wed, 22 Jul 2026 02:23:20 GMT
+etag: "6a602998-17d"
+expires: Thu, 22 Jul 2027 03:31:15 GMT
+cache-control: max-age=31536000
+cache-control: public, immutable
+accept-ranges: bytes
+

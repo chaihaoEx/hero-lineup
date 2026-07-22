@@ -1,0 +1,37 @@
+HTTP/2 301 
+server: nginx/1.18.0 (Ubuntu)
+date: Wed, 22 Jul 2026 03:31:16 GMT
+content-type: text/html
+content-length: 178
+location: https://cdn.cq-zys.cn/logo.svg
+x-frame-options: SAMEORIGIN
+x-xss-protection: 1; mode=block
+x-content-type-options: nosniff
+referrer-policy: no-referrer-when-downgrade
+content-security-policy: default-src 'self' http: https: data: blob: 'unsafe-inline'
+
+HTTP/1.1 200 OK
+Server: openresty
+Date: Wed, 22 Jul 2026 03:31:16 GMT
+Content-Type: image/svg+xml
+Content-Length: 3357
+Connection: keep-alive
+Accept-Ranges: bytes
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: X-Log, X-Reqid
+Access-Control-Max-Age: 2592000
+Age: 1451460
+Cache-Control: public, max-age=0, must-revalidate
+Content-Disposition: inline; filename="logo.svg"; filename*=utf-8''logo.svg
+Content-Md5: x6+fBYiwOPl04iIOB+H2rw==
+Content-Transfer-Encoding: binary
+Etag: "FpuDreV84sD0p8UUmY8uYVe5APlF"
+Last-Modified: Tue, 06 Jan 2026 18:57:10 GMT
+X-Log: X-Log
+X-M-Log: QNM:cdn-cache-dls-zjwz-wz-18;QNM3:636
+X-M-Reqid: j4urNL93C
+X-Qiniu-Zone: 2
+X-Qnm-Cache: Hit
+X-Reqid: TVcAAAA3iQC40psY
+X-Svr: IO
+

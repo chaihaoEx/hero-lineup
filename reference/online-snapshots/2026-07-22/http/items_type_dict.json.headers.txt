@@ -1,0 +1,37 @@
+HTTP/2 301 
+server: nginx/1.18.0 (Ubuntu)
+date: Wed, 22 Jul 2026 03:31:27 GMT
+content-type: text/html
+content-length: 178
+location: https://cdn.cq-zys.cn/assets/items/items_type_dict.json
+x-frame-options: SAMEORIGIN
+x-xss-protection: 1; mode=block
+x-content-type-options: nosniff
+referrer-policy: no-referrer-when-downgrade
+content-security-policy: default-src 'self' http: https: data: blob: 'unsafe-inline'
+
+HTTP/1.1 200 OK
+Server: openresty
+Date: Wed, 22 Jul 2026 03:31:27 GMT
+Content-Type: image/png
+Content-Length: 1348
+Connection: keep-alive
+Accept-Ranges: bytes
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: Content-Type,    Content-Length,    Access-Control-Allow-Origin,    Access-Control-Allow-Methods,    Access-Control-Allow-Headers, X-Log, X-Reqid
+Age: 449441
+Cache-Control: public, max-age=0, must-revalidate
+Content-Disposition: inline; filename="items_type_dict.json"; filename*=utf-8''items_type_dict.json
+Content-Md5: vR+hQB1j7i+kHbD8yl4X/g==
+Content-Transfer-Encoding: binary
+Etag: "FsnySheBuKUzemZ40ZpawJXgXTTU"
+Last-Modified: Tue, 16 Jun 2026 03:24:50 GMT
+Vary: Origin
+X-Log: X-Log
+X-M-Log: QNM:cdn-cache-dls-zjwz-wz-19;QNM3
+X-M-Reqid: lLOQ57Hwa
+X-Qiniu-Zone: 2
+X-Qnm-Cache: Hit
+X-Reqid: r8gAAAAhp-Hqur0Y
+X-Svr: IO
+

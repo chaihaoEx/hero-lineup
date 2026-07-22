@@ -1,0 +1,99 @@
+{
+  "source": {
+    "kind": "public-preview-shape",
+    "snapshot": "reference/api-samples/public-preview.json",
+    "questId": "jurassic04",
+    "fighterIds": [
+      "lord-1770856912070",
+      "warlock-1770858153835"
+    ],
+    "note": "IDs and scenario shape come from the archived public preview; numeric combat inputs are fixed reconstruction fixtures, not claims of online parity."
+  },
+  "request": {
+    "battle": {
+      "seed": 20260722,
+      "iterations": 4096,
+      "party": [
+        {
+          "id": "lord-1770856912070",
+          "stats": {
+            "health": 3637,
+            "attack": 420,
+            "defense": 510,
+            "evasion": 0.2,
+            "criticalChance": 0.25,
+            "criticalDamage": 2.0
+          }
+        },
+        {
+          "id": "warlock-1770858153835",
+          "stats": {
+            "health": 2621,
+            "attack": 3200,
+            "defense": 300,
+            "evasion": 0.1,
+            "criticalChance": 0.35,
+            "criticalDamage": 2.0
+          }
+        }
+      ],
+      "enemy": {
+        "health": 50000,
+        "attack": 800,
+        "defense": 400,
+        "evasion": 0.05,
+        "criticalChance": 0.1,
+        "criticalDamage": 1.5,
+        "maxRounds": 60
+      }
+    },
+    "rules": {
+      "elements": {
+        "mode": { "fixed": "light" },
+        "health": 500,
+        "requiredPower": 0,
+        "rudoMultiplier": 1,
+        "fighters": [
+          { "fighterId": "lord-1770856912070", "element": "light", "power": 270 },
+          { "fighterId": "warlock-1770858153835", "element": "dark", "power": 270 }
+        ]
+      },
+      "booster": {
+        "attack": 0.1,
+        "defense": 0.1,
+        "criticalChance": 0,
+        "criticalDamage": 0
+      },
+      "environment": {
+        "monsterHealth": 0.1,
+        "monsterAttack": 0.05,
+        "monsterDefense": 0,
+        "monsterEvasion": 0,
+        "monsterCriticalChance": 0,
+        "monsterCriticalDamage": 0
+      },
+      "elite": "epic",
+      "titanFloor": { "floor": 10, "reduction": 0.2 }
+    }
+  },
+  "expected": {
+    "successRate": 0,
+    "averageRounds": 33.58740234375,
+    "minimumRounds": 26,
+    "maximumRounds": 47,
+    "members": [
+      {
+        "id": "lord-1770856912070",
+        "survivalRate": 0,
+        "averageDamage": 572.6694746478153,
+        "averageRemainingHealth": 0
+      },
+      {
+        "id": "warlock-1770858153835",
+        "survivalRate": 0,
+        "averageDamage": 2765.3734347048494,
+        "averageRemainingHealth": 0
+      }
+    ]
+  }
+}

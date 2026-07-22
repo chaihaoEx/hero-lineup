@@ -1,0 +1,50 @@
+{
+  "source": {
+    "kind": "archived-bundle-formulas",
+    "bundle": "reference/online-snapshots/2026-07-22/assets/HeroLineup-DP_2OddU.js",
+    "helpers": "reference/online-snapshots/2026-07-22/assets/utils-B4Bv7ofN.js",
+    "note": "The formulas and state transitions are reconstructed from the archived bundle; the fixed seed and aggregate output are offline regression evidence, not an online random-sequence match."
+  },
+  "request": {
+    "battle": {
+      "seed": 73022,
+      "iterations": 512,
+      "party": [
+        {
+          "id": "protector",
+          "stats": { "health": 180, "attack": 45, "defense": 80, "evasion": 0.05, "criticalChance": 0.15, "criticalDamage": 2.0 }
+        },
+        {
+          "id": "focused",
+          "stats": { "health": 120, "attack": 70, "defense": 35, "evasion": 0.1, "criticalChance": 0.2, "criticalDamage": 1.8 }
+        }
+      ],
+      "enemy": { "health": 700, "attack": 30, "defense": 50, "evasion": 0.03, "criticalChance": 0.1, "criticalDamage": 1.5, "maxRounds": 16 }
+    },
+    "questRules": { "elements": {}, "booster": {}, "environment": {}, "elite": "none", "titanFloor": null },
+    "combatRules": [
+      { "kind": "defenseThreshold", "threshold": 40 },
+      { "kind": "timedMonsterModifier", "duration": 3, "damageDelta": 0.2, "criticalChanceDelta": 0.5 },
+      { "kind": "monsterDamagePerRound", "delta": 0.04 },
+      { "kind": "areaAttack", "chance": 0.25, "damageRatio": 0.5 },
+      { "kind": "threat", "fighterId": "protector", "weight": 3.0 },
+      { "kind": "threat", "fighterId": "focused", "weight": 1.0 },
+      { "kind": "regeneration", "fighterId": "focused", "health": 3.0 },
+      { "kind": "lordIntercept", "protectorId": "protector" },
+      { "kind": "openingFocus", "fighterId": "focused", "criticalChance": 0.25, "evasion": 0.15, "recoverAfterRounds": 2 },
+      { "kind": "berserkerStages", "fighterId": "protector", "hpThresholds": [0.75, 0.5, 0.25], "attackPerStage": 0.12, "evasionPerStage": 0.03 }
+    ]
+  },
+  "expected": {
+    "seed": 73022,
+    "iterations": 512,
+    "successRate": 0.982421875,
+    "averageRounds": 8.083984375,
+    "minimumRounds": 6,
+    "maximumRounds": 13,
+    "members": [
+      { "id": "protector", "survivalRate": 0.955078125, "averageDamage": 295.4085937499998, "averageRemainingHealth": 66.751953125 },
+      { "id": "focused", "survivalRate": 0.9609375, "averageDamage": 454.8906250000001, "averageRemainingHealth": 61.294921875 }
+    ]
+  }
+}

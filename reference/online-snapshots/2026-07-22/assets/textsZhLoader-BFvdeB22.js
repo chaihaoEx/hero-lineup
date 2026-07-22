@@ -1,0 +1,1 @@
+let t=null,e=null;async function o(){return t||e||(e=(async()=>{try{const n=await(await fetch("/assets/TextAsset/texts_zh.json")).json();return t=n.texts||n||{},t}catch(s){return console.error("加载 texts_zh.json 失败:",s),t={},t}finally{e=null}})(),e)}export{o as l};

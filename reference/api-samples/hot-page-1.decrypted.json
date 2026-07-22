@@ -1,0 +1,850 @@
+{
+  "data": [
+    {
+      "user": {
+        "_id": "6982ee32a67b7632d54b649c",
+        "username": "zwj1989125",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "default",
+      "name": "丛林究极",
+      "usageCount": 62,
+      "heroCount": 33,
+      "adventureTaskCount": 11,
+      "shortCode": "V6D8J7",
+      "updatedAt": "2026-07-20T11:49:07.851Z"
+    },
+    {
+      "user": {
+        "_id": "69535dd6228ddb4b6a12c0c1",
+        "username": "四下无风",
+        "avatar": "svg_bear.png",
+        "role": "senior"
+      },
+      "systemId": "system-1767619858987",
+      "name": "技能推荐",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 59,
+      "heroCount": 21,
+      "adventureTaskCount": 0,
+      "shortCode": "7ABWKB",
+      "updatedAt": "2026-07-01T03:06:35.853Z"
+    },
+    {
+      "user": {
+        "_id": "69535dd6228ddb4b6a12c0c1",
+        "username": "四下无风",
+        "avatar": "svg_bear.png",
+        "role": "senior"
+      },
+      "systemId": "system-1772959890464",
+      "name": "14魔剑通用（风火光）-无风",
+      "description": "14魔剑，风火光传奇精英怪17队100%胜率，土光暗通用，见另一套组队",
+      "isPublic": true,
+      "usageCount": 40,
+      "heroCount": 41,
+      "adventureTaskCount": 17,
+      "shortCode": "NXVM32",
+      "updatedAt": "2026-05-19T08:54:41.113Z"
+    },
+    {
+      "user": {
+        "_id": "68e7c62702a8c9f1bbcbb9a2",
+        "username": "魔剑天下第一",
+        "avatar": "kirin.png",
+        "role": "normal"
+      },
+      "systemId": "system-1770649591062",
+      "name": "毁灭吧",
+      "usageCount": 30,
+      "heroCount": 24,
+      "adventureTaskCount": 8,
+      "shortCode": "XXFOO6",
+      "updatedAt": "2026-07-21T02:11:55.589Z"
+    },
+    {
+      "user": {
+        "_id": "68e7c62702a8c9f1bbcbb9a2",
+        "username": "魔剑天下第一",
+        "avatar": "kirin.png",
+        "role": "normal"
+      },
+      "systemId": "default",
+      "name": "开整，以这个为准",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 27,
+      "heroCount": 38,
+      "adventureTaskCount": 11,
+      "shortCode": "HI77GZ",
+      "updatedAt": "2026-06-19T13:33:59.458Z"
+    },
+    {
+      "user": {
+        "_id": "69535dd6228ddb4b6a12c0c1",
+        "username": "四下无风",
+        "avatar": "svg_bear.png",
+        "role": "senior"
+      },
+      "systemId": "system-1773677590626",
+      "name": "14魔剑通用（土光暗）-无风",
+      "description": "14魔剑，土光暗传奇精英怪17队100%胜率，风火光通用，见另一套组队",
+      "isPublic": true,
+      "usageCount": 23,
+      "heroCount": 41,
+      "adventureTaskCount": 17,
+      "shortCode": "6M3CLE",
+      "updatedAt": "2026-05-19T10:27:31.752Z"
+    },
+    {
+      "user": {
+        "_id": "69a311f455d1db448e59b3b1",
+        "username": "King",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "system-1772301422867",
+      "name": "大号T16",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 22,
+      "heroCount": 41,
+      "adventureTaskCount": 16,
+      "shortCode": "08TRWT",
+      "updatedAt": "2026-06-26T02:35:54.626Z"
+    },
+    {
+      "user": {
+        "_id": "699982846baa84e054856828",
+        "username": "喵大人",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "default",
+      "name": "单刷+组队+无重复",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 16,
+      "heroCount": 33,
+      "adventureTaskCount": 14,
+      "shortCode": "8A8AA8",
+      "updatedAt": "2026-02-24T09:53:14.494Z"
+    },
+    {
+      "user": {
+        "_id": "689d89a034cb6cb733c153e0",
+        "username": "phx",
+        "avatar": "svg_bear.png",
+        "role": "senior"
+      },
+      "systemId": "default",
+      "name": "phx当前英雄",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 12,
+      "heroCount": 41,
+      "adventureTaskCount": 13,
+      "shortCode": "GX1IQH",
+      "updatedAt": "2026-07-16T11:04:17.738Z"
+    },
+    {
+      "user": {
+        "_id": "68795467454277e2fbb1f7a7",
+        "username": "系统",
+        "avatar": "svg_horse.png",
+        "role": "admin"
+      },
+      "systemId": "system-1784523661780",
+      "name": "Ocelot的英雄体系",
+      "description": "由游戏档案导入，导入时间：2026-07-20 13:01:01",
+      "isPublic": true,
+      "usageCount": 10,
+      "heroCount": 41,
+      "adventureTaskCount": 0,
+      "shortCode": "XYQ9ZO",
+      "updatedAt": "2026-07-20T05:01:13.328Z"
+    },
+    {
+      "user": {
+        "_id": "6896e5745019480e19955540",
+        "username": "ximei",
+        "avatar": "svg_lion.png",
+        "role": "senior"
+      },
+      "systemId": "default",
+      "name": "默认体系",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 10,
+      "heroCount": 41,
+      "adventureTaskCount": 13,
+      "shortCode": "FL72MR",
+      "updatedAt": "2026-07-18T07:31:32.836Z"
+    },
+    {
+      "user": {
+        "_id": "69402459b5775452b7a0270c",
+        "username": "seawhale",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "system-1766211243572",
+      "name": "单刷",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 9,
+      "heroCount": 13,
+      "adventureTaskCount": 13,
+      "shortCode": "RQNTVQ",
+      "updatedAt": "2026-02-19T12:09:48.336Z"
+    },
+    {
+      "user": {
+        "_id": "69535dd6228ddb4b6a12c0c1",
+        "username": "四下无风",
+        "avatar": "svg_bear.png",
+        "role": "senior"
+      },
+      "systemId": "default",
+      "name": "无风",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 8,
+      "heroCount": 41,
+      "adventureTaskCount": 1,
+      "shortCode": "LS8M2D",
+      "updatedAt": "2026-07-02T02:45:52.437Z"
+    },
+    {
+      "user": {
+        "_id": "6954d1720cc1f5d7e7690cd4",
+        "username": "请叫我大王",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "default",
+      "name": "种子弟",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 7,
+      "heroCount": 41,
+      "adventureTaskCount": 14,
+      "shortCode": "VZSYRX",
+      "updatedAt": "2026-05-20T02:46:23.581Z"
+    },
+    {
+      "user": {
+        "_id": "696c98570f1f1e11582d4847",
+        "username": "模拟",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "system-1771161253606",
+      "name": "绿系",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 7,
+      "heroCount": 18,
+      "adventureTaskCount": 8,
+      "shortCode": "ZIZ3S2",
+      "updatedAt": "2026-02-15T16:31:37.034Z"
+    },
+    {
+      "user": {
+        "_id": "69402459b5775452b7a0270c",
+        "username": "seawhale",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "system-1768497205836",
+      "name": "技能搭配爆攻 (导入)",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 6,
+      "heroCount": 26,
+      "adventureTaskCount": 13,
+      "shortCode": "X5LYRF",
+      "updatedAt": "2026-03-31T10:10:01.030Z"
+    },
+    {
+      "user": {
+        "_id": "6988cb4f5b1788352db0c354",
+        "username": "along.tql",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "system-1770766416793",
+      "name": "雨花石",
+      "usageCount": 6,
+      "heroCount": 19,
+      "adventureTaskCount": 0,
+      "shortCode": "A77STQ",
+      "updatedAt": "2026-02-27T14:42:44.987Z"
+    },
+    {
+      "user": {
+        "_id": "6a1466febff5d282e46e6535",
+        "username": "李冰沫",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "default",
+      "name": "李冰沫",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 5,
+      "heroCount": 13,
+      "adventureTaskCount": 25,
+      "shortCode": "CHAML9",
+      "updatedAt": "2026-07-21T15:06:28.845Z"
+    },
+    {
+      "user": {
+        "_id": "6940fa1464bdf42e13410eae",
+        "username": "Shoval",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "default",
+      "name": "默认体系",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 5,
+      "heroCount": 32,
+      "adventureTaskCount": 11,
+      "shortCode": "5XDTKG",
+      "updatedAt": "2026-07-21T14:37:52.043Z"
+    },
+    {
+      "user": {
+        "_id": "68795467454277e2fbb1f7a7",
+        "username": "系统",
+        "avatar": "svg_horse.png",
+        "role": "admin"
+      },
+      "systemId": "system-1784524238811",
+      "name": "Reiga的英雄体系",
+      "description": "由游戏档案导入，导入时间：2026-07-20 13:10:05",
+      "isPublic": true,
+      "usageCount": 5,
+      "heroCount": 41,
+      "adventureTaskCount": 0,
+      "shortCode": "DPN9SS",
+      "updatedAt": "2026-07-20T05:10:48.592Z"
+    },
+    {
+      "user": {
+        "_id": "69798a4dd1135a0837e22bc3",
+        "username": "布鲁大师",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "default",
+      "name": "丛林7队究极+1队困难",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 5,
+      "heroCount": 30,
+      "adventureTaskCount": 10,
+      "shortCode": "GEBWXP",
+      "updatedAt": "2026-04-19T15:15:34.359Z"
+    },
+    {
+      "user": {
+        "_id": "68941634eba2300c6e7b050f",
+        "username": "吉吉国王",
+        "avatar": "svg_bear.png",
+        "role": "senior"
+      },
+      "systemId": "default",
+      "name": "123123",
+      "description": "什么都有 什么都玩",
+      "isPublic": true,
+      "usageCount": 5,
+      "heroCount": 36,
+      "adventureTaskCount": 1,
+      "shortCode": "FI3H1Z",
+      "updatedAt": "2026-03-24T12:41:28.924Z"
+    },
+    {
+      "user": {
+        "_id": "69402459b5775452b7a0270c",
+        "username": "seawhale",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "system-1768324987887",
+      "name": "技能搭配攻防 (导入)",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 5,
+      "heroCount": 30,
+      "adventureTaskCount": 4,
+      "shortCode": "PKNPJ6",
+      "updatedAt": "2026-02-19T12:09:48.341Z"
+    },
+    {
+      "user": {
+        "_id": "68cb5359c05b38e5c093358f",
+        "username": "巴拉坦",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "system-1779539595186",
+      "name": "巴拉坦体系-（10队）",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 4,
+      "heroCount": 40,
+      "adventureTaskCount": 14,
+      "shortCode": "DHD941",
+      "updatedAt": "2026-07-20T05:26:39.864Z"
+    },
+    {
+      "user": {
+        "_id": "696f86da7c5257ee489fbc45",
+        "username": "惊心",
+        "avatar": "kirin.png",
+        "role": "normal"
+      },
+      "systemId": "default",
+      "name": "墓地装配",
+      "description": "主要培养：2暴击魔剑，2攻防魔剑，1暴击/闪织命者，1闪防流浪。\n次要培养（能打到200+层奇异再考虑）：2闪暴杂耍家，1暴击术士，1暴击星术师，1闪防禁卫军/血防领主，1闪暴宗师，1火系闪防",
+      "isPublic": true,
+      "usageCount": 4,
+      "heroCount": 22,
+      "adventureTaskCount": 2,
+      "shortCode": "8DR0PV",
+      "updatedAt": "2026-07-19T15:25:53.536Z"
+    },
+    {
+      "user": {
+        "_id": "695d360d20662275582741bc",
+        "username": "吾谁与归",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "default",
+      "name": "默认体系",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 4,
+      "heroCount": 25,
+      "adventureTaskCount": 10,
+      "shortCode": "CBFEAS",
+      "updatedAt": "2026-07-19T04:17:29.509Z"
+    },
+    {
+      "user": {
+        "_id": "69402459b5775452b7a0270c",
+        "username": "seawhale",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "system-1766135154811",
+      "name": "当前",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 4,
+      "heroCount": 4,
+      "adventureTaskCount": 8,
+      "shortCode": "O45CCO",
+      "updatedAt": "2026-07-03T10:44:15.399Z"
+    },
+    {
+      "user": {
+        "_id": "68e7c62702a8c9f1bbcbb9a2",
+        "username": "魔剑天下第一",
+        "avatar": "kirin.png",
+        "role": "normal"
+      },
+      "systemId": "system-1766071095519",
+      "name": "默认体系V2",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 4,
+      "heroCount": 33,
+      "adventureTaskCount": 11,
+      "shortCode": "B5C6ZF",
+      "updatedAt": "2026-02-21T07:05:39.770Z"
+    },
+    {
+      "user": {
+        "_id": "698a0caa5b1788352db5fea4",
+        "username": "筱月无痕",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "system-1770728352283",
+      "name": "闪避侠客33 (导入)",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 4,
+      "heroCount": 33,
+      "adventureTaskCount": 11,
+      "shortCode": "2RXFJW",
+      "updatedAt": "2026-02-13T02:12:15.506Z"
+    },
+    {
+      "user": {
+        "_id": "68cb5359c05b38e5c093358f",
+        "username": "巴拉坦",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "system-1779159462949",
+      "name": "泰能体系-（7队传奇）",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 3,
+      "heroCount": 22,
+      "adventureTaskCount": 8,
+      "shortCode": "1CPDKH",
+      "updatedAt": "2026-07-22T02:54:31.598Z"
+    },
+    {
+      "user": {
+        "_id": "69b65f0bb6f42546181d44a3",
+        "username": "WAR96000",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "default",
+      "name": "默认体系",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 3,
+      "heroCount": 41,
+      "adventureTaskCount": 17,
+      "shortCode": "T1NC99",
+      "updatedAt": "2026-07-19T08:59:28.593Z"
+    },
+    {
+      "user": {
+        "_id": "6a45f7d872d7bf18cf3fe2a7",
+        "username": "k394447552",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "default",
+      "name": "默认体系",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 3,
+      "heroCount": 4,
+      "adventureTaskCount": 1,
+      "shortCode": "NCMTT5",
+      "updatedAt": "2026-07-02T05:47:27.811Z"
+    },
+    {
+      "user": {
+        "_id": "69535dd6228ddb4b6a12c0c1",
+        "username": "四下无风",
+        "avatar": "svg_bear.png",
+        "role": "senior"
+      },
+      "systemId": "system-1771934322511",
+      "name": "试试",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 3,
+      "heroCount": 23,
+      "adventureTaskCount": 2,
+      "shortCode": "YD2Z4L",
+      "updatedAt": "2026-06-30T08:32:36.640Z"
+    },
+    {
+      "user": {
+        "_id": "694b94acbeea988a7a54df9e",
+        "username": "灬有容灬",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "default",
+      "name": "自用多魔剑中高配",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 3,
+      "heroCount": 33,
+      "adventureTaskCount": 11,
+      "shortCode": "M9ZOI8",
+      "updatedAt": "2026-06-24T02:40:53.248Z"
+    },
+    {
+      "user": {
+        "_id": "69428cec5e95b75ae3953041",
+        "username": "咸鱼泡饭",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "default",
+      "name": "默认体系",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 3,
+      "heroCount": 22,
+      "adventureTaskCount": 7,
+      "shortCode": "ZYKKZ9",
+      "updatedAt": "2026-06-17T22:20:00.180Z"
+    },
+    {
+      "user": {
+        "_id": "689f37a9923ad0b9016a0eb6",
+        "username": "八神不吃香菜",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "default",
+      "name": "八神不吃香菜的17队",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 3,
+      "heroCount": 41,
+      "adventureTaskCount": 16,
+      "shortCode": "YXKZPO",
+      "updatedAt": "2026-06-07T07:42:45.239Z"
+    },
+    {
+      "user": {
+        "_id": "695d300a20662275582737f3",
+        "username": "QAZTHC",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "default",
+      "name": "追求最优",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 3,
+      "heroCount": 32,
+      "adventureTaskCount": 3,
+      "shortCode": "JT8ZDI",
+      "updatedAt": "2026-05-02T04:27:08.734Z"
+    },
+    {
+      "user": {
+        "_id": "69402459b5775452b7a0270c",
+        "username": "seawhale",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "system-1768064511238",
+      "name": "技能搭配 闪避 (导入)",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 3,
+      "heroCount": 24,
+      "adventureTaskCount": 11,
+      "shortCode": "NKZGW5",
+      "updatedAt": "2026-04-10T07:42:43.796Z"
+    },
+    {
+      "user": {
+        "_id": "697890abd1135a0837e1914a",
+        "username": "melon",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "default",
+      "name": "魔剑+杂耍 放弃思考队",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 2,
+      "heroCount": 6,
+      "adventureTaskCount": 18,
+      "shortCode": "RGJKTN",
+      "updatedAt": "2026-07-22T03:15:38.860Z"
+    },
+    {
+      "user": {
+        "_id": "6981e3280067cf93522da86f",
+        "username": "白马非马",
+        "avatar": "horse.png",
+        "role": "normal"
+      },
+      "systemId": "default",
+      "name": "默认体系",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 2,
+      "heroCount": 40,
+      "adventureTaskCount": 7,
+      "shortCode": "M3QXXB",
+      "updatedAt": "2026-07-21T08:18:48.740Z"
+    },
+    {
+      "user": {
+        "_id": "68e7c62702a8c9f1bbcbb9a2",
+        "username": "魔剑天下第一",
+        "avatar": "kirin.png",
+        "role": "normal"
+      },
+      "systemId": "system-1766072295936",
+      "name": "默认体系之5队组队英雄",
+      "usageCount": 2,
+      "heroCount": 15,
+      "adventureTaskCount": 5,
+      "shortCode": "VREYZX",
+      "updatedAt": "2026-07-21T02:11:55.589Z"
+    },
+    {
+      "user": {
+        "_id": "68e7c62702a8c9f1bbcbb9a2",
+        "username": "魔剑天下第一",
+        "avatar": "kirin.png",
+        "role": "normal"
+      },
+      "systemId": "system-1768401195695",
+      "name": "没羽毛咋办V2",
+      "usageCount": 2,
+      "heroCount": 33,
+      "adventureTaskCount": 12,
+      "shortCode": "JIZB1R",
+      "updatedAt": "2026-07-21T02:11:55.589Z"
+    },
+    {
+      "user": {
+        "_id": "698d4ae55b1788352dbf1836",
+        "username": "hhhh",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "default",
+      "name": "默认体系",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 2,
+      "heroCount": 8,
+      "adventureTaskCount": 2,
+      "shortCode": "QJYLA8",
+      "updatedAt": "2026-07-12T06:33:05.850Z"
+    },
+    {
+      "user": {
+        "_id": "6a367c559ba8910c32a9f273",
+        "username": "Amoss",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "default",
+      "name": "奇异-墓生灵",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 2,
+      "heroCount": 15,
+      "adventureTaskCount": 1,
+      "shortCode": "5A248A",
+      "updatedAt": "2026-07-08T12:04:59.865Z"
+    },
+    {
+      "user": {
+        "_id": "69402459b5775452b7a0270c",
+        "username": "seawhale",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "system-1779014456699",
+      "name": "导入体系",
+      "description": "由字符串导入，导入时间：2026-05-17 18:40:56",
+      "isPublic": true,
+      "usageCount": 2,
+      "heroCount": 34,
+      "adventureTaskCount": 11,
+      "shortCode": "J7M7SL",
+      "updatedAt": "2026-07-03T18:03:18.825Z"
+    },
+    {
+      "user": {
+        "_id": "6a44d00e346e4750382c2cef",
+        "username": "neverend",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "default",
+      "name": "默认体系",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 2,
+      "heroCount": 34,
+      "adventureTaskCount": 2,
+      "shortCode": "YU0QAG",
+      "updatedAt": "2026-07-02T10:23:10.136Z"
+    },
+    {
+      "user": {
+        "_id": "6a15763fbff5d282e47067c1",
+        "username": "kusalmon",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "system-1782227542161",
+      "name": "123",
+      "description": "由游戏档案导入，导入时间：2026-06-23 23:12:22",
+      "isPublic": true,
+      "usageCount": 2,
+      "heroCount": 23,
+      "adventureTaskCount": 1,
+      "shortCode": "C3HGEQ",
+      "updatedAt": "2026-06-23T15:15:11.018Z"
+    },
+    {
+      "user": {
+        "_id": "69b1d3e057733d2ad04c691c",
+        "username": "菲尼吉",
+        "avatar": "svg_pig.png",
+        "role": "normal"
+      },
+      "systemId": "system-1773921451929",
+      "name": "现有体系",
+      "description": "目前尚未优化完成的体系",
+      "isPublic": true,
+      "usageCount": 2,
+      "heroCount": 38,
+      "adventureTaskCount": 49,
+      "shortCode": "T4RF3Z",
+      "updatedAt": "2026-06-23T11:19:17.678Z"
+    },
+    {
+      "user": {
+        "_id": "6a3682bd9ba8910c32aa1bbf",
+        "username": "Huxley",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "system-1781962365692",
+      "name": "丁富贵",
+      "description": "由游戏档案导入，导入时间：2026-06-20 21:32:45",
+      "isPublic": true,
+      "usageCount": 2,
+      "heroCount": 18,
+      "adventureTaskCount": 0,
+      "shortCode": "4D937I",
+      "updatedAt": "2026-06-20T13:33:16.337Z"
+    },
+    {
+      "user": {
+        "_id": "6a1e8849e5f41233eff6fd6b",
+        "username": "137318218",
+        "avatar": "svg_bear.png",
+        "role": "normal"
+      },
+      "systemId": "system-1780501997136",
+      "name": "16",
+      "description": "",
+      "isPublic": true,
+      "usageCount": 2,
+      "heroCount": 3,
+      "adventureTaskCount": 0,
+      "shortCode": "UO7GQ7",
+      "updatedAt": "2026-06-04T02:18:09.673Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "pageSize": 50,
+    "total": 401,
+    "hasMore": true
+  }
+}

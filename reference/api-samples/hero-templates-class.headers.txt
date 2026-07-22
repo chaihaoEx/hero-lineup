@@ -1,0 +1,14 @@
+HTTP/2 200 
+server: nginx/1.18.0 (Ubuntu)
+date: Wed, 22 Jul 2026 03:35:16 GMT
+content-type: application/json; charset=utf-8
+content-length: 31
+x-powered-by: Express
+vary: Origin
+etag: W/"1f-Ja5E5xqV/Hs8nGEH3k5V7qh5b1I"
+x-frame-options: SAMEORIGIN
+x-xss-protection: 1; mode=block
+x-content-type-options: nosniff
+referrer-policy: no-referrer-when-downgrade
+content-security-policy: default-src 'self' http: https: data: blob: 'unsafe-inline'
+
