@@ -69,7 +69,7 @@ test.describe("浏览器预览中的主要离线工作流", () => {
     await assertOffline(remoteRequests);
   });
 
-  test("英雄拖放载荷可以加入任务，1000 与 10000 次模拟均展示进度和结果", async ({ page }) => {
+  test("英雄拖放载荷可以加入任务，固定 10000 次模拟展示进度和线上同款结果", async ({ page }) => {
     const remoteRequests = await openPreview(page);
 
     await page.getByRole("button", { name: "添加英雄" }).click();
@@ -92,19 +92,15 @@ test.describe("浏览器预览中的主要离线工作流", () => {
     }, secondHero);
     await task.dispatchEvent("drop", { dataTransfer: transfer });
     await expect(task.getByText(secondHero.name, { exact: true })).toBeVisible();
-    await expect(task.getByText("队伍 1/4")).toBeVisible();
+    await expect(task.getByTitle(`移除 ${secondHero.name}`)).toBeVisible();
 
-    const iterationSelect = task.getByLabel(/模拟次数/);
-    await iterationSelect.selectOption("1000");
-    await task.getByRole("button", { name: "开始模拟" }).click();
+    await task.getByRole("button", { name: "测试冒险" }).click();
     await expect(task.getByText(/模拟中 \d+%/)).toBeVisible();
-    await expect(task.getByText("87.4%")).toBeVisible();
-    await expect(task.getByText("成功率")).toBeVisible();
+    await expect(task.getByText("成功率: 87.400%")).toBeVisible();
 
-    await iterationSelect.selectOption("10000");
-    await task.getByRole("button", { name: "开始模拟" }).click();
+    await task.getByRole("button", { name: "测试冒险" }).click();
     await expect(task.getByText(/模拟中 \d+%/)).toBeVisible();
-    await expect(task.getByText("87.4%")).toBeVisible();
+    await expect(task.getByText("成功率: 87.400%")).toBeVisible();
     await task.getByRole("button", { name: "查看详情" }).click();
     await expect(task.getByText("browser-preview")).toBeVisible();
     await assertOffline(remoteRequests);

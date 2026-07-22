@@ -1580,6 +1580,12 @@ async fn start_simulation(
             "survivalRate": result.members.iter().map(|member| member.survival_rate).sum::<f64>() / member_count * 100.0,
             "averageDamage": result.members.iter().map(|member| member.average_damage).sum::<f64>(),
             "averageRemainingHealth": result.members.iter().map(|member| member.average_remaining_health).sum::<f64>(),
+            "memberResults": result.members.iter().map(|member| json!({
+                "id": member.id,
+                "survivalRate": member.survival_rate * 100.0,
+                "averageDamage": member.average_damage,
+                "averageRemainingHealth": member.average_remaining_health
+            })).collect::<Vec<_>>(),
             "seed": result.seed, "iterations": result.iterations,
             "simulatorVersion": SIMULATOR_VERSION, "gameDataVersion": game_data_version,
             "completedAt": Utc::now().to_rfc3339(), "stale": false

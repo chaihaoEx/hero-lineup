@@ -181,10 +181,10 @@ test("supports drag payload into an adventure task", async () => {
   render(<App />);
   await screen.findByText(/英雄阵容/, { selector: "h2" });
   await user.click(screen.getByRole("button", { name: /冒险任务/ }));
-  const dropzone = screen.getByText("拖入英雄或勇士").closest("div")!;
+  const dropzone = document.querySelector<HTMLElement>(".task-card")!;
   const transfer = { getData: () => "missing-id", setData: () => {}, effectAllowed: "copy", dropEffect: "copy" };
-  fireEvent.drop(dropzone.closest("article")!, { dataTransfer: transfer });
-  expect(screen.getByText(/队伍 1\/4/)).toBeInTheDocument();
+  fireEvent.drop(dropzone, { dataTransfer: transfer });
+  expect(screen.getByTitle("移除 骑士1")).toBeInTheDocument();
 });
 
 test("contains no remote runtime URLs", async () => {
@@ -232,7 +232,7 @@ test("reorders task cards within and across groups using the task drag payload",
   fireEvent.dragStart(cards[1]!, { dataTransfer: within });
   fireEvent.drop(cards[0]!, { dataTransfer: within });
   cards = [...document.querySelectorAll<HTMLElement>(".task-card")];
-  expect(cards[0]).toHaveTextContent("副本");
+  expect(cards[0]).toHaveAttribute("data-task-name", "咆哮森林 副本");
 
   await user.click(screen.getByRole("button", { name: "添加分组" }));
   let groups = [...document.querySelectorAll<HTMLElement>(".task-group")];
@@ -243,7 +243,7 @@ test("reorders task cards within and across groups using the task drag payload",
   groups = [...document.querySelectorAll<HTMLElement>(".task-group")];
   expect(groups[0]).toHaveTextContent("1 个任务");
   expect(groups[1]).toHaveTextContent("2 个任务");
-  expect(groups[1]!.querySelector(".task-card")).toHaveTextContent("副本");
+  expect(groups[1]!.querySelector(".task-card")).toHaveAttribute("data-task-name", "咆哮森林 副本");
 });
 
 test("selects the online automatic, element and no-barrier modes", async () => {
@@ -260,8 +260,7 @@ test("selects the online automatic, element and no-barrier modes", async () => {
   await user.click(screen.getByRole("button", { name: "元素屏障：火" }));
   await user.click(screen.getByRole("option", { name: "无屏障" }));
   expect(screen.getByRole("button", { name: "元素屏障：无屏障" })).toBeInTheDocument();
-  expect(screen.getByText("屏障 3275")).toBeInTheDocument();
-  expect(screen.getByText(/最多 4 人 · 同一成员不可重复上阵/)).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "添加成员" })).toBeInTheDocument();
 });
 
 test("mirrors the online map, booster and elite selection flows", async () => {
@@ -338,9 +337,9 @@ test("treats an ordinary Rust cancellation error as a recoverable UI state", asy
   await appReady();
   await user.click(screen.getByRole("button", { name: /冒险任务/ }));
   vi.spyOn(desktopBridge, "simulate").mockRejectedValueOnce(new Error("simulation cancelled by user"));
-  await user.click(screen.getByRole("button", { name: "开始模拟" }));
+  await user.click(screen.getByRole("button", { name: "测试冒险" }));
   expect(await screen.findByText("模拟已取消，可重新开始")).toBeInTheDocument();
-  expect(screen.getByRole("button", { name: "开始模拟" })).toBeEnabled();
+  expect(screen.getByRole("button", { name: "测试冒险" })).toBeEnabled();
 });
 
 test("saves, applies and deletes a local equipment template", async () => {

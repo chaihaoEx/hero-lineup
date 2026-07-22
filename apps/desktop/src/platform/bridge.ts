@@ -281,9 +281,15 @@ export const desktopBridge = {
       onProgress({ taskId: task.id, completed: Math.round((task.config.iterations * step) / steps), total: task.config.iterations, phase: "running" });
     }
     return {
+      iterations: task.config.iterations,
       successRate: 87.4, averageTurns: 8.6, minTurns: 5, maxTurns: 17, survivalRate: 92.1,
       averageDamage: 18640, averageRemainingHealth: 2830, simulatorVersion: "browser-preview",
       gameDataVersion: "offline-preview-1", completedAt: new Date().toISOString(),
+      memberResults: units.map((unit, index) => ({
+        id: unit.id, survivalRate: Math.max(0, 94.6 - index * 2.1),
+        averageDamage: Math.round(18640 / Math.max(1, units.length) * (1 + index * 0.08)),
+        averageRemainingHealth: Math.round(2830 / Math.max(1, units.length) * (1 - index * 0.06)),
+      })),
     };
   },
 

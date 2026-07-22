@@ -491,7 +491,6 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
   const [questMapKey, setQuestMapKey] = useState<string | null>(null);
   const controller = useRef<AbortController | null>(null);
   const members = task.memberIds.map((id) => units.find((unit) => unit.id === id)).filter(Boolean) as PartyUnit[];
-  const barrierTotal = Object.values(task.barrier).reduce<number>((sum, value) => sum + (value ?? 0), 0);
   const boosterLevel = task.config.boosterLevel ?? (task.config.booster ? 1 : 0);
   const boosterNames = ["无", "威力强化品", "超级威力强化品", "特级威力强化品"];
   const eliteKinds = [["none", "无"], ["agile", "敏捷"], ["huge", "巨大"], ["dire", "凶残"], ["wealthy", "富有"], ["epic", "传奇"]] as const;
@@ -515,12 +514,14 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
   };
 
   const run = async () => {
+    const simulatedTask = task.config.iterations === 10000 ? task : { ...task, config: { ...task.config, iterations: 10000 as const } };
+    if (simulatedTask !== task) onChange?.(simulatedTask);
     const next = new AbortController(); controller.current = next;
-    setProgress({ taskId: task.id, completed: 0, total: task.config.iterations, phase: "queued" });
+    setProgress({ taskId: task.id, completed: 0, total: 10000, phase: "queued" });
     try {
-      const result = await desktopBridge.simulate({ ...task, gameDataVersion: systemGameVersion }, members, setProgress, next.signal, systemId);
+      const result = await desktopBridge.simulate({ ...simulatedTask, gameDataVersion: systemGameVersion }, members, setProgress, next.signal, systemId);
       onResult(result);
-      setProgress({ taskId: task.id, completed: task.config.iterations, total: task.config.iterations, phase: "complete" });
+      setProgress({ taskId: task.id, completed: 10000, total: 10000, phase: "complete" });
     } catch (error) {
       const detail = error instanceof Error ? error.message : String(error);
       const cancelled = next.signal.aborted || (error instanceof DOMException && error.name === "AbortError") || /cancel|cancelled|取消/i.test(detail);
@@ -535,7 +536,7 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
     catch (error) { setMessage(error instanceof Error ? error.message : "PNG 导出失败"); }
   };
 
-  return <article className="task-card" draggable onDragStart={(event) => {
+  return <article className="task-card" data-task-name={task.name} draggable onDragStart={(event) => {
     event.dataTransfer.setData("application/x-zys-task", JSON.stringify({ groupId, taskId: task.id }));
     event.dataTransfer.effectAllowed = "move";
   }} onDragOver={(event) => { event.preventDefault(); event.dataTransfer.dropEffect = event.dataTransfer.types.includes("application/x-zys-task") ? "move" : "copy"; }} onDrop={(event) => {
@@ -555,15 +556,13 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
     if (!units.some((unit) => unit.id === id)) { setMessage("拖入的成员不在当前体系阵容中"); return; }
     setMessage(""); onDrop(id);
   }}>
-    <header className="task-header">
-      <div className="task-heading"><GripVertical className="task-drag-handle" size={16} /><div><span className="eyebrow">{task.map} · {task.difficulty}</span><h3>{task.name}</h3></div></div>
-      <div className="card-actions"><IconButton label="复制任务" disabled={!canDuplicate} onClick={onCopy}><Copy size={15} /></IconButton><IconButton label="删除任务" onClick={onDelete} danger><Trash2 size={15} /></IconButton></div>
+    <header className="online-quest-header">
+      <button className="quest-switcher" title="点击切换地图" aria-label={`${task.name}切换地图`} onClick={() => { setQuestPicker(true); setQuestMapKey(null); }}><span className="quest-switcher-art">{currentQuest?.spritePath ? <AssetImage path={currentQuest.spritePath} alt={task.map} /> : "◈"}</span></button>
+      <div className="online-quest-name"><GripVertical className="task-drag-handle" size={14} /><strong>{task.map}</strong><small>{task.difficulty}</small></div>
+      <button className="online-card-action" aria-label="复制任务" disabled={!canDuplicate} onClick={onCopy}>克隆</button>
+      {selectedElement && selectedElement !== "force" && <span className="barrier-broken"><b className={`element-dot element-${elementCode[selectedElement]}`}>✦</b>已破盾</span>}
+      <button className="online-delete-task" aria-label="删除任务" onClick={onDelete}>×</button>
     </header>
-    <div className="simulation-config-title"><span>冒险设置</span><small>调整后重新测试即可对比结果</small></div>
-    <div className="task-config online-task-config">
-      <button className="quest-switcher" title="点击切换地图" aria-label={`${task.name}切换地图`} onClick={() => { setQuestPicker(true); setQuestMapKey(null); }}><span className="quest-switcher-art">{quests.find((entry) => entry.id === task.questId)?.spritePath ? <AssetImage path={quests.find((entry) => entry.id === task.questId)?.spritePath} alt={task.map} /> : "◈"}</span><span><strong>{task.map}</strong><small>{task.difficulty}</small></span></button>
-      <select aria-label={`${task.name}模拟次数`} value={task.config.iterations} onChange={(event) => onChange?.({ ...task, config: { ...task.config, iterations: Number(event.target.value) as 1000 | 10000 } })}><option value={1000}>1,000 次</option><option value={10000}>10,000 次</option></select>
-    </div>
     {questPicker && <div className="nested-picker-backdrop quest-picker-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) { setQuestPicker(false); setQuestMapKey(null); } }}><section className="quest-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="quest-picker-title"><header><h3 id="quest-picker-title">选择冒险任务</h3><button className="zys-button red" onClick={() => { setQuestPicker(false); setQuestMapKey(null); }}>关闭</button></header><nav>{(["普通冒险", "黄金城", "泰坦塔", "快闪"] as const).map((category) => <button key={category} className={questCategory === category ? "active" : ""} onClick={() => { setQuestCategory(category); setQuestMapKey(null); }}>{category}</button>)}</nav>{questMapKey ? <><button className="quest-picker-back" onClick={() => setQuestMapKey(null)}>← 返回</button><div className="quest-selected-map"><AssetImage path={chosenMapQuests[0]?.spritePath} alt={chosenMapQuests[0]?.mapName ?? "地图"} /><strong>{chosenMapQuests[0]?.mapName}{chosenMapQuests[0]?.isBoss ? " (Boss)" : ""}</strong></div><div className="quest-difficulty-grid">{chosenMapQuests.map((quest) => <button key={quest.id} onClick={() => selectQuest(quest)}><AssetImage path={quest.spritePath} alt={quest.difficulty} /><strong>{quest.difficulty}</strong></button>)}</div></> : <div className="quest-map-grid">{questMaps.map((quest) => <button key={quest.mapKey} onClick={() => quest.category === "泰坦塔" ? selectQuest(quest) : setQuestMapKey(quest.mapKey)}><AssetImage path={quest.spritePath} alt={quest.mapName} /><strong>{quest.category === "泰坦塔" ? quest.difficulty : `${quest.mapName}${quest.isBoss ? " (Boss)" : ""}`}</strong></button>)}</div>}</section></div>}
     <div className="online-task-options">
       <div><span>强化道具</span><button aria-label={`强化道具：${boosterNames[boosterLevel]}`} className={`task-square-option booster-${boosterLevel} ${boosterLevel > 0 ? "active" : ""}`} onClick={() => { setElitePicker(false); setBarrierPicker(false); setBoosterPicker(true); }}>{boosterLevel > 0 ? <><b>♦</b><small>{boosterLevel}</small></> : "+"}</button></div>
@@ -572,25 +571,19 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
       {task.config.titanTower && <label><input type="checkbox" checked onChange={(event) => onChange?.({ ...task, config: { ...task.config, titanTower: event.target.checked } })} />泰坦塔</label>}
     </div>
     {boosterPicker && <div className="nested-picker-backdrop booster-picker-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setBoosterPicker(false); }}><section className="booster-picker-dialog" role="dialog" aria-modal="true" aria-labelledby={`booster-picker-${task.id}`}><header><h3 id={`booster-picker-${task.id}`}>冒险强化道具</h3><button className="zys-button red" onClick={() => setBoosterPicker(false)}>关闭</button></header><strong>威力强化</strong><div>{([1, 2, 3] as const).map((level) => <button key={level} className={boosterLevel === level ? "active" : ""} title={level === 1 ? "攻防 +20% · 暴击 +10%" : level === 2 ? "攻防 +40% · 暴击 +15%" : "攻防 +80% · 暴击 +30% · 暴伤 +50%"} onClick={() => { const nextLevel = boosterLevel === level ? 0 : level; onChange?.({ ...task, config: { ...task.config, booster: nextLevel > 0, boosterLevel: nextLevel } }); setBoosterPicker(false); }}><b className={`booster-gem booster-gem-${level}`}>♦</b><span>{boosterNames[level]}</span></button>)}</div></section></div>}
-    <div className="task-meta"><span>队伍 {members.length}/{task.maxMembers}</span><span>屏障 {barrierTotal}</span><span>种子 {task.config.seed}</span></div>
-    <div className="party-dropzone">
-      {members.map((unit) => <button className="party-member" key={unit.id} title={`移除 ${unit.name}`} onClick={() => onRemove(unit.id)}><UnitAvatar unit={unit} small /><span>{unit.name}</span><X size={12} /></button>)}
-      {members.length < task.maxMembers && <><button className="add-party-member" onClick={() => setMemberPicker(!memberPicker)}><Plus size={17} />添加成员</button><span className="drop-hint drag-copy">拖入英雄或勇士</span></>}
+    <div className="party-dropzone online-party-dropzone">
+      {members.map((unit) => <button className="party-member online-party-member" key={unit.id} title={`移除 ${unit.name}`} onClick={() => onRemove(unit.id)}><span className="member-avatar-wrap"><UnitAvatar unit={unit} small /><b className={`member-element element-${unit.element}`}>{unit.element}</b><i>×</i></span><span>{unit.name}</span></button>)}
+      {members.length < task.maxMembers && <button className="add-party-member online-add-member" onClick={() => setMemberPicker(!memberPicker)}><Plus size={20} /><span>添加成员</span></button>}
     </div>
     {memberPicker && <div className="member-picker"><strong>选择成员添加到任务</strong><div>{units.filter((unit) => !task.memberIds.includes(unit.id)).map((unit) => <button key={unit.id} onClick={() => { onDrop(unit.id); setMemberPicker(false); }}><UnitAvatar unit={unit} small /><span>{unit.name}<small>{unit.kind === "champion" ? "勇士" : unit.className}</small></span></button>)}</div></div>}
-    <small className={`member-rule ${members.length >= task.maxMembers ? "limit" : ""}`}>{members.length >= task.maxMembers ? `已达 ${task.maxMembers} 人上限` : `最多 ${task.maxMembers} 人`} · 同一成员不可重复上阵</small>
     {message && <div className="task-message" role="status">{message}</div>}
-    {progress && progress.phase !== "complete" ? <div className="progress-area">
+    {progress && progress.phase !== "complete" ? <div className="progress-area online-progress">
       <div className="progress-copy"><span>模拟中 {Math.round(progress.completed / progress.total * 100)}%</span><button className="link-button" onClick={() => controller.current?.abort()}><PauseCircle size={14} />取消</button></div>
       <progress value={progress.completed} max={progress.total} />
-    </div> : <button className="simulate-button" onClick={() => void run()} disabled={!members.length}><Sparkles size={16} />开始模拟</button>}
-    {task.result && <><div className={`result-panel visual-result ${task.result.stale ? "stale" : ""}`}>
-      <div className="success-gauge" style={{ background: `conic-gradient(#6253da ${Math.max(0, Math.min(100, task.result.successRate))}%, #e9e7f6 0)` }}><span><strong>{task.result.successRate}%</strong><small>成功率</small></span></div>
-      <div className="result-metrics"><div><strong>{task.result.averageTurns}</strong><span>平均回合</span></div><div><strong>{task.result.survivalRate}%</strong><span>存活率</span></div><div><strong>{task.config.iterations.toLocaleString()}</strong><span>尝试次数</span></div></div>
-      <div className="result-bars"><label>任务成功<progress max={100} value={task.result.successRate} /></label><label>成员存活<progress max={100} value={task.result.survivalRate} /></label></div>
-      {task.result.stale && <small>数据版本已变化，请重新模拟</small>}
-    </div><div className="result-actions"><button className="link-button" onClick={() => setDetails(true)}>查看详情</button><button className="link-button" onClick={() => void exportResult()}><Download size={13} />导出结果 PNG</button></div>{details && <div className="modal-backdrop simulation-detail-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setDetails(false); }}><section className="modal simulation-detail-modal" role="dialog" aria-modal="true" aria-labelledby={`simulation-detail-${task.id}`}><header className="modal-header"><h2 id={`simulation-detail-${task.id}`}>冒险模拟详情</h2><div className="modal-header-actions"><button className="zys-button blue" onClick={() => void exportResult()}>下载图片</button><button className="zys-button red" onClick={() => setDetails(false)}>关闭</button></div></header><div className="simulation-quest-banner"><div><strong>{task.name}</strong><small>{task.map} · {task.difficulty}</small></div><dl><div><dt>强化道具</dt><dd>{boosterNames[boosterLevel]}</dd></div><div><dt>精英怪</dt><dd>{eliteKinds.find(([value]) => value === eliteKind)?.[1]}</dd></div><div><dt>元素屏障</dt><dd>{barrierTotal || "自动"}</dd></div></dl></div><div className="simulation-summary"><div><span>尝试次数</span><strong>{task.config.iterations.toLocaleString()}</strong></div><div><span>成功率</span><strong>{task.result.successRate}%</strong></div><div><span>平均回合数</span><strong>{task.result.averageTurns}</strong></div><div><span>最小回合数</span><strong>{task.result.minTurns}</strong></div><div><span>最大回合数</span><strong>{task.result.maxTurns}</strong></div></div><div className="simulation-members">{members.map((unit) => <article key={unit.id}><UnitAvatar unit={unit} /><div><strong>{unit.name}</strong><small>{unit.kind === "champion" ? "勇士" : unit.className}</small></div><span>存活率 <b>{task.result!.survivalRate}%</b></span><span>平均伤害 <b>{task.result!.averageDamage.toLocaleString()}</b></span><StatStrip unit={unit} /></article>)}</div><footer className="simulation-detail-footer">模拟器 {task.result.simulatorVersion} · 数据 {task.result.gameDataVersion}</footer></section></div>}</>}
-    <small className="task-identity">任务 ID · {groupId.slice(0, 6)} / {task.id.slice(0, 6)}</small>
+    </div> : null}
+    <div className="online-result-row">{task.result && <><span className="online-success-icon" aria-label="成功率">☺</span><strong>成功率: {task.result.successRate.toFixed(3)}%</strong><button onClick={() => setDetails(true)}>查看详情</button></>}<button className="online-test-button" onClick={() => void run()} disabled={!members.length}>测试冒险</button></div>
+    {task.result?.stale && <small className="stale-result">数据版本已变化，请重新测试</small>}
+    {task.result && details && <div className="modal-backdrop simulation-detail-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setDetails(false); }}><section className="modal simulation-detail-modal" role="dialog" aria-modal="true" aria-labelledby={`simulation-detail-${task.id}`}><header className="modal-header"><h2 id={`simulation-detail-${task.id}`}>冒险模拟详情</h2><div className="modal-header-actions"><button className="zys-button blue" onClick={() => void exportResult()}>下载图片</button><button className="zys-button red" onClick={() => setDetails(false)}>关闭</button></div></header><div className="simulation-quest-banner"><div className="simulation-quest-title"><span className="quest-switcher-art">{currentQuest?.spritePath ? <AssetImage path={currentQuest.spritePath} alt={task.map} /> : "◈"}</span><div><strong>{task.map}</strong><small>{task.difficulty}</small></div></div><dl><div><dt>冒险强化道具</dt><dd>{boosterLevel ? boosterNames[boosterLevel] : "无"}</dd></div><div><dt>精英怪</dt><dd>{eliteKinds.find(([value]) => value === eliteKind)?.[1]}</dd></div><div><dt>元素屏障</dt><dd>{selectedElementLabel}</dd></div></dl></div><div className="simulation-summary"><div><span>尝试次数</span><strong>{(task.result.iterations ?? 10000).toLocaleString()}</strong></div><div><span>成功率</span><strong>{task.result.successRate.toFixed(2)}%</strong></div><div><span>平均回合数</span><strong>{task.result.averageTurns}</strong></div><div><span>最小回合数</span><strong>{task.result.minTurns}</strong></div><div><span>最大回合数</span><strong>{task.result.maxTurns}</strong></div></div><div className="simulation-member-summary">{members.map((unit) => { const memberResult = task.result?.memberResults?.find((entry) => entry.id === unit.id); return <article key={unit.id}><UnitAvatar unit={unit} small /><strong>{unit.name}</strong><span>☺ {(memberResult?.survivalRate ?? task.result!.survivalRate).toFixed(2)}%</span><span>⚔ {Math.round(memberResult?.averageDamage ?? task.result!.averageDamage).toLocaleString()}</span><span>♥ {Math.round(memberResult?.averageRemainingHealth ?? task.result!.averageRemainingHealth).toLocaleString()}</span></article>; })}</div><div className="simulation-members">{members.map((unit) => <article key={unit.id}><UnitAvatar unit={unit} /><div><strong>{unit.name}</strong><small>{unit.kind === "champion" ? "勇士" : unit.className}</small></div><StatStrip unit={unit} /></article>)}</div><footer className="simulation-detail-footer">模拟器 {task.result.simulatorVersion} · 数据 {task.result.gameDataVersion}</footer></section></div>}
   </article>;
 }
 

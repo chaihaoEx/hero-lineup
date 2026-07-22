@@ -109,6 +109,7 @@ export interface SimulationConfig {
 }
 
 export interface SimulationResult {
+  iterations?: number;
   successRate: number;
   averageTurns: number;
   minTurns: number;
@@ -116,6 +117,12 @@ export interface SimulationResult {
   survivalRate: number;
   averageDamage: number;
   averageRemainingHealth: number;
+  memberResults?: Array<{
+    id: string;
+    survivalRate: number;
+    averageDamage: number;
+    averageRemainingHealth: number;
+  }>;
   simulatorVersion: string;
   gameDataVersion: string;
   completedAt: string;
