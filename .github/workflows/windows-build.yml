@@ -22,10 +22,10 @@ jobs:
 
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -54,8 +54,11 @@ jobs:
       - name: Run Rust workspace tests
         run: cargo test --workspace --release --locked
 
-      - name: Build NSIS and MSI installers
-        run: npm --prefix apps/desktop run tauri build -- --bundles nsis,msi
+      - name: Build NSIS installer
+        run: npm --prefix apps/desktop run tauri build -- --bundles nsis
+
+      - name: Build MSI installer
+        run: npm --prefix apps/desktop run tauri build -- --bundles msi
 
       - name: Verify packaged frontend stays offline
         run: npm run verify:offline

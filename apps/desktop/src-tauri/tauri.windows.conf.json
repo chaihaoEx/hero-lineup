@@ -1,4 +1,5 @@
 {
+  "productName": "Hero Lineup",
   "bundle": {
     "targets": ["nsis", "msi"],
     "icon": ["icons/icon.ico"],
