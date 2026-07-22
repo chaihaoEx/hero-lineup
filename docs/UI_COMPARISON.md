@@ -12,6 +12,8 @@
 | 离线 Retina 1440×900 @2× | `reference/screenshots/local-retina-1440x900@2x.png` |
 | 离线新增体系弹窗 1440×900 | `reference/screenshots/local-system-create-1440x900.png` |
 | 离线本地收藏 1440×900 | `reference/screenshots/local-collection-1440x900.png` |
+| 离线冒险任务卡 1440×900 | `reference/screenshots/local-adventure-card-1440x900.png` |
+| 离线强化道具弹窗 1440×900 | `reference/screenshots/local-booster-picker-1440x900.png` |
 
 保留的视觉语言包括线上字体栈 `Inter, PingFang SC, Helvetica Neue, Arial, sans-serif`、蓝紫主色、浅灰蓝画布、白色圆角卡片、柔和阴影、彩色主按钮、分组标题、装备弹窗层级，以及体系管理→勇士→英雄→冒险任务的纵向功能顺序。离线版现已沿用线上纵向长页和顶部锚点导航；本地体系管理、导入口令、导出口令作为桌面能力集中放在页首。线上“热门体系”在离线端对应可搜索的“本地收藏”，新增与使用流程保持一致，但不访问网络。
 

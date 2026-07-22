@@ -10,7 +10,7 @@ import { encodeOnlineChampionConfig, importOnlineChampionConfig } from "./data/c
 import { decodeOnlineHeroTemplate, encodeOnlineHeroConfig, heroTemplateSnapshotDate, importOnlineHeroConfig, makeHeroFromOnlineTemplate, templatesForClass } from "./data/heroCreationTemplates";
 import { desktopBridge } from "./platform/bridge";
 import { useWorkspace } from "./state/useWorkspace";
-import type { AdventureTask, BuildTemplate, CalculatedSheet, Champion, ChampionLoadout, Hero, LineupSystem, PartyUnit, Quality, SimulationProgress, TaskGroup } from "./types/domain";
+import type { AdventureTask, BuildTemplate, CalculatedSheet, Champion, ChampionLoadout, ElementType, Hero, LineupSystem, PartyUnit, Quality, SimulationProgress, TaskGroup } from "./types/domain";
 import {
   decodeClipboard, encodeClipboard, exportChampionPng, exportHeroPng, exportLineupPng, exportSimulationPng, readClipboard, writeClipboard,
 } from "./utils/localTransfer";
@@ -20,6 +20,7 @@ type SortMode = "class" | "element";
 const quality: Quality[] = ["普通", "优质", "高级", "史诗", "传说"];
 const qualityDisplay: Record<Quality, string> = { 普通: "普通", 优质: "高级", 高级: "无暇", 史诗: "史诗", 传说: "传奇" };
 const elementCode: Record<string, Hero["element"]> = { fire: "火", water: "水", earth: "土", air: "风", light: "光", dark: "暗" };
+const elementToken: Record<ElementType, "fire" | "water" | "earth" | "air" | "light" | "dark"> = { 火: "fire", 水: "water", 土: "earth", 风: "air", 光: "light", 暗: "dark" };
 const equipmentTierByLevel = [1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 10, 10, 11, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16];
 const EquipmentPreviewContext = createContext<EquipmentPreviewConfig | undefined>(undefined);
 
@@ -484,7 +485,7 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
   const [memberPicker, setMemberPicker] = useState(false);
   const [boosterPicker, setBoosterPicker] = useState(false);
   const [elitePicker, setElitePicker] = useState(false);
-  const [barrierEditor, setBarrierEditor] = useState(false);
+  const [barrierPicker, setBarrierPicker] = useState(false);
   const [questPicker, setQuestPicker] = useState(false);
   const [questCategory, setQuestCategory] = useState<CatalogQuest["category"]>("普通冒险");
   const [questMapKey, setQuestMapKey] = useState<string | null>(null);
@@ -495,13 +496,21 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
   const boosterNames = ["无", "威力强化品", "超级威力强化品", "特级威力强化品"];
   const eliteKinds = [["none", "无"], ["agile", "敏捷"], ["huge", "巨大"], ["dire", "凶残"], ["wealthy", "富有"], ["epic", "传奇"]] as const;
   const eliteKind = task.config.eliteKind ?? (task.config.elite ? "epic" : "none");
+  const currentQuest = quests.find((entry) => entry.id === task.questId);
+  const barrierOptions = [...new Set([
+    ...quests.filter((entry) => entry.mapKey === currentQuest?.mapKey && entry.difficulty === currentQuest?.difficulty && entry.barrierPower > 0).map((entry) => entry.barrierElement),
+    ...elements.filter((element) => (task.barrier[element] ?? 0) > 0),
+  ].filter((element): element is ElementType => Boolean(element)))];
+  const selectedElement = task.config.selectedElement;
+  const selectedElementLabel = selectedElement === "force" ? "无屏障" : selectedElement ? elementCode[selectedElement] : "自动";
   const questMaps = quests.filter((quest, position, all) => quest.category === questCategory
     && all.findIndex((candidate) => candidate.category === questCategory && candidate.mapKey === quest.mapKey) === position);
   const chosenMapQuests = quests.filter((quest) => quest.mapKey === questMapKey)
     .sort((left, right) => left.difficultyLevel - right.difficultyLevel);
   const selectQuest = (quest: CatalogQuest) => {
     onChange?.({ ...task, questId: quest.id, name: quest.name, map: quest.mapName, difficulty: quest.difficulty,
-      maxMembers: quest.maxMembers, barrier: quest.barrierElement && quest.barrierPower > 0 ? { [quest.barrierElement]: quest.barrierPower } : {} });
+      maxMembers: quest.maxMembers, barrier: quest.barrierElement && quest.barrierPower > 0 ? { [quest.barrierElement]: quest.barrierPower } : {},
+      config: { ...task.config, titanTower: quest.category === "泰坦塔", selectedElement: undefined } });
     setQuestPicker(false); setQuestMapKey(null);
   };
 
@@ -556,13 +565,13 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
       <select aria-label={`${task.name}模拟次数`} value={task.config.iterations} onChange={(event) => onChange?.({ ...task, config: { ...task.config, iterations: Number(event.target.value) as 1000 | 10000 } })}><option value={1000}>1,000 次</option><option value={10000}>10,000 次</option></select>
     </div>
     {questPicker && <div className="nested-picker-backdrop quest-picker-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) { setQuestPicker(false); setQuestMapKey(null); } }}><section className="quest-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="quest-picker-title"><header><h3 id="quest-picker-title">选择冒险任务</h3><button className="zys-button red" onClick={() => { setQuestPicker(false); setQuestMapKey(null); }}>关闭</button></header><nav>{(["普通冒险", "黄金城", "泰坦塔", "快闪"] as const).map((category) => <button key={category} className={questCategory === category ? "active" : ""} onClick={() => { setQuestCategory(category); setQuestMapKey(null); }}>{category}</button>)}</nav>{questMapKey ? <><button className="quest-picker-back" onClick={() => setQuestMapKey(null)}>← 返回</button><div className="quest-selected-map"><AssetImage path={chosenMapQuests[0]?.spritePath} alt={chosenMapQuests[0]?.mapName ?? "地图"} /><strong>{chosenMapQuests[0]?.mapName}{chosenMapQuests[0]?.isBoss ? " (Boss)" : ""}</strong></div><div className="quest-difficulty-grid">{chosenMapQuests.map((quest) => <button key={quest.id} onClick={() => selectQuest(quest)}><AssetImage path={quest.spritePath} alt={quest.difficulty} /><strong>{quest.difficulty}</strong></button>)}</div></> : <div className="quest-map-grid">{questMaps.map((quest) => <button key={quest.mapKey} onClick={() => quest.category === "泰坦塔" ? selectQuest(quest) : setQuestMapKey(quest.mapKey)}><AssetImage path={quest.spritePath} alt={quest.mapName} /><strong>{quest.category === "泰坦塔" ? quest.difficulty : `${quest.mapName}${quest.isBoss ? " (Boss)" : ""}`}</strong></button>)}</div>}</section></div>}
-    <div className="task-options">
-      <button className={boosterLevel > 0 ? "active" : ""} onClick={() => setBoosterPicker(!boosterPicker)}>强化道具：{boosterNames[boosterLevel]}</button>
-      <button className={eliteKind !== "none" ? "active" : ""} onClick={() => setElitePicker(!elitePicker)}>精英怪：{eliteKinds.find(([value]) => value === eliteKind)?.[1]}</button>
-      <label><input type="checkbox" checked={task.config.titanTower} onChange={(event) => onChange?.({ ...task, config: { ...task.config, titanTower: event.target.checked } })} />泰坦塔</label>
+    <div className="online-task-options">
+      <div><span>强化道具</span><button aria-label={`强化道具：${boosterNames[boosterLevel]}`} className={`task-square-option booster-${boosterLevel} ${boosterLevel > 0 ? "active" : ""}`} onClick={() => { setElitePicker(false); setBarrierPicker(false); setBoosterPicker(true); }}>{boosterLevel > 0 ? <><b>♦</b><small>{boosterLevel}</small></> : "+"}</button></div>
+      <div className="task-dropdown-container"><span>精英怪</span><button aria-label={`精英怪：${eliteKinds.find(([value]) => value === eliteKind)?.[1]}`} className={eliteKind !== "none" ? "active" : ""} onClick={() => { setBoosterPicker(false); setBarrierPicker(false); setElitePicker(!elitePicker); }}>{eliteKinds.find(([value]) => value === eliteKind)?.[1]}</button>{elitePicker && <div className="compact-task-dropdown" role="listbox" aria-label="精英怪类型">{eliteKinds.map(([value, label]) => <button role="option" aria-selected={eliteKind === value} key={value} className={eliteKind === value ? "active" : ""} onClick={() => { onChange?.({ ...task, config: { ...task.config, elite: value !== "none", eliteKind: value } }); setElitePicker(false); }}>{label}</button>)}</div>}</div>
+      {(barrierOptions.length > 0 || selectedElement) && <div className="task-dropdown-container"><span>元素屏障</span><button aria-label={`元素屏障：${selectedElementLabel}`} className={selectedElement ? "active" : ""} onClick={() => { setBoosterPicker(false); setElitePicker(false); setBarrierPicker(!barrierPicker); }}>{selectedElementLabel}</button>{barrierPicker && <div className="compact-task-dropdown barrier-task-dropdown" role="listbox" aria-label="元素屏障选择"><button role="option" aria-selected={!selectedElement} onClick={() => { onChange?.({ ...task, config: { ...task.config, selectedElement: undefined } }); setBarrierPicker(false); }}>自动</button>{barrierOptions.map((element) => <button role="option" aria-selected={selectedElement === elementToken[element]} key={element} className={`element-${element}`} onClick={() => { onChange?.({ ...task, config: { ...task.config, selectedElement: elementToken[element] } }); setBarrierPicker(false); }}>{element}</button>)}<button role="option" aria-selected={selectedElement === "force"} onClick={() => { onChange?.({ ...task, config: { ...task.config, selectedElement: "force" } }); setBarrierPicker(false); }}>无屏障</button></div>}</div>}
+      {task.config.titanTower && <label><input type="checkbox" checked onChange={(event) => onChange?.({ ...task, config: { ...task.config, titanTower: event.target.checked } })} />泰坦塔</label>}
     </div>
-    {boosterPicker && <div className="task-inline-picker" role="dialog" aria-label="冒险强化道具"><strong>冒险强化道具</strong><button onClick={() => { onChange?.({ ...task, config: { ...task.config, booster: false, boosterLevel: 0 } }); setBoosterPicker(false); }}>无强化</button>{([1, 2, 3] as const).map((level) => <button key={level} className={boosterLevel === level ? "active" : ""} onClick={() => { onChange?.({ ...task, config: { ...task.config, booster: true, boosterLevel: level } }); setBoosterPicker(false); }}>{boosterNames[level]}<small>{level === 1 ? "攻防 +20% · 暴击 +10%" : level === 2 ? "攻防 +40% · 暴击 +15%" : "攻防 +80% · 暴击 +30% · 暴伤 +50%"}</small></button>)}</div>}
-    {elitePicker && <div className="task-inline-picker elite-inline-picker" role="listbox" aria-label="精英怪类型">{eliteKinds.map(([value, label]) => <button role="option" aria-selected={eliteKind === value} key={value} className={eliteKind === value ? "active" : ""} onClick={() => { onChange?.({ ...task, config: { ...task.config, elite: value !== "none", eliteKind: value } }); setElitePicker(false); }}>{label}</button>)}</div>}
+    {boosterPicker && <div className="nested-picker-backdrop booster-picker-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setBoosterPicker(false); }}><section className="booster-picker-dialog" role="dialog" aria-modal="true" aria-labelledby={`booster-picker-${task.id}`}><header><h3 id={`booster-picker-${task.id}`}>冒险强化道具</h3><button className="zys-button red" onClick={() => setBoosterPicker(false)}>关闭</button></header><strong>威力强化</strong><div>{([1, 2, 3] as const).map((level) => <button key={level} className={boosterLevel === level ? "active" : ""} title={level === 1 ? "攻防 +20% · 暴击 +10%" : level === 2 ? "攻防 +40% · 暴击 +15%" : "攻防 +80% · 暴击 +30% · 暴伤 +50%"} onClick={() => { const nextLevel = boosterLevel === level ? 0 : level; onChange?.({ ...task, config: { ...task.config, booster: nextLevel > 0, boosterLevel: nextLevel } }); setBoosterPicker(false); }}><b className={`booster-gem booster-gem-${level}`}>♦</b><span>{boosterNames[level]}</span></button>)}</div></section></div>}
     <div className="task-meta"><span>队伍 {members.length}/{task.maxMembers}</span><span>屏障 {barrierTotal}</span><span>种子 {task.config.seed}</span></div>
     <div className="party-dropzone">
       {members.map((unit) => <button className="party-member" key={unit.id} title={`移除 ${unit.name}`} onClick={() => onRemove(unit.id)}><UnitAvatar unit={unit} small /><span>{unit.name}</span><X size={12} /></button>)}
@@ -570,13 +579,6 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
     </div>
     {memberPicker && <div className="member-picker"><strong>选择成员添加到任务</strong><div>{units.filter((unit) => !task.memberIds.includes(unit.id)).map((unit) => <button key={unit.id} onClick={() => { onDrop(unit.id); setMemberPicker(false); }}><UnitAvatar unit={unit} small /><span>{unit.name}<small>{unit.kind === "champion" ? "勇士" : unit.className}</small></span></button>)}</div></div>}
     <small className={`member-rule ${members.length >= task.maxMembers ? "limit" : ""}`}>{members.length >= task.maxMembers ? `已达 ${task.maxMembers} 人上限` : `最多 ${task.maxMembers} 人`} · 同一成员不可重复上阵</small>
-    <button className="barrier-summary-button" onClick={() => setBarrierEditor(!barrierEditor)}>元素屏障：{barrierTotal ? elements.filter((element) => task.barrier[element]).map((element) => `${element} ${task.barrier[element]}`).join(" · ") : "自动"}</button>
-    {barrierEditor && <div className="barrier-editor" aria-label="六元素屏障编辑">{elements.map((element) => <label key={element} className={`barrier-input element-${element}`}><span>{element}</span><input aria-label={`${task.name}${element}屏障`} type="number" min={0} step={1} value={task.barrier[element] ?? 0} onChange={(event) => {
-      const barrier = { ...task.barrier };
-      const value = Math.max(0, Number(event.target.value) || 0);
-      if (value) barrier[element] = value; else delete barrier[element];
-      onChange?.({ ...task, barrier });
-    }} /></label>)}</div>}
     {message && <div className="task-message" role="status">{message}</div>}
     {progress && progress.phase !== "complete" ? <div className="progress-area">
       <div className="progress-copy"><span>模拟中 {Math.round(progress.completed / progress.total * 100)}%</span><button className="link-button" onClick={() => controller.current?.abort()}><PauseCircle size={14} />取消</button></div>

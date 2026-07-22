@@ -1459,7 +1459,7 @@ async fn start_simulation(
             }
         })
         .collect();
-    let (barrier_element, barrier_health) = request
+    let (default_barrier_element, default_barrier_health) = request
         .task
         .get("barrier")
         .and_then(Value::as_object)
@@ -1469,6 +1469,20 @@ async fn start_simulation(
                 .find_map(|(element, power)| Some((element.as_str(), power.as_f64()?)))
         })
         .unwrap_or(("", 0.0));
+    let selected_element = request
+        .task
+        .pointer("/config/selectedElement")
+        .and_then(Value::as_str);
+    let barrier_element = match selected_element {
+        Some("force") => "",
+        Some(element) => element,
+        None => default_barrier_element,
+    };
+    let barrier_health = if selected_element == Some("force") {
+        0.0
+    } else {
+        default_barrier_health
+    };
     let mut combat_rules = Vec::new();
     if defense_threshold > 0 {
         combat_rules.push(CombatRule::DefenseThreshold {

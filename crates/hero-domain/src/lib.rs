@@ -275,6 +275,8 @@ pub struct SimulationConfig {
     pub elite: bool,
     #[serde(default)]
     pub elite_kind: Option<String>,
+    #[serde(default)]
+    pub selected_element: Option<String>,
     pub titan_tower: bool,
 }
 
@@ -287,6 +289,7 @@ impl Default for SimulationConfig {
             booster_level: 0,
             elite: false,
             elite_kind: None,
+            selected_element: None,
             titan_tower: false,
         }
     }
@@ -1012,6 +1015,20 @@ mod tests {
         assert_eq!(
             decode_backup(&encode_backup(&backup, &versions()).unwrap()).unwrap(),
             backup
+        );
+    }
+
+    #[test]
+    fn online_selected_element_roundtrips_in_simulation_config() {
+        let config = SimulationConfig {
+            selected_element: Some("force".into()),
+            ..SimulationConfig::default()
+        };
+        let encoded = serde_json::to_value(&config).unwrap();
+        assert_eq!(encoded["selectedElement"], "force");
+        assert_eq!(
+            serde_json::from_value::<SimulationConfig>(encoded).unwrap(),
+            config
         );
     }
 

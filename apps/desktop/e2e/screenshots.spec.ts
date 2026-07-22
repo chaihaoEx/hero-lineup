@@ -75,3 +75,16 @@ test("生成体系创建与本地收藏验收截图", async ({ page }) => {
   await page.screenshot({ path: path.join(outputDirectory, "local-collection-1440x900.png") });
   await assertOffline(remoteRequests);
 });
+
+test("生成冒险任务卡与强化道具弹窗验收截图", async ({ page }) => {
+  const remoteRequests = await installOfflineGuard(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "创建第一个分组" }).click();
+  await expect(page.locator(".task-card")).toBeVisible();
+  await page.locator("#adventures-section").screenshot({ path: path.join(outputDirectory, "local-adventure-card-1440x900.png") });
+  await page.getByRole("button", { name: "强化道具：无" }).click();
+  await expect(page.getByRole("dialog", { name: "冒险强化道具" })).toBeVisible();
+  await page.screenshot({ path: path.join(outputDirectory, "local-booster-picker-1440x900.png") });
+  await assertOffline(remoteRequests);
+});

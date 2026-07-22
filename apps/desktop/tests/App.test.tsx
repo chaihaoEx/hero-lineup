@@ -246,21 +246,22 @@ test("reorders task cards within and across groups using the task drag payload",
   expect(groups[1]!.querySelector(".task-card")).toHaveTextContent("副本");
 });
 
-test("edits all six elemental barriers and shows party constraints", async () => {
+test("selects the online automatic, element and no-barrier modes", async () => {
+  const systems = JSON.parse(localStorage.getItem("zys.hero-lineup.systems.v1")!) as ReturnType<typeof makeDefaultSystem>[];
+  systems[0]!.taskGroups[0]!.tasks[0]!.barrier = { 火: 3200, 暗: 75 };
+  localStorage.setItem("zys.hero-lineup.systems.v1", JSON.stringify(systems));
   const user = userEvent.setup();
   render(<App />);
   await appReady();
   await user.click(screen.getByRole("button", { name: /冒险任务/ }));
   await user.click(screen.getByRole("button", { name: "元素屏障：自动" }));
-  const fireBarrier = screen.getByLabelText(/火屏障$/);
-  const darkBarrier = screen.getByLabelText(/暗屏障$/);
-  await user.clear(fireBarrier);
-  await user.type(fireBarrier, "3200");
-  await user.clear(darkBarrier);
-  await user.type(darkBarrier, "75");
+  await user.click(screen.getByRole("option", { name: "火" }));
+  expect(screen.getByRole("button", { name: "元素屏障：火" })).toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "元素屏障：火" }));
+  await user.click(screen.getByRole("option", { name: "无屏障" }));
+  expect(screen.getByRole("button", { name: "元素屏障：无屏障" })).toBeInTheDocument();
   expect(screen.getByText("屏障 3275")).toBeInTheDocument();
   expect(screen.getByText(/最多 4 人 · 同一成员不可重复上阵/)).toBeInTheDocument();
-  expect(document.querySelectorAll(".barrier-input")).toHaveLength(6);
 });
 
 test("mirrors the online map, booster and elite selection flows", async () => {

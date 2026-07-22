@@ -103,6 +103,8 @@ export interface SimulationConfig {
   boosterLevel?: 0 | 1 | 2 | 3 | undefined;
   elite: boolean;
   eliteKind?: "none" | "agile" | "huge" | "dire" | "wealthy" | "epic" | undefined;
+  /** Online selectedElement: undefined=automatic quest barrier, force=no barrier. */
+  selectedElement?: "fire" | "water" | "earth" | "air" | "light" | "dark" | "force" | undefined;
   titanTower: boolean;
 }
 

@@ -25,7 +25,7 @@ npm run verify:content
 npm run verify:offline
 ```
 
-结果：TypeScript strict/typecheck、ESLint、`cargo fmt --check`、workspace all-target `cargo clippy -D warnings` 均通过；前端 33/33、Rust 46/46、Playwright 17/17 通过。内容清单与离线静态审计通过。E2E 覆盖体系双页签创建/口令导入、本地收藏复制、CRUD/重载、英雄与勇士配装、技能、成员与任务拖放、1,000/10,000 模拟、IPC 合同、1440/1280/1024/窄窗口/Retina，以及请求层零远程连接。
+结果：TypeScript strict/typecheck、ESLint、`cargo fmt --check`、workspace all-target `cargo clippy -D warnings` 均通过；前端 33/33、Rust 47/47、Playwright 18/18 通过。内容清单与离线静态审计通过。E2E 覆盖体系双页签创建/口令导入、本地收藏复制、CRUD/重载、英雄与勇士配装、技能、冒险强化/精英/屏障、成员与任务拖放、1,000/10,000 模拟、IPC 合同、1440/1280/1024/窄窗口/Retina，以及请求层零远程连接。
 
 ## 原生冒烟
 
