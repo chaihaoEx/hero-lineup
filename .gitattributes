@@ -1,0 +1,12 @@
+* text=auto eol=lf
+
+# Content manifests hash exact bytes. Never let Git rewrite their line endings.
+content/** -text
+
+# Archived web evidence is also byte-preserved for reproducible hashes.
+reference/** -text
+
+*.png binary
+*.ico binary
+*.icns binary
+*.pdf binary
