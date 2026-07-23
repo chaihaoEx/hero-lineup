@@ -105,6 +105,7 @@ struct CatalogQuest {
     difficulty_level: u64,
     is_boss: bool,
     max_members: u64,
+    barrier_elements: Vec<String>,
     barrier_element: Option<String>,
     barrier_power: f64,
     sprite_path: Option<String>,
@@ -742,8 +743,8 @@ fn load_catalog_from_content_dir(content_dir: &Path) -> Result<Catalog, String> 
         "spellknight",
         "geomancer",
         "astramancer",
-        "timekeeper",
         "chronomancer",
+        "timekeeper",
     ];
     classes.sort_by_key(|entry| {
         CLASS_ORDER
@@ -887,6 +888,15 @@ fn load_catalog_from_content_dir(content_dir: &Path) -> Result<Catalog, String> 
                 )
             };
             let explicit = localized(texts, &[format!("{id}_name")], "");
+            let barrier_elements = value
+                .get("element")
+                .and_then(Value::as_str)
+                .map(|raw| {
+                    raw.split(',')
+                        .map(|element| cn_element(Some(element.trim())))
+                        .collect::<Vec<_>>()
+                })
+                .unwrap_or_default();
             CatalogQuest {
                 id: id.clone(),
                 name: if explicit.is_empty() {
@@ -905,10 +915,8 @@ fn load_catalog_from_content_dir(content_dir: &Path) -> Result<Catalog, String> 
                     .and_then(Value::as_u64)
                     .unwrap_or(4)
                     .clamp(1, 6),
-                barrier_element: value
-                    .get("element")
-                    .and_then(Value::as_str)
-                    .map(|raw| cn_element(Some(raw))),
+                barrier_element: barrier_elements.first().cloned(),
+                barrier_elements,
                 barrier_power: numeric(value, "barrierPower"),
                 sprite_path: choose_sprite(
                     &sprite_files,
@@ -1665,28 +1673,39 @@ async fn start_simulation(
                 power: unit
                     .get("power")
                     .and_then(Value::as_f64)
-                    .unwrap_or_else(|| numeric(stats, "attack") + numeric(stats, "defense")),
+                    .unwrap_or_else(|| numeric(stats, "element")),
             }
         })
         .collect();
-    let (default_barrier_element, default_barrier_health) = request
+    let barrier_entries = request
         .task
         .get("barrier")
         .and_then(Value::as_object)
-        .and_then(|values| {
+        .map(|values| {
             values
                 .iter()
-                .find_map(|(element, power)| Some((element.as_str(), power.as_f64()?)))
+                .filter_map(|(element, power)| Some((element.as_str(), power.as_f64()?)))
+                .collect::<Vec<_>>()
         })
-        .unwrap_or(("", 0.0));
+        .unwrap_or_default();
+    let default_barrier_health = barrier_entries
+        .first()
+        .map(|(_, power)| *power)
+        .unwrap_or(0.0);
+    let barrier_candidates = barrier_entries
+        .iter()
+        .map(|(element, _)| parse_element(element))
+        .collect::<Vec<_>>();
     let selected_element = request
         .task
         .pointer("/config/selectedElement")
         .and_then(Value::as_str);
-    let barrier_element = match selected_element {
-        Some("force") => "",
-        Some(element) => element,
-        None => default_barrier_element,
+    let barrier_mode = match selected_element {
+        Some("force") => BarrierMode::None,
+        Some(element) => BarrierMode::Fixed(parse_element(element)),
+        None if barrier_candidates.len() > 1 => BarrierMode::Random,
+        None if barrier_candidates.len() == 1 => BarrierMode::Fixed(barrier_candidates[0]),
+        None => BarrierMode::None,
     };
     let barrier_health = if selected_element == Some("force") {
         0.0
@@ -1714,10 +1733,11 @@ async fn start_simulation(
         quest_rules: BattleRules {
             elements: ElementBarrier {
                 mode: if barrier_health > 0.0 {
-                    BarrierMode::Fixed(parse_element(barrier_element))
+                    barrier_mode
                 } else {
                     BarrierMode::None
                 },
+                candidates: barrier_candidates,
                 health: barrier_health,
                 required_power: barrier_health,
                 rudo_multiplier: 1.0,
@@ -1897,6 +1917,64 @@ mod tests {
         assert_eq!(catalog.skills.len(), 544);
         assert_eq!(catalog.counts.skills, 544);
         assert!(catalog.counts.sprites >= 2_200);
+        assert_eq!(
+            catalog
+                .classes
+                .iter()
+                .map(|class| class.id.as_str())
+                .collect::<Vec<_>>(),
+            vec![
+                "soldier",
+                "mercenary",
+                "barbarian",
+                "chieftain",
+                "knight",
+                "lord",
+                "ranger",
+                "warden",
+                "swordmaster",
+                "daimyo",
+                "berserker",
+                "jarl",
+                "darkknight",
+                "deathknight",
+                "thief",
+                "trickster",
+                "monk",
+                "mastermonk",
+                "musketeer",
+                "conquistador",
+                "wanderer",
+                "pathfinder",
+                "ninja",
+                "sensei",
+                "dancer",
+                "acrobat",
+                "velite",
+                "praetorian",
+                "mage",
+                "archmage",
+                "cleric",
+                "bishop",
+                "druid",
+                "archdruid",
+                "sorcerer",
+                "warlock",
+                "redmage",
+                "spellknight",
+                "geomancer",
+                "astramancer",
+                "chronomancer",
+                "timekeeper",
+            ]
+        );
+        let meteor_zone = catalog
+            .quests
+            .iter()
+            .find(|quest| quest.id == "space04")
+            .unwrap();
+        assert_eq!(meteor_zone.barrier_elements, vec!["暗", "光", "土"]);
+        assert_eq!(meteor_zone.barrier_power, 320.0);
         assert!(catalog.classes.iter().all(|class| class.slots.len() == 6));
         for class in &catalog.classes {
             let unlocks = class

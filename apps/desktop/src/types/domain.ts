@@ -19,6 +19,10 @@ export interface UnitStats {
   health: number;
   evasion: number;
   crit: number;
+  /** Live calculated element power used by adventure barriers. */
+  element?: number | undefined;
+  aggro?: number | undefined;
+  criticalDamage?: number | undefined;
 }
 
 export interface Hero {

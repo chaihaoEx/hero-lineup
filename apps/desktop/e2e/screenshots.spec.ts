@@ -80,7 +80,7 @@ test("生成冒险任务卡与强化道具弹窗验收截图", async ({ page }) 
   const remoteRequests = await installOfflineGuard(page);
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
-  await page.getByRole("button", { name: "创建第一个分组" }).click();
+  await page.getByRole("button", { name: "添加分组" }).click();
   await expect(page.locator(".task-card")).toBeVisible();
   await page.locator("#adventures-section").screenshot({ path: path.join(outputDirectory, "local-adventure-card-1440x900.png") });
   await page.getByRole("button", { name: "强化道具：无" }).click();

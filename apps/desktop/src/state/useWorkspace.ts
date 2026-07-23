@@ -1,11 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { catalogChampions, makeDefaultSystem, makeHero, normalizeHeroEquipmentSlots, type Catalog } from "../data/catalog";
+import { catalogChampions, championElementValue, makeDefaultSystem, makeHero, normalizeHeroEquipmentSlots, type Catalog, type CatalogQuest } from "../data/catalog";
 import { desktopBridge } from "../platform/bridge";
 import type { AdventureTask, ChampionLoadout, Hero, LineupSystem, PartyUnit, SimulationResult, TaskGroup } from "../types/domain";
 
 const clone = <T,>(value: T): T => structuredClone(value);
 const MAX_ADVENTURE_TASKS = 48;
 const taskCount = (system: LineupSystem) => system.taskGroups.reduce((sum, group) => sum + group.tasks.length, 0);
+const barrierForQuest = (quest: CatalogQuest | undefined): AdventureTask["barrier"] => {
+  if (!quest || quest.barrierPower <= 0) return {};
+  const elements = quest.barrierElements?.length ? quest.barrierElements : quest.barrierElement ? [quest.barrierElement] : [];
+  return Object.fromEntries(elements.map((element) => [element, quest.barrierPower])) as AdventureTask["barrier"];
+};
 
 export function useWorkspace(catalog: Catalog) {
   const [systems, setSystems] = useState<LineupSystem[]>([]);
@@ -18,15 +23,17 @@ export function useWorkspace(catalog: Catalog) {
       const migrated = loaded.some((system) => system.heroes.some((hero) => hero.equipment.map((entry) => entry.slot).join(",") === "武器,头部,身体,手部,脚部,饰品"));
       const completeChampionIds = catalog.champions.map((champion) => champion.id);
       const championRosterMigrated = loaded.some((system) => completeChampionIds.some((id) => !system.championIds.includes(id)));
+      const emptyGroupMigrated = loaded.some((system) => system.taskGroups.some((group) => group.tasks.length === 0));
       const initial = (loaded.length ? loaded : [makeDefaultSystem(catalog)]).map((system) => ({
         ...system,
         localPublic: system.localPublic ?? true,
         heroes: system.heroes.map(normalizeHeroEquipmentSlots),
         championIds: completeChampionIds,
+        taskGroups: system.taskGroups.filter((group) => group.tasks.length > 0),
       }));
       setSystems(initial);
       setActiveId(initial[0]!.id);
-      setDirty(!loaded.length || migrated || championRosterMigrated);
+      setDirty(!loaded.length || migrated || championRosterMigrated || emptyGroupMigrated);
       setLoading(false);
     });
   }, [catalog]);
@@ -142,7 +149,7 @@ export function useWorkspace(catalog: Catalog) {
     const task: AdventureTask = {
       id: crypto.randomUUID(), questId: quest?.id, name: quest?.name ?? "新冒险", map: quest?.mapName ?? "未指定",
       difficulty: quest?.difficulty ?? "简单", maxMembers: quest?.maxMembers ?? 4, memberIds: [],
-      barrier: quest?.barrierElement && quest.barrierPower > 0 ? { [quest.barrierElement]: quest.barrierPower } : {},
+      barrier: barrierForQuest(quest),
       config: { iterations: 10000, seed: Date.now(), booster: false, boosterLevel: 0, elite: false, titanTower: false },
     };
     system.taskGroups.push({ id: crypto.randomUUID(), name: `任务分组 ${system.taskGroups.length + 1}`, tasks: [task] });
@@ -168,18 +175,17 @@ export function useWorkspace(catalog: Catalog) {
     return system;
   }), [updateActive]);
 
-  const addTask = useCallback((groupId: string) => updateActive((system) => {
+  const addTask = useCallback((groupId: string, quest: CatalogQuest) => updateActive((system) => {
     if (taskCount(system) >= MAX_ADVENTURE_TASKS) return system;
     const group = system.taskGroups.find((entry) => entry.id === groupId);
-    const quest = catalog.quests[0];
     group?.tasks.push({
-      id: crypto.randomUUID(), questId: quest?.id, name: quest?.name ?? "新冒险", map: quest?.mapName ?? "未指定",
-      difficulty: quest?.difficulty ?? "简单", maxMembers: quest?.maxMembers ?? 4, memberIds: [],
-      barrier: quest?.barrierElement && quest.barrierPower > 0 ? { [quest.barrierElement]: quest.barrierPower } : {},
-      config: { iterations: 10000, seed: Date.now(), booster: false, boosterLevel: 0, elite: false, titanTower: false },
+      id: crypto.randomUUID(), questId: quest.id, name: quest.name, map: quest.mapName,
+      difficulty: quest.difficulty, maxMembers: quest.maxMembers, memberIds: [],
+      barrier: barrierForQuest(quest),
+      config: { iterations: 10000, seed: Date.now(), booster: false, boosterLevel: 0, elite: false, titanTower: quest.category === "泰坦塔" },
     });
     return system;
-  }), [catalog, updateActive]);
+  }), [updateActive]);
 
   const duplicateTask = useCallback((groupId: string, task: AdventureTask) => updateActive((system) => {
     if (taskCount(system) >= MAX_ADVENTURE_TASKS) return system;
@@ -191,6 +197,7 @@ export function useWorkspace(catalog: Catalog) {
   const deleteTask = useCallback((groupId: string, taskId: string) => updateActive((system) => {
     const group = system.taskGroups.find((entry) => entry.id === groupId);
     if (group) group.tasks = group.tasks.filter((task) => task.id !== taskId);
+    system.taskGroups = system.taskGroups.filter((entry) => entry.tasks.length > 0);
     return system;
   }), [updateActive]);
 
@@ -203,6 +210,9 @@ export function useWorkspace(catalog: Catalog) {
     if (!task) return system;
     const adjustedIndex = source === target && sourceIndex < targetIndex ? targetIndex - 1 : targetIndex;
     target.tasks.splice(Math.max(0, Math.min(adjustedIndex, target.tasks.length)), 0, task);
+    if (source !== target && source.tasks.length === 0) {
+      system.taskGroups = system.taskGroups.filter((group) => group.id !== sourceGroupId);
+    }
     return system;
   }), [updateActive]);
 
@@ -241,7 +251,15 @@ export function useWorkspace(catalog: Catalog) {
   const units = useMemo<PartyUnit[]>(() => active
     ? [...active.heroes, ...catalogChampions(catalog).map((champion) => {
       const loadout = active.championLoadouts?.[champion.id];
-      return { ...champion, ...(loadout ?? {}), stats: loadout?.stats ?? champion.stats };
+      return {
+        ...champion,
+        ...(loadout ?? {}),
+        stats: {
+          ...champion.stats,
+          ...(loadout?.stats ?? {}),
+          element: loadout?.stats?.element ?? championElementValue(loadout?.rank ?? champion.rank),
+        },
+      };
     })]
     : [], [active, catalog]);
 

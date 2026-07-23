@@ -1,10 +1,10 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
-  Archive, ArrowDown, ArrowUp, BarChart3, Check, Clipboard, Copy, Download,
+  Archive, BarChart3, Check, Clipboard, Copy, Download,
   GripVertical, HardDrive, PackageOpen, PauseCircle, Plus, ShieldCheck,
   Sparkles, Sword, Trash2, Upload, Users, X,
 } from "lucide-react";
-import { applyEquipmentFieldToAll, catalogChampions, elements, itemsForSlot, makeHero, normalizeHeroEquipmentSlots, skillsForSlot, type Catalog, type CatalogItem, type CatalogQuest, type CatalogSkill, type EquipmentApplyField } from "./data/catalog";
+import { applyEquipmentFieldToAll, catalogChampions, championElementValue, elements, itemsForSlot, makeHero, normalizeHeroEquipmentSlots, skillsForSlot, type Catalog, type CatalogItem, type CatalogQuest, type CatalogSkill, type EquipmentApplyField } from "./data/catalog";
 import { previewEquipmentStats, type EquipmentPreviewConfig } from "./data/equipmentPreview";
 import { encodeOnlineChampionConfig, importOnlineChampionConfig } from "./data/championConfig";
 import { decodeOnlineHeroTemplate, encodeOnlineHeroConfig, heroTemplateSnapshotDate, importOnlineHeroConfig, makeHeroFromOnlineTemplate, templatesForClass } from "./data/heroCreationTemplates";
@@ -27,6 +27,12 @@ const EquipmentPreviewContext = createContext<EquipmentPreviewContextValue | und
 
 function maxEquipmentTier(level: number) {
   return equipmentTierByLevel[Math.max(0, Math.min(39, level - 1))] ?? 16;
+}
+
+function questBarrier(quest: CatalogQuest | undefined): AdventureTask["barrier"] {
+  if (!quest || quest.barrierPower <= 0) return {};
+  const candidates = quest.barrierElements?.length ? quest.barrierElements : quest.barrierElement ? [quest.barrierElement] : [];
+  return Object.fromEntries(candidates.map((element) => [element, quest.barrierPower])) as AdventureTask["barrier"];
 }
 
 function clampOnlineHeroName(value: string): string {
@@ -213,8 +219,10 @@ function SimulationMemberConfig({ unit, catalog, onCopy }: { unit: PartyUnit; ca
       <span>♥ 生命 <b>{unit.stats.health.toLocaleString()}</b></span>
       <span>⚔ 攻击 <b>{unit.stats.attack.toLocaleString()}</b></span>
       <span>◆ 防御 <b>{unit.stats.defense.toLocaleString()}</b></span>
-      <span>✹ 暴击 <b>{unit.stats.crit}%</b></span>
+      <span>✹ 暴击 <b>{unit.stats.crit}% / {unit.stats.criticalDamage ?? 200}%</b></span>
       <span>➟ 回避 <b>{unit.stats.evasion}%</b></span>
+      <span>⚠ 威胁 <b>{unit.stats.aggro ?? 0}</b></span>
+      <span>✦ 元素 <b>{unit.stats.element ?? 0}</b></span>
     </div>
     <div className={`simulation-config-equipment ${hero ? "" : "champion"}`}>{equipment.map(({ label, config, item }) => <div key={label}>
       <span className="simulation-equipment-art">{item ? <AssetImage path={item.spritePath} alt={item.name} /> : label.slice(0, 1)}</span>
@@ -292,7 +300,7 @@ function EquipmentModal({ hero, catalog, templates, onClose, onPrevious, onNext,
     void desktopBridge.calculateHero(draft).then(async (next) => {
         if (active) setSheet(next);
         if (JSON.stringify(draft) !== initialDraftRef.current) {
-          const synced = { ...draft, stats: { attack: next.stats.attack, defense: next.stats.defense, health: next.stats.health, evasion: next.stats.evasion, crit: next.stats.critical } };
+          const synced = { ...draft, stats: { attack: next.stats.attack, defense: next.stats.defense, health: next.stats.health, evasion: next.stats.evasion, crit: next.stats.critical, element: next.stats.elementValue, aggro: next.stats.aggro, criticalDamage: next.stats.criticalDamage * 100 } };
           await onSaveRef.current(synced, next);
           if (active) setTransferStatus(next.issues.some((issue) => issue.severity === "error")
             ? "修改已同步；存在未计入属性的无效配置，请查看校验提示"
@@ -541,7 +549,7 @@ function ChampionEquipmentModal({ champion, catalog, loadout, templates, onClose
     void desktopBridge.calculateChampion(champion, draft).then(async (next) => {
         if (active) setSheet(next);
         if (JSON.stringify(draft) !== initialDraftRef.current) {
-          const synced = { ...draft, stats: { attack: next.stats.attack, defense: next.stats.defense, health: next.stats.health, evasion: next.stats.evasion, crit: next.stats.critical } };
+          const synced = { ...draft, stats: { attack: next.stats.attack, defense: next.stats.defense, health: next.stats.health, evasion: next.stats.evasion, crit: next.stats.critical, element: next.stats.elementValue, aggro: next.stats.aggro, criticalDamage: next.stats.criticalDamage * 100 } };
           await onSaveRef.current(synced, next);
           if (active) setTransferStatus(next.issues.some((issue) => issue.severity === "error")
             ? "修改已同步；存在未计入属性的无效配置，请查看校验提示"
@@ -627,8 +635,26 @@ function ChampionEquipmentModal({ champion, catalog, loadout, templates, onClose
   </div></EquipmentPreviewContext.Provider>;
 }
 
-function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, quests, catalog, canDuplicate, onDrop, onTaskDrop, onRemove, onCopy, onDelete, onResult, onChange }: {
-  systemId: string; systemGameVersion: string; groupId: string; task: AdventureTask; units: PartyUnit[]; quests: CatalogQuest[]; catalog: Catalog;
+function QuestPickerModal({ quests, onChoose, onClose }: {
+  quests: CatalogQuest[]; onChoose: (quest: CatalogQuest) => void; onClose: () => void;
+}) {
+  const [category, setCategory] = useState<CatalogQuest["category"]>("普通冒险");
+  const [mapKey, setMapKey] = useState<string | null>(null);
+  const maps = quests.filter((quest, position, all) => quest.category === category
+    && all.findIndex((candidate) => candidate.category === category && candidate.mapKey === quest.mapKey) === position);
+  const mapQuests = quests.filter((quest) => quest.mapKey === mapKey)
+    .sort((left, right) => left.difficultyLevel - right.difficultyLevel);
+  return <div className="nested-picker-backdrop quest-picker-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+    <section className="quest-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="quest-picker-title">
+      <header><h3 id="quest-picker-title">选择冒险任务</h3><button className="zys-button red" onClick={onClose}>关闭</button></header>
+      <nav>{(["普通冒险", "黄金城", "泰坦塔", "快闪"] as const).map((entry) => <button key={entry} className={category === entry ? "active" : ""} onClick={() => { setCategory(entry); setMapKey(null); }}>{entry}</button>)}</nav>
+      {mapKey ? <><div className="quest-difficulty-header"><button className="quest-picker-back" onClick={() => setMapKey(null)}>← 返回</button><div className="quest-selected-map"><AssetImage path={mapQuests[0]?.spritePath} alt={mapQuests[0]?.mapName ?? "地图"} /><strong>{mapQuests[0]?.mapName}{mapQuests[0]?.isBoss ? " (Boss)" : ""}</strong></div></div><div className="quest-difficulty-grid">{mapQuests.map((quest) => <button key={quest.id} onClick={() => onChoose(quest)}><AssetImage path={quest.spritePath} alt={quest.difficulty} /><strong>{quest.difficulty}</strong></button>)}</div></> : <div className="quest-map-grid">{maps.map((quest) => <button key={quest.mapKey} onClick={() => quest.category === "泰坦塔" ? onChoose(quest) : setMapKey(quest.mapKey)}><AssetImage path={quest.spritePath} alt={quest.mapName} /><strong>{quest.category === "泰坦塔" ? quest.difficulty : `${quest.mapName}${quest.isBoss ? " (Boss)" : ""}`}</strong></button>)}</div>}
+    </section>
+  </div>;
+}
+
+function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, quests, catalog, assignedUnitIds, canDuplicate, onDrop, onTaskDrop, onRemove, onCopy, onDelete, onResult, onChange }: {
+  systemId: string; systemGameVersion: string; groupId: string; task: AdventureTask; units: PartyUnit[]; quests: CatalogQuest[]; catalog: Catalog; assignedUnitIds: string[];
   index: number; canDuplicate: boolean; onDrop: (id: string) => void; onTaskDrop: (sourceGroupId: string, taskId: string, targetIndex: number) => void;
   onRemove: (id: string) => void; onCopy: () => void; onDelete: () => void;
   onResult: (result: NonNullable<AdventureTask["result"]>) => void; onChange?: (task: AdventureTask) => void;
@@ -637,34 +663,35 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
   const [details, setDetails] = useState(false);
   const [message, setMessage] = useState("");
   const [memberPicker, setMemberPicker] = useState(false);
+  const [onlyUnassigned, setOnlyUnassigned] = useState(false);
   const [boosterPicker, setBoosterPicker] = useState(false);
   const [elitePicker, setElitePicker] = useState(false);
   const [barrierPicker, setBarrierPicker] = useState(false);
   const [questPicker, setQuestPicker] = useState(false);
-  const [questCategory, setQuestCategory] = useState<CatalogQuest["category"]>("普通冒险");
-  const [questMapKey, setQuestMapKey] = useState<string | null>(null);
   const controller = useRef<AbortController | null>(null);
   const members = task.memberIds.map((id) => units.find((unit) => unit.id === id)).filter(Boolean) as PartyUnit[];
+  const memberCandidates = units.filter((unit) => !task.memberIds.includes(unit.id) && (!onlyUnassigned || !assignedUnitIds.includes(unit.id)));
   const boosterLevel = task.config.boosterLevel ?? (task.config.booster ? 1 : 0);
   const boosterNames = ["无", "威力强化品", "超级威力强化品", "特级威力强化品"];
   const eliteKinds = [["none", "无"], ["agile", "敏捷"], ["huge", "巨大"], ["dire", "凶残"], ["wealthy", "富有"], ["epic", "传奇"]] as const;
   const eliteKind = task.config.eliteKind ?? (task.config.elite ? "epic" : "none");
   const currentQuest = quests.find((entry) => entry.id === task.questId);
   const barrierOptions = [...new Set([
-    ...quests.filter((entry) => entry.mapKey === currentQuest?.mapKey && entry.difficulty === currentQuest?.difficulty && entry.barrierPower > 0).map((entry) => entry.barrierElement),
+    ...(currentQuest?.barrierElements ?? (currentQuest?.barrierElement ? [currentQuest.barrierElement] : [])),
     ...elements.filter((element) => (task.barrier[element] ?? 0) > 0),
   ].filter((element): element is ElementType => Boolean(element)))];
   const selectedElement = task.config.selectedElement;
   const selectedElementLabel = selectedElement === "force" ? "无屏障" : selectedElement ? elementCode[selectedElement] : "自动";
-  const questMaps = quests.filter((quest, position, all) => quest.category === questCategory
-    && all.findIndex((candidate) => candidate.category === questCategory && candidate.mapKey === quest.mapKey) === position);
-  const chosenMapQuests = quests.filter((quest) => quest.mapKey === questMapKey)
-    .sort((left, right) => left.difficultyLevel - right.difficultyLevel);
+  const activeBarrierElements = selectedElement === "force" ? [] : selectedElement ? [elementCode[selectedElement]!] : barrierOptions;
+  const barrierPower = Math.max(0, ...activeBarrierElements.map((element) => task.barrier[element] ?? currentQuest?.barrierPower ?? 0));
+  const partyElementPower = Math.floor(Math.max(0, ...activeBarrierElements.map((element) => members
+    .filter((unit) => unit.element === element)
+    .reduce((sum, unit) => sum + (unit.stats.element ?? 0), 0))));
   const selectQuest = (quest: CatalogQuest) => {
     onChange?.({ ...task, questId: quest.id, name: quest.name, map: quest.mapName, difficulty: quest.difficulty,
-      maxMembers: quest.maxMembers, barrier: quest.barrierElement && quest.barrierPower > 0 ? { [quest.barrierElement]: quest.barrierPower } : {},
+      maxMembers: quest.maxMembers, barrier: questBarrier(quest),
       config: { ...task.config, titanTower: quest.category === "泰坦塔", selectedElement: undefined } });
-    setQuestPicker(false); setQuestMapKey(null);
+    setQuestPicker(false);
   };
 
   const run = async () => {
@@ -730,13 +757,13 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
     setMessage(""); onDrop(id);
   }}>
     <header className="online-quest-header">
-      <button className="quest-switcher" title="点击切换地图" aria-label={`${task.name}切换地图`} onClick={() => { setQuestPicker(true); setQuestMapKey(null); }}><span className="quest-switcher-art">{currentQuest?.spritePath ? <AssetImage path={currentQuest.spritePath} alt={task.map} /> : "◈"}</span></button>
+      <button className="quest-switcher" title="点击切换地图" aria-label={`${task.name}切换地图`} onClick={() => setQuestPicker(true)}><span className="quest-switcher-art">{currentQuest?.spritePath ? <AssetImage path={currentQuest.spritePath} alt={task.map} /> : "◈"}</span></button>
       <div className="online-quest-name"><GripVertical className="task-drag-handle" size={14} /><strong>{task.map}</strong><small>{task.difficulty}</small></div>
+      {barrierOptions.length > 0 && selectedElement !== "force" && <span className="task-barrier-meter"><span>{barrierOptions.map((element) => <b className={`element-${element}`} key={element}>✦</b>)}</span><em className={partyElementPower >= barrierPower ? "broken" : ""}>{partyElementPower}/{barrierPower}</em></span>}
       <button className="online-card-action" aria-label="复制任务" disabled={!canDuplicate} onClick={onCopy}>克隆</button>
-      {selectedElement && selectedElement !== "force" && <span className="barrier-broken"><b className={`element-dot element-${elementCode[selectedElement]}`}>✦</b>已破盾</span>}
       <button className="online-delete-task" aria-label="删除任务" onClick={onDelete}>×</button>
     </header>
-    {questPicker && <div className="nested-picker-backdrop quest-picker-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) { setQuestPicker(false); setQuestMapKey(null); } }}><section className="quest-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="quest-picker-title"><header><h3 id="quest-picker-title">选择冒险任务</h3><button className="zys-button red" onClick={() => { setQuestPicker(false); setQuestMapKey(null); }}>关闭</button></header><nav>{(["普通冒险", "黄金城", "泰坦塔", "快闪"] as const).map((category) => <button key={category} className={questCategory === category ? "active" : ""} onClick={() => { setQuestCategory(category); setQuestMapKey(null); }}>{category}</button>)}</nav>{questMapKey ? <><div className="quest-difficulty-header"><button className="quest-picker-back" onClick={() => setQuestMapKey(null)}>← 返回</button><div className="quest-selected-map"><AssetImage path={chosenMapQuests[0]?.spritePath} alt={chosenMapQuests[0]?.mapName ?? "地图"} /><strong>{chosenMapQuests[0]?.mapName}{chosenMapQuests[0]?.isBoss ? " (Boss)" : ""}</strong></div></div><div className="quest-difficulty-grid">{chosenMapQuests.map((quest) => <button key={quest.id} onClick={() => selectQuest(quest)}><AssetImage path={quest.spritePath} alt={quest.difficulty} /><strong>{quest.difficulty}</strong></button>)}</div></> : <div className="quest-map-grid">{questMaps.map((quest) => <button key={quest.mapKey} onClick={() => quest.category === "泰坦塔" ? selectQuest(quest) : setQuestMapKey(quest.mapKey)}><AssetImage path={quest.spritePath} alt={quest.mapName} /><strong>{quest.category === "泰坦塔" ? quest.difficulty : `${quest.mapName}${quest.isBoss ? " (Boss)" : ""}`}</strong></button>)}</div>}</section></div>}
+    {questPicker && <QuestPickerModal quests={quests} onChoose={selectQuest} onClose={() => setQuestPicker(false)} />}
     <div className="online-task-options">
       <div><span>强化道具</span><button aria-label={`强化道具：${boosterNames[boosterLevel]}`} className={`task-square-option booster-${boosterLevel} ${boosterLevel > 0 ? "active" : ""}`} onClick={() => { setElitePicker(false); setBarrierPicker(false); setBoosterPicker(true); }}>{boosterLevel > 0 ? <><b>♦</b><small>{boosterLevel}</small></> : "+"}</button></div>
       <div className="task-dropdown-container"><span>精英怪</span><button aria-label={`精英怪：${eliteKinds.find(([value]) => value === eliteKind)?.[1]}`} className={eliteKind !== "none" ? "active" : ""} onClick={() => { setBoosterPicker(false); setBarrierPicker(false); setElitePicker(!elitePicker); }}>{eliteKinds.find(([value]) => value === eliteKind)?.[1]}</button>{elitePicker && <div className="compact-task-dropdown" role="listbox" aria-label="精英怪类型">{eliteKinds.map(([value, label]) => <button role="option" aria-selected={eliteKind === value} key={value} className={eliteKind === value ? "active" : ""} onClick={() => { onChange?.({ ...task, config: { ...task.config, elite: value !== "none", eliteKind: value } }); setElitePicker(false); }}>{label}</button>)}</div>}</div>
@@ -746,9 +773,9 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
     {boosterPicker && <div className="nested-picker-backdrop booster-picker-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setBoosterPicker(false); }}><section className="booster-picker-dialog" role="dialog" aria-modal="true" aria-labelledby={`booster-picker-${task.id}`}><header><h3 id={`booster-picker-${task.id}`}>冒险强化道具</h3><button className="zys-button red" onClick={() => setBoosterPicker(false)}>关闭</button></header><strong>威力强化</strong><div>{([1, 2, 3] as const).map((level) => <button key={level} className={boosterLevel === level ? "active" : ""} title={level === 1 ? "攻防 +20% · 暴击 +10%" : level === 2 ? "攻防 +40% · 暴击 +15%" : "攻防 +80% · 暴击 +30% · 暴伤 +50%"} onClick={() => { const nextLevel = boosterLevel === level ? 0 : level; onChange?.({ ...task, config: { ...task.config, booster: nextLevel > 0, boosterLevel: nextLevel } }); setBoosterPicker(false); }}><b className={`booster-gem booster-gem-${level}`}>♦</b><span>{boosterNames[level]}</span></button>)}</div></section></div>}
     <div className="party-dropzone online-party-dropzone">
       {members.map((unit) => <button className="party-member online-party-member" key={unit.id} title={`移除 ${unit.name}`} onClick={() => onRemove(unit.id)}><span className="member-avatar-wrap"><UnitAvatar unit={unit} small /><b className={`member-element element-${unit.element}`}>{unit.element}</b><i>×</i></span><span>{unit.name}</span></button>)}
-      {members.length < task.maxMembers && <button className="add-party-member online-add-member" onClick={() => setMemberPicker(!memberPicker)}><Plus size={20} /><span>添加成员</span></button>}
+      {members.length < task.maxMembers && <button className="add-party-member online-add-member" aria-label="添加成员" onClick={() => setMemberPicker(true)}><Plus size={20} /><span>添加成员</span></button>}
     </div>
-    {memberPicker && <div className="member-picker"><strong>选择成员添加到任务</strong><div>{units.filter((unit) => !task.memberIds.includes(unit.id)).map((unit) => <button key={unit.id} onClick={() => { onDrop(unit.id); setMemberPicker(false); }}><UnitAvatar unit={unit} small /><span>{unit.name}<small>{unit.kind === "champion" ? "勇士" : unit.className}</small></span></button>)}</div></div>}
+    {memberPicker && <div className="nested-picker-backdrop member-picker-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setMemberPicker(false); }}><section className="member-picker-dialog" role="dialog" aria-modal="true" aria-labelledby={`member-picker-${task.id}`}><header><h3 id={`member-picker-${task.id}`}>选择成员添加到任务</h3><div><span>未上阵成员</span><button role="switch" aria-label="仅未上阵成员" aria-checked={onlyUnassigned} className={onlyUnassigned ? "active" : ""} onClick={() => setOnlyUnassigned(!onlyUnassigned)}><i /></button><button className="zys-button red" onClick={() => setMemberPicker(false)}>关闭</button></div></header><div className="member-picker-grid">{memberCandidates.map((unit) => <button key={unit.id} onClick={() => { onDrop(unit.id); setMemberPicker(false); }}><span className="member-picker-avatar"><UnitAvatar unit={unit} small /><b className={`member-element element-${unit.element}`}>{unit.element}</b></span><strong>{unit.name}</strong><small>{unit.kind === "champion" ? "勇士" : unit.className}</small></button>)}</div></section></div>}
     {message && <div className="task-message" role="status">{message}</div>}
     {progress && progress.phase !== "complete" ? <div className="progress-area online-progress">
       <div className="progress-copy"><span>模拟中 {Math.round(progress.completed / progress.total * 100)}%</span><button className="link-button" onClick={() => controller.current?.abort()}><PauseCircle size={14} />取消</button></div>
@@ -760,19 +787,17 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
   </article>;
 }
 
-function AdventureGroup({ systemId, systemGameVersion, group, units, quests, catalog, canAddTask, onUpdate, onMove, onDeleteGroup, onAddTask, onDrop, onMoveTask, onRemove, onCopyTask, onDeleteTask, onResult, onTaskChange }: {
-  systemId: string; systemGameVersion: string; group: TaskGroup; units: PartyUnit[]; quests: CatalogQuest[]; catalog: Catalog; onUpdate: (group: TaskGroup) => void; onMove: (direction: -1 | 1) => void;
-  canAddTask: boolean; onDeleteGroup: () => void;
-  onAddTask: () => void; onDrop: (taskId: string, unitId: string) => void; onRemove: (taskId: string, unitId: string) => void;
+function AdventureGroup({ systemId, systemGameVersion, group, units, quests, catalog, assignedUnitIds, canAddTask, onAddTask, onDrop, onMoveTask, onRemove, onCopyTask, onDeleteTask, onResult, onTaskChange }: {
+  systemId: string; systemGameVersion: string; group: TaskGroup; units: PartyUnit[]; quests: CatalogQuest[]; catalog: Catalog; assignedUnitIds: string[];
+  canAddTask: boolean;
+  onAddTask: (quest: CatalogQuest) => void; onDrop: (taskId: string, unitId: string) => void; onRemove: (taskId: string, unitId: string) => void;
   onMoveTask: (sourceGroupId: string, taskId: string, targetIndex: number) => void;
   onCopyTask: (task: AdventureTask) => void; onDeleteTask: (taskId: string) => void;
   onResult: (taskId: string, result: NonNullable<AdventureTask["result"]>) => void;
   onTaskChange: (task: AdventureTask) => void;
 }) {
+  const [addingTask, setAddingTask] = useState(false);
   return <section className="task-group">
-    <header className="group-header"><div><input className="group-title" value={group.name} onChange={(event) => onUpdate({ ...group, name: event.target.value })} /><span>{group.tasks.length} 个任务</span></div>
-      <div className="toolbar"><IconButton label="分组上移" onClick={() => onMove(-1)}><ArrowUp size={15} /></IconButton><IconButton label="分组下移" onClick={() => onMove(1)}><ArrowDown size={15} /></IconButton><IconButton label="删除任务分组" onClick={onDeleteGroup} danger><Trash2 size={15} /></IconButton><button className="secondary-button" disabled={!canAddTask} onClick={onAddTask}><Plus size={15} />添加任务</button></div>
-    </header>
     <div className="task-grid" onDragOver={(event) => { if (event.dataTransfer.types.includes("application/x-zys-task")) { event.preventDefault(); event.dataTransfer.dropEffect = "move"; } }} onDrop={(event) => {
       const payload = event.dataTransfer.getData("application/x-zys-task");
       if (!payload) return;
@@ -781,9 +806,10 @@ function AdventureGroup({ systemId, systemGameVersion, group, units, quests, cat
         const source = JSON.parse(payload) as { groupId?: unknown; taskId?: unknown };
         if (typeof source.groupId === "string" && typeof source.taskId === "string") onMoveTask(source.groupId, source.taskId, group.tasks.length);
       } catch { /* TaskCard exposes malformed drag feedback when dropped on a card. */ }
-    }}>{group.tasks.map((task, index) => <TaskCard key={task.id} systemId={systemId} systemGameVersion={systemGameVersion} groupId={group.id} index={index} task={task} units={units} quests={quests} catalog={catalog} canDuplicate={canAddTask} onDrop={(unitId) => onDrop(task.id, unitId)} onTaskDrop={onMoveTask} onRemove={(unitId) => onRemove(task.id, unitId)} onCopy={() => onCopyTask(task)} onDelete={() => onDeleteTask(task.id)} onResult={(result) => onResult(task.id, result)} onChange={onTaskChange} />)}
-      {!group.tasks.length && <button className="empty-task" disabled={!canAddTask} onClick={onAddTask}><Plus size={22} />在这个分组中添加冒险任务</button>}
+    }}>{group.tasks.map((task, index) => <TaskCard key={task.id} systemId={systemId} systemGameVersion={systemGameVersion} groupId={group.id} index={index} task={task} units={units} quests={quests} catalog={catalog} assignedUnitIds={assignedUnitIds} canDuplicate={canAddTask} onDrop={(unitId) => onDrop(task.id, unitId)} onTaskDrop={onMoveTask} onRemove={(unitId) => onRemove(task.id, unitId)} onCopy={() => onCopyTask(task)} onDelete={() => onDeleteTask(task.id)} onResult={(result) => onResult(task.id, result)} onChange={onTaskChange} />)}
+      <button className="empty-task online-add-task" disabled={!canAddTask} onClick={() => setAddingTask(true)}><Plus size={22} /><span>添加任务</span></button>
     </div>
+    {addingTask && <QuestPickerModal quests={quests} onChoose={(quest) => { onAddTask(quest); setAddingTask(false); }} onClose={() => setAddingTask(false)} />}
   </section>;
 }
 
@@ -1036,6 +1062,7 @@ function WorkspaceApp({ catalog, onCatalogChange }: { catalog: Catalog; onCatalo
   };
 
   if (workspace.loading || !workspace.active) return <main className="loading-screen"><div className="loader" /><span>正在加载本地数据…</span></main>;
+  const assignedUnitIds = [...new Set(workspace.active.taskGroups.flatMap((group) => group.tasks.flatMap((task) => task.memberIds)))];
 
   return <div className="app-shell online-shell">
     <input ref={fileInput} hidden type="file" accept=".zyslineup,application/json" onChange={(event) => void importFile(event.target.files?.[0])} />
@@ -1044,9 +1071,9 @@ function WorkspaceApp({ catalog, onCatalogChange }: { catalog: Catalog; onCatalo
       <div className="tool-container"><section className="tool-hero"><h1>英雄体系搭配平台</h1><div className="offline-warning"><HardDrive size={17} />当前为完全离线版，所有体系、配装、模拟记录和图片均保存在本机；数据版本 {catalog.gameDataVersion}</div></section>
         <SystemSidebar systems={workspace.systems} activeId={workspace.activeId} dirty={workspace.dirty} contentVersion={catalog.gameDataVersion} onSelect={selectSystem} onCreate={(name, description, localPublic) => workspace.createSystem({ name, description, localPublic })} onImportCode={importSystemCode} onUseCollection={(system) => { const imported = workspace.importSystem(system); setToast(`已从本地收藏导入“${imported.name}”，请保存后持久化`); }} onDuplicate={workspace.duplicateSystem} onDelete={() => { if (window.confirm("确定删除当前体系吗？")) void workspace.deleteActive(); }} onSave={() => void workspace.save().then(() => setToast("所有更改已保存在本机"))} onImport={() => { if (desktopBridge.isDesktop()) void importFromDialog(); else fileInput.current?.click(); }} onExport={(system) => void exportCurrent(system)} onBackup={() => void exportBackup()} onRestore={() => void restoreBackup()} onDataUpdate={() => void installDataPackage()} onRename={(name, description, localPublic) => workspace.updateActive((system) => ({ ...system, name, description, localPublic }))} />
       <div className="content online-content">
-        <section id="champions-section" className="flow-section"><section className="section-heading"><div><h2>勇士阵容</h2><p>点击勇士图标进行配装，可拖动到下方任务卡片中组队冒险</p></div><button className="zys-button blue" onClick={() => setShowTemplates(true)}><BarChart3 size={16} />装备统计</button></section><div className="champion-grid">{champions.map((unit) => { const loadout = workspace.active!.championLoadouts?.[unit.id]; return <ChampionCard key={unit.id} unit={{ ...unit, ...(loadout ?? {}), stats: loadout?.stats ?? unit.stats }} onEdit={() => setEditingChampion(unit)} />; })}</div></section>
+        <section id="champions-section" className="flow-section"><section className="section-heading"><div><h2>勇士阵容</h2><p>点击勇士图标进行配装，可拖动到下方任务卡片中组队冒险</p></div><button className="zys-button blue" onClick={() => setShowTemplates(true)}><BarChart3 size={16} />装备统计</button></section><div className="champion-grid">{champions.map((unit) => { const loadout = workspace.active!.championLoadouts?.[unit.id]; return <ChampionCard key={unit.id} unit={{ ...unit, ...(loadout ?? {}), stats: { ...unit.stats, ...(loadout?.stats ?? {}), element: loadout?.stats?.element ?? championElementValue(loadout?.rank ?? unit.rank) } }} onEdit={() => setEditingChampion(unit)} />; })}</div></section>
         <section id="heroes-section" className="flow-section"><section className="section-heading"><div><h2>英雄阵容 ({workspace.active.heroes.length}/41)</h2><p>点击英雄图标进行配装，可拖动到下方任务卡片中组队冒险</p></div><div className="toolbar"><button className="zys-button blue" onClick={() => setShowTemplates(true)}>装备统计</button><button className="zys-button violet" onClick={() => void exportCurrentPng()}>导出阵容</button><button className="zys-button green" disabled={workspace.active.heroes.length >= 41} onClick={() => setShowClassPicker(true)}>添加英雄</button><button className={`manager-tab ${sortMode === "class" ? "active" : ""}`} onClick={() => setSortMode("class")}>职业排序</button><button className={`manager-tab ${sortMode === "element" ? "active" : ""}`} onClick={() => setSortMode("element")}>元素排序</button></div></section><div className="hero-list">{heroes.map((hero) => <HeroCard key={hero.id} hero={hero} onEdit={() => setEditingHero(hero)} onCopy={() => workspace.duplicateHero(hero)} onDelete={() => workspace.deleteHero(hero.id)} />)}{!heroes.length && <div className="empty-state"><Users size={30} /><h3>还没有英雄</h3><p>点击“添加英雄”选择职业。</p></div>}</div></section>
-        <section id="adventures-section" className="flow-section"><section className="section-heading"><div><h2>冒险任务 ({workspace.active.taskGroups.reduce((sum, group) => sum + group.tasks.length, 0)}/48)</h2><p>点击冒险任务卡片左上角冒险图标可以切换地图，拖动冒险任务卡片切换分组</p></div><button className="primary-button" disabled={workspace.active.taskGroups.reduce((sum, group) => sum + group.tasks.length, 0) >= 48} onClick={workspace.addGroup}><Plus size={16} />添加分组</button></section>{workspace.active.taskGroups.map((group) => <AdventureGroup key={group.id} systemId={workspace.active!.id} systemGameVersion={catalog.gameDataVersion} group={group} units={workspace.units} quests={catalog.quests} catalog={catalog} canAddTask={workspace.active!.taskGroups.reduce((sum, entry) => sum + entry.tasks.length, 0) < 48} onUpdate={workspace.updateGroup} onMove={(direction) => workspace.moveGroup(group.id, direction)} onDeleteGroup={() => { if (window.confirm(`确定删除任务分组“${group.name}”及其中 ${group.tasks.length} 个任务吗？`)) workspace.deleteGroup(group.id); }} onAddTask={() => workspace.addTask(group.id)} onDrop={(taskId, unitId) => workspace.dropUnit(group.id, taskId, unitId)} onMoveTask={(sourceGroupId, taskId, targetIndex) => workspace.moveTask(sourceGroupId, taskId, group.id, targetIndex)} onRemove={(taskId, unitId) => workspace.removeUnit(group.id, taskId, unitId)} onCopyTask={(task) => workspace.duplicateTask(group.id, task)} onDeleteTask={(taskId) => workspace.deleteTask(group.id, taskId)} onResult={workspace.setTaskResult} onTaskChange={(task) => workspace.updateTask(group.id, task)} />)}{!workspace.active.taskGroups.length && <div className="empty-state"><BarChart3 size={30} /><h3>还没有任务分组</h3><button className="primary-button" onClick={workspace.addGroup}><Plus size={16} />创建第一个分组</button></div>}</section>
+        <section id="adventures-section" className="flow-section"><section className="section-heading"><div><h2>冒险任务 ({workspace.active.taskGroups.reduce((sum, group) => sum + group.tasks.length, 0)}/48)</h2><p>点击冒险任务卡片左上角冒险图标可以切换地图，拖动冒险任务卡片切换分组</p></div><button className="primary-button" disabled={workspace.active.taskGroups.reduce((sum, group) => sum + group.tasks.length, 0) >= 48} onClick={workspace.addGroup}><Plus size={16} />添加分组</button></section>{workspace.active.taskGroups.map((group) => <AdventureGroup key={group.id} systemId={workspace.active!.id} systemGameVersion={catalog.gameDataVersion} group={group} units={workspace.units} quests={catalog.quests} catalog={catalog} assignedUnitIds={assignedUnitIds} canAddTask={workspace.active!.taskGroups.reduce((sum, entry) => sum + entry.tasks.length, 0) < 48} onAddTask={(quest) => workspace.addTask(group.id, quest)} onDrop={(taskId, unitId) => workspace.dropUnit(group.id, taskId, unitId)} onMoveTask={(sourceGroupId, taskId, targetIndex) => workspace.moveTask(sourceGroupId, taskId, group.id, targetIndex)} onRemove={(taskId, unitId) => workspace.removeUnit(group.id, taskId, unitId)} onCopyTask={(task) => workspace.duplicateTask(group.id, task)} onDeleteTask={(taskId) => workspace.deleteTask(group.id, taskId)} onResult={workspace.setTaskResult} onTaskChange={(task) => workspace.updateTask(group.id, task)} />)}</section>
       </div></div>
     </main>
     {editingHero && <EquipmentModal key={editingHero.id} hero={editingHero} catalog={catalog} templates={templates} onClose={() => setEditingHero(null)} onPrevious={() => {

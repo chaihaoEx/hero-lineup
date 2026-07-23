@@ -426,6 +426,9 @@ impl TitanFloorCorrection {
 #[serde(rename_all = "camelCase", default)]
 pub struct ElementBarrier {
     pub mode: BarrierMode,
+    /// Allowed elements for a random quest barrier. Empty preserves the legacy
+    /// all-six-elements behavior.
+    pub candidates: Vec<Element>,
     /// Fixed barriers use this value; random barriers use `required_power`.
     pub health: f64,
     pub required_power: f64,
@@ -504,7 +507,12 @@ pub fn resolve_element_barrier(barrier: &ElementBarrier) -> BarrierResolution {
                 Element::Light,
                 Element::Dark,
             ];
-            BASIC
+            let candidates = if barrier.candidates.is_empty() {
+                BASIC.as_slice()
+            } else {
+                barrier.candidates.as_slice()
+            };
+            candidates
                 .iter()
                 .map(|element| {
                     barrier
@@ -1399,6 +1407,7 @@ mod tests {
         ];
         let fixed = resolve_element_barrier(&ElementBarrier {
             mode: BarrierMode::Fixed(Element::Fire),
+            candidates: vec![],
             health: 250.0,
             required_power: 0.0,
             rudo_multiplier: 1.0,
@@ -1409,6 +1418,7 @@ mod tests {
 
         let random = resolve_element_barrier(&ElementBarrier {
             mode: BarrierMode::Random,
+            candidates: vec![Element::Fire, Element::Water],
             health: 0.0,
             required_power: 251.0,
             rudo_multiplier: 1.0,

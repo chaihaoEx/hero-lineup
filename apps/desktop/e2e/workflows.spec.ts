@@ -83,7 +83,7 @@ test.describe("浏览器预览中的主要离线工作流", () => {
     expect(secondHero).toBeTruthy();
 
     await page.getByRole("button", { name: /冒险任务/ }).click();
-    await page.getByRole("button", { name: "创建第一个分组" }).click();
+    await page.getByRole("button", { name: "添加分组" }).click();
     const task = page.locator(".task-card").first();
     const transfer = await page.evaluateHandle(({ id }) => {
       const data = new DataTransfer();

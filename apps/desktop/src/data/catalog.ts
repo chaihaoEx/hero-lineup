@@ -54,6 +54,8 @@ export interface CatalogQuest {
   difficultyLevel: number;
   isBoss: boolean;
   maxMembers: number;
+  /** Every possible barrier element; some quests randomly choose among several. */
+  barrierElements?: ElementType[];
   barrierElement?: ElementType;
   barrierPower: number;
   spritePath?: string;
@@ -186,11 +188,24 @@ export const previewCatalog: Catalog = {
   counts: { classes: 1, champions: 1, quests: 1, items: 3, skills: 4, sprites: 0 },
 };
 
+export function championElementValue(rank: number): number {
+  if (rank <= 4) return 0;
+  if (rank === 5) return 15;
+  if (rank <= 7) return 30;
+  if (rank === 8) return 45;
+  if (rank === 9) return 60;
+  if (rank <= 11) return 80;
+  if (rank <= 13) return 90;
+  if (rank <= 15) return 100;
+  if (rank <= 19) return 110;
+  return 125;
+}
+
 export function catalogChampions(catalog: Catalog): Champion[] {
   return catalog.champions.map((entry) => ({
     id: entry.id, kind: "champion", name: entry.name, classId: entry.classId,
     element: entry.element, spritePath: entry.spritePath,
-    level: 40, rank: 11, cardLevel: 0, stats: entry.stats,
+    level: 40, rank: 11, cardLevel: 0, stats: { ...entry.stats, element: championElementValue(11) },
   }));
 }
 

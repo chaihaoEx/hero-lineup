@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyEquipmentFieldToAll, heroSlotNames, itemsForSlot, makeHero, normalizeHeroEquipmentSlots, previewCatalog, skillsForClass, skillsForSlot, type Catalog } from "../src/data/catalog";
+import { applyEquipmentFieldToAll, championElementValue, heroSlotNames, itemsForSlot, makeHero, normalizeHeroEquipmentSlots, previewCatalog, skillsForClass, skillsForSlot, type Catalog } from "../src/data/catalog";
 import { previewEquipmentStats } from "../src/data/equipmentPreview";
 
 describe("local catalog projections", () => {
@@ -90,5 +90,10 @@ describe("local catalog projections", () => {
     expect(qualityApplied[0]).toMatchObject({ element: "ember", spirit: "behemoth", quality: "传说" });
     expect(qualityApplied[1]).toMatchObject({ element: "ember", spirit: "behemoth", quality: "传说" });
     expect(qualityApplied[2]!.itemId).toBeUndefined();
+  });
+
+  it("matches the online champion rank element thresholds", () => {
+    expect([4, 5, 7, 8, 9, 11, 12, 14, 16, 20].map(championElementValue))
+      .toEqual([0, 15, 30, 45, 60, 80, 90, 100, 110, 125]);
   });
 });

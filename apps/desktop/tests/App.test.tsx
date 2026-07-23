@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../src/App";
 import { makeDefaultSystem, makeHero, previewCatalog } from "../src/data/catalog";
@@ -258,17 +258,30 @@ test("contains no remote runtime URLs", async () => {
   expect(runtimeUrls).toEqual([]);
 });
 
-test("deletes a task group and all of its tasks after confirmation", async () => {
+test("removes the online-style task group when its final task is deleted", async () => {
   const user = userEvent.setup();
-  const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
   render(<App />);
   await appReady();
   await user.click(screen.getByRole("button", { name: /冒险任务/ }));
   expect(document.querySelectorAll(".task-card")).toHaveLength(1);
-  await user.click(screen.getByRole("button", { name: "删除任务分组" }));
-  expect(confirm).toHaveBeenCalledWith(expect.stringContaining("其中 1 个任务"));
-  expect(screen.getByText("还没有任务分组")).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "删除任务分组" })).not.toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "删除任务" }));
   expect(document.querySelectorAll(".task-card")).toHaveLength(0);
+  expect(document.querySelectorAll(".task-group")).toHaveLength(0);
+});
+
+test("opens the quest picker before adding a task to an existing group", async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  await appReady();
+  expect(document.querySelectorAll(".task-card")).toHaveLength(1);
+  await user.click(screen.getByRole("button", { name: "添加任务" }));
+  expect(screen.getByRole("dialog", { name: "选择冒险任务" })).toBeInTheDocument();
+  expect(document.querySelectorAll(".task-card")).toHaveLength(1);
+  await user.click(screen.getByRole("button", { name: "咆哮森林" }));
+  await user.click(screen.getByRole("button", { name: "简单" }));
+  expect(screen.queryByRole("dialog", { name: "选择冒险任务" })).not.toBeInTheDocument();
+  expect(document.querySelectorAll(".task-card")).toHaveLength(2);
 });
 
 test("reorders task cards within and across groups using the task drag payload", async () => {
@@ -303,26 +316,48 @@ test("reorders task cards within and across groups using the task drag payload",
   fireEvent.dragStart(cards[0]!, { dataTransfer: across });
   fireEvent.drop(secondGroupTask, { dataTransfer: across });
   groups = [...document.querySelectorAll<HTMLElement>(".task-group")];
-  expect(groups[0]).toHaveTextContent("1 个任务");
-  expect(groups[1]).toHaveTextContent("2 个任务");
+  expect(groups[0]!.querySelectorAll(".task-card")).toHaveLength(1);
+  expect(groups[1]!.querySelectorAll(".task-card")).toHaveLength(2);
   expect(groups[1]!.querySelector(".task-card")).toHaveAttribute("data-task-name", "咆哮森林 副本");
 });
 
 test("selects the online automatic, element and no-barrier modes", async () => {
   const systems = JSON.parse(localStorage.getItem("zys.hero-lineup.systems.v1")!) as ReturnType<typeof makeDefaultSystem>[];
-  systems[0]!.taskGroups[0]!.tasks[0]!.barrier = { 火: 3200, 暗: 75 };
+  systems[0]!.heroes[0]!.stats.element = 80;
+  systems[0]!.taskGroups[0]!.tasks[0]!.barrier = { 暗: 320, 光: 320, 土: 320 };
   localStorage.setItem("zys.hero-lineup.systems.v1", JSON.stringify(systems));
   const user = userEvent.setup();
   render(<App />);
   await appReady();
   await user.click(screen.getByRole("button", { name: /冒险任务/ }));
+  expect(document.querySelector(".task-barrier-meter")).toHaveTextContent("80/320");
+  expect(document.querySelectorAll(".task-barrier-meter b")).toHaveLength(3);
   await user.click(screen.getByRole("button", { name: "元素屏障：自动" }));
-  await user.click(screen.getByRole("option", { name: "火" }));
-  expect(screen.getByRole("button", { name: "元素屏障：火" })).toBeInTheDocument();
-  await user.click(screen.getByRole("button", { name: "元素屏障：火" }));
+  await user.click(screen.getByRole("option", { name: "光" }));
+  expect(screen.getByRole("button", { name: "元素屏障：光" })).toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "元素屏障：光" }));
   await user.click(screen.getByRole("option", { name: "无屏障" }));
   expect(screen.getByRole("button", { name: "元素屏障：无屏障" })).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "添加成员" })).toBeInTheDocument();
+});
+
+test("uses the online modal member catalog and global unassigned filter", async () => {
+  const systems = JSON.parse(localStorage.getItem("zys.hero-lineup.systems.v1")!) as ReturnType<typeof makeDefaultSystem>[];
+  const original = systems[0]!.taskGroups[0]!.tasks[0]!;
+  systems[0]!.taskGroups[0]!.tasks.push({ ...structuredClone(original), id: crypto.randomUUID(), memberIds: [] });
+  localStorage.setItem("zys.hero-lineup.systems.v1", JSON.stringify(systems));
+  const user = userEvent.setup();
+  render(<App />);
+  await appReady();
+  const secondTask = document.querySelectorAll<HTMLElement>(".task-card")[1]!;
+  await user.click(within(secondTask).getByRole("button", { name: "添加成员" }));
+  const dialog = screen.getByRole("dialog", { name: "选择成员添加到任务" });
+  expect(dialog).toBeInTheDocument();
+  expect(screen.getByRole("switch", { name: "仅未上阵成员" })).toHaveAttribute("aria-checked", "false");
+  expect(within(dialog).getByRole("button", { name: /骑士1/ })).toBeInTheDocument();
+  await user.click(screen.getByRole("switch", { name: "仅未上阵成员" }));
+  expect(screen.getByRole("switch", { name: "仅未上阵成员" })).toHaveAttribute("aria-checked", "true");
+  expect(within(dialog).queryByRole("button", { name: /骑士1/ })).not.toBeInTheDocument();
 });
 
 test("mirrors the online map, booster and elite selection flows", async () => {
