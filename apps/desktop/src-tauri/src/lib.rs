@@ -99,16 +99,23 @@ struct CatalogQuest {
     id: String,
     name: String,
     map_name: String,
+    map_label: Option<String>,
     map_key: String,
     category: String,
     difficulty: String,
     difficulty_level: u64,
+    variant_order: u64,
     is_boss: bool,
     max_members: u64,
     barrier_elements: Vec<String>,
     barrier_element: Option<String>,
     barrier_power: f64,
     sprite_path: Option<String>,
+    map_sprite_path: Option<String>,
+    difficulty_sprite_path: Option<String>,
+    difficulty_background_path: Option<String>,
+    #[serde(skip)]
+    map_order: u64,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -610,6 +617,93 @@ fn choose_sprite(sprite_files: &[String], candidates: &[String], prefix: &str) -
         })
 }
 
+fn titan_variant(id: &str) -> (&str, u64) {
+    let variant = id.rsplit('_').next().unwrap_or("alpha");
+    let order = match variant {
+        "alpha" => 0,
+        "beta" => 1,
+        "gamma" => 2,
+        "delta" => 3,
+        "epsilon" => 4,
+        "terror" => 5,
+        _ => u64::MAX,
+    };
+    (variant, order)
+}
+
+fn titan_difficulty_label(variant: &str, tomb: bool) -> &'static str {
+    if tomb {
+        match variant {
+            "alpha" => "阿尔法之墓",
+            "beta" => "测试墓穴",
+            "gamma" => "伽马墓",
+            "delta" => "德尔塔墓穴",
+            "epsilon" => "伊普西隆墓",
+            "terror" => "恐怖墓穴",
+            _ => "泰坦之墓",
+        }
+    } else {
+        match variant {
+            "alpha" => "阿尔法",
+            "beta" => "贝塔",
+            "gamma" => "伽马",
+            "delta" => "德尔塔",
+            "epsilon" => "艾普斯龙",
+            "terror" => "奇异",
+            _ => "未知",
+        }
+    }
+}
+
+fn flash_map_order(family: &str) -> u64 {
+    const ORDER: &[&str] = &[
+        "lcog",
+        "enchant",
+        "sigil",
+        "training",
+        "moon",
+        "gear",
+        "research",
+        "rune",
+        "repair",
+        "chest",
+        "ascension",
+        "key",
+        "fancygear",
+        "champion",
+        "slimer",
+        "cndragon",
+        "transcendence",
+    ];
+    ORDER
+        .iter()
+        .position(|entry| *entry == family)
+        .map_or(u64::MAX, |index| index as u64)
+}
+
+fn flash_map_sprite(family: &str) -> Option<&'static str> {
+    match family {
+        "lcog" => Some("FQ_goldcity_boss.png"),
+        "enchant" => Some("FQ_swamp_boss.png"),
+        "sigil" => Some("FQ_grotto_boss.png"),
+        "training" => Some("FQ_castle_boss.png"),
+        "moon" => Some("FQ_goldcity_boss_2.png"),
+        "gear" => Some("FQ_ruins_boss_1.png"),
+        "research" => Some("FQ_peak_boss.png"),
+        "rune" => Some("FQ_goldcity_boss_1.png"),
+        "repair" => Some("FQ_forest_boss_2.png"),
+        "chest" => Some("FQ_forest_boss_1.png"),
+        "ascension" => Some("FQ_volcano_boss.png"),
+        "key" => Some("FQ_desert_boss.png"),
+        "fancygear" => Some("FQ_ruins_boss_2.png"),
+        "champion" => Some("FQ_pyramid_boss.png"),
+        "slimer" => Some("FQ_slimer_boss.png"),
+        "cndragon" => Some("FQ_temple_boss.png"),
+        "transcendence" => Some("FQ_elysiumdark_boss.png"),
+        _ => None,
+    }
+}
+
 fn sprite_files(content_dir: &Path, manifest: &Value) -> Result<Vec<String>, String> {
     let sprite_root = content_dir.join("Sprite");
     if !sprite_root.is_dir() {
@@ -826,17 +920,22 @@ fn load_catalog_from_content_dir(content_dir: &Path) -> Result<Catalog, String> 
             .unwrap_or(u64::MAX)
     });
 
-    let mut quests = object_at(&quests_value, "quests")?
+    let quest_records = object_at(&quests_value, "quests")?;
+    let mut quests = quest_records
         .iter()
-        .map(|(id, value)| {
+        .enumerate()
+        .map(|(source_order, (id, value))| {
             let family = value.get("family").and_then(Value::as_str).unwrap_or(id);
-            let map_name = localized(texts, &[format!("{family}_name")], family);
             let difficulty_level = value
                 .get("difficultyLvl")
                 .and_then(Value::as_u64)
                 .unwrap_or_default();
             let is_boss = value
                 .get("isBoss")
+                .and_then(Value::as_bool)
+                .unwrap_or(false);
+            let is_flash = value
+                .get("isFlash")
                 .and_then(Value::as_bool)
                 .unwrap_or(false);
             let category = if family == "goldcity" {
@@ -848,46 +947,132 @@ fn load_catalog_from_content_dir(content_dir: &Path) -> Result<Catalog, String> 
                     .unwrap_or(false)
             {
                 "泰坦塔"
-            } else if value
-                .get("isFlash")
-                .and_then(Value::as_bool)
-                .unwrap_or(false)
-            {
+            } else if is_flash {
                 "快闪"
             } else {
                 "普通冒险"
             };
-            let (map_name, map_key, difficulty) = if category == "泰坦塔" {
-                let label = if difficulty_level == 30 {
-                    "泰坦之墓".to_owned()
+            let map_name_keys = if is_flash {
+                vec![format!("fq_{family}_name"), format!("{family}_name")]
+            } else {
+                vec![format!("{family}_name")]
+            };
+            let base_map_name = localized(texts, &map_name_keys, family);
+            let (map_name, map_label, map_key, difficulty, map_order, variant_order) =
+                if category == "泰坦塔" {
+                    let tomb = difficulty_level == 30;
+                    let map_label = if tomb {
+                        "泰坦之墓".to_owned()
+                    } else {
+                        format!("第{}层", difficulty_level + 1)
+                    };
+                    let map_name = if tomb {
+                        "泰坦之墓".to_owned()
+                    } else {
+                        format!("泰坦之塔{}层", difficulty_level + 1)
+                    };
+                    let (variant, variant_order) = titan_variant(id);
+                    (
+                        map_name,
+                        Some(map_label),
+                        format!("titantower:{difficulty_level}"),
+                        titan_difficulty_label(variant, tomb).to_owned(),
+                        difficulty_level,
+                        variant_order,
+                    )
+                } else if category == "黄金城" {
+                    (
+                        base_map_name,
+                        None,
+                        format!("{family}:{}", if is_boss { "boss" } else { "normal" }),
+                        format!("难度{}", difficulty_level + 1),
+                        u64::from(is_boss),
+                        difficulty_level,
+                    )
                 } else {
-                    format!("第{}层", difficulty_level + 1)
+                    (
+                        base_map_name,
+                        None,
+                        format!("{family}:{}", if is_boss { "boss" } else { "normal" }),
+                        match difficulty_level {
+                            0 => "简单",
+                            1 => "中等",
+                            2 => "困难",
+                            _ => "究极",
+                        }
+                        .to_owned(),
+                        if is_flash {
+                            flash_map_order(family)
+                        } else {
+                            value
+                                .get("index")
+                                .and_then(Value::as_u64)
+                                .unwrap_or(source_order as u64)
+                                * 2
+                                + u64::from(is_boss)
+                        },
+                        difficulty_level,
+                    )
                 };
-                (
-                    label.clone(),
-                    format!("titantower:{difficulty_level}"),
-                    label,
+            let map_sprite_candidates = if category == "泰坦塔" {
+                vec![if difficulty_level == 30 {
+                    "icon_global_questarea_titantomb_small.png".to_owned()
+                } else {
+                    "icon_global_questarea_titantower_small.png".to_owned()
+                }]
+            } else if let Some(sprite) = is_flash.then(|| flash_map_sprite(family)).flatten() {
+                vec![sprite.to_owned()]
+            } else if is_boss {
+                vec![format!("{family}_boss.png")]
+            } else {
+                vec![format!("icon_global_questarea_{family}_small.png")]
+            };
+            let map_sprite_path = choose_sprite(&sprite_files, &map_sprite_candidates, family);
+            let difficulty_sprite_path = if category == "泰坦塔" {
+                let (variant, _) = titan_variant(id);
+                choose_sprite(
+                    &sprite_files,
+                    &[format!("icon_global_titantower_{variant}_big.png")],
+                    &format!("icon_global_titantower_{variant}_big"),
                 )
             } else if category == "黄金城" {
-                (
-                    map_name,
-                    format!("{family}:{}", if is_boss { "boss" } else { "normal" }),
-                    format!("难度{}", difficulty_level + 1),
+                choose_sprite(
+                    &sprite_files,
+                    &[format!("icon_difficulty_{}.png", difficulty_level + 1)],
+                    &format!("icon_difficulty_{}", difficulty_level + 1),
                 )
             } else {
-                (
-                    map_name,
-                    format!("{family}:{}", if is_boss { "boss" } else { "normal" }),
-                    match difficulty_level {
-                        0 => "简单",
-                        1 => "中等",
-                        2 => "困难",
-                        _ => "究极",
-                    }
-                    .to_owned(),
+                let suffix = match difficulty_level {
+                    0 => "easy",
+                    1 => "medium",
+                    2 => "hard",
+                    _ => "extreme",
+                };
+                choose_sprite(
+                    &sprite_files,
+                    &[format!("icon_difficulty_{suffix}.png")],
+                    &format!("icon_difficulty_{suffix}"),
                 )
             };
+            let difficulty_background_path = (category == "泰坦塔")
+                .then(|| {
+                    choose_sprite(
+                        &sprite_files,
+                        &["icon_global_skill_bg_titan.png".to_owned()],
+                        "icon_global_skill_bg_titan",
+                    )
+                })
+                .flatten();
             let explicit = localized(texts, &[format!("{id}_name")], "");
+            let display_name = if explicit.is_empty() {
+                if category == "泰坦塔" {
+                    format!("{map_name} · {difficulty}")
+                } else {
+                    format!("{map_name}{}", if is_boss { " (Boss)" } else { "" })
+                }
+            } else {
+                explicit
+            };
             let barrier_elements = value
                 .get("element")
                 .and_then(Value::as_str)
@@ -899,16 +1084,14 @@ fn load_catalog_from_content_dir(content_dir: &Path) -> Result<Catalog, String> 
                 .unwrap_or_default();
             CatalogQuest {
                 id: id.clone(),
-                name: if explicit.is_empty() {
-                    format!("{map_name}{}", if is_boss { " (Boss)" } else { "" })
-                } else {
-                    explicit
-                },
+                name: display_name,
                 map_name,
+                map_label,
                 map_key,
                 category: category.to_owned(),
                 difficulty,
                 difficulty_level,
+                variant_order,
                 is_boss,
                 max_members: value
                     .get("party")
@@ -918,17 +1101,26 @@ fn load_catalog_from_content_dir(content_dir: &Path) -> Result<Catalog, String> 
                 barrier_element: barrier_elements.first().cloned(),
                 barrier_elements,
                 barrier_power: numeric(value, "barrierPower"),
-                sprite_path: choose_sprite(
-                    &sprite_files,
-                    &[format!("{id}.png"), format!("{family}_boss.png")],
-                    family,
-                ),
+                sprite_path: map_sprite_path.clone(),
+                map_sprite_path,
+                difficulty_sprite_path,
+                difficulty_background_path,
+                map_order,
             }
         })
         .collect::<Vec<_>>();
     quests.sort_by(|left, right| {
-        left.map_name
-            .cmp(&right.map_name)
+        let category_order = |category: &str| match category {
+            "普通冒险" => 0,
+            "黄金城" => 1,
+            "泰坦塔" => 2,
+            "快闪" => 3,
+            _ => u64::MAX,
+        };
+        category_order(&left.category)
+            .cmp(&category_order(&right.category))
+            .then(left.map_order.cmp(&right.map_order))
+            .then(left.variant_order.cmp(&right.variant_order))
             .then(left.id.cmp(&right.id))
     });
 
@@ -1975,6 +2167,125 @@ mod tests {
             .unwrap();
         assert_eq!(meteor_zone.barrier_elements, vec!["暗", "光", "土"]);
         assert_eq!(meteor_zone.barrier_power, 320.0);
+        let mut unique_normal_maps = Vec::new();
+        let mut unique_flash_maps = Vec::new();
+        for quest in &catalog.quests {
+            let target = match quest.category.as_str() {
+                "普通冒险" => &mut unique_normal_maps,
+                "快闪" => &mut unique_flash_maps,
+                _ => continue,
+            };
+            if !target
+                .iter()
+                .any(|map_key: &&CatalogQuest| map_key.map_key == quest.map_key)
+            {
+                target.push(quest);
+            }
+        }
+        assert_eq!(
+            unique_normal_maps
+                .iter()
+                .map(|quest| quest.id.as_str())
+                .collect::<Vec<_>>(),
+            vec![
+                "forest01",
+                "forest04",
+                "grotto01",
+                "grotto04",
+                "swamp01",
+                "swamp04",
+                "desert01",
+                "desert04",
+                "pyramid01",
+                "pyramid04",
+                "ruins01",
+                "ruins04",
+                "castle01",
+                "castle04",
+                "temple01",
+                "temple04",
+                "peak01",
+                "peak04",
+                "volcano01",
+                "volcano04",
+                "rift01",
+                "rift04",
+                "elysium01",
+                "elysium05",
+                "jurassic01",
+                "jurassic05",
+                "space01",
+                "space05",
+            ]
+        );
+        assert_eq!(
+            unique_flash_maps
+                .iter()
+                .map(|quest| (quest.map_name.as_str(), quest.id.as_str()))
+                .collect::<Vec<_>>(),
+            vec![
+                ("镶金之墓", "FQlcog01"),
+                ("魔法师塔楼", "FQenchant01"),
+                ("雪怪藏身处", "FQsigil01"),
+                ("训练场", "FQtraining01"),
+                ("月色洞穴", "FQmoon01"),
+                ("商队", "FQgear01"),
+                ("城堡书库", "FQresearch01"),
+                ("符文石采集场", "FQrune01"),
+                ("岩浆工坊", "FQrepair01"),
+                ("沉船", "FQchest01"),
+                ("火山核心", "FQascension01"),
+                ("藏宝库", "FQkey01"),
+                ("将军的秘宝", "FQfancygear01"),
+                ("勇士巢穴", "FQchampion01"),
+                ("闹鬼地下城", "FQslimer01"),
+                ("河之精萃巢穴", "FQcndragon01"),
+                ("努利西姆", "FQtranscendence01"),
+            ]
+        );
+        let first_tower = catalog
+            .quests
+            .iter()
+            .filter(|quest| quest.map_key == "titantower:0")
+            .collect::<Vec<_>>();
+        assert_eq!(
+            first_tower
+                .iter()
+                .map(|quest| quest.difficulty.as_str())
+                .collect::<Vec<_>>(),
+            vec!["阿尔法", "贝塔", "伽马", "德尔塔", "艾普斯龙", "奇异"]
+        );
+        assert!(first_tower
+            .iter()
+            .all(|quest| quest.map_name == "泰坦之塔1层"
+                && quest.map_label.as_deref() == Some("第1层")
+                && quest.map_sprite_path.as_deref()
+                    == Some("Sprite/icon_global_questarea_titantower_small.png")
+                && quest.difficulty_background_path.as_deref()
+                    == Some("Sprite/icon_global_skill_bg_titan.png")));
+        assert_eq!(
+            first_tower[0].difficulty_sprite_path.as_deref(),
+            Some("Sprite/icon_global_titantower_alpha_big.png")
+        );
+        let titan_tomb_beta = catalog
+            .quests
+            .iter()
+            .find(|quest| quest.id == "titantower_tomb_beta")
+            .unwrap();
+        assert_eq!(titan_tomb_beta.map_name, "泰坦之墓");
+        assert_eq!(titan_tomb_beta.difficulty, "测试墓穴");
+        assert_eq!(
+            titan_tomb_beta.map_sprite_path.as_deref(),
+            Some("Sprite/icon_global_questarea_titantomb_small.png")
+        );
+        assert_eq!(
+            catalog
+                .quests
+                .iter()
+                .find(|quest| quest.id == "goldcity01")
+                .and_then(|quest| quest.difficulty_sprite_path.as_deref()),
+            Some("Sprite/icon_difficulty_1.png")
+        );
         assert!(catalog.classes.iter().all(|class| class.slots.len() == 6));
         for class in &catalog.classes {
             let unlocks = class

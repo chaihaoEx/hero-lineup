@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { catalogChampions, championElementValue, makeDefaultSystem, makeHero, normalizeHeroEquipmentSlots, type Catalog, type CatalogQuest } from "../data/catalog";
+import { catalogChampions, championElementValue, makeDefaultSystem, makeHero, normalizeHeroEquipmentSlots, normalizeQuestPresentation, type Catalog, type CatalogQuest } from "../data/catalog";
 import { desktopBridge } from "../platform/bridge";
 import type { AdventureTask, ChampionLoadout, Hero, LineupSystem, PartyUnit, SimulationResult, TaskGroup } from "../types/domain";
 
@@ -24,13 +24,13 @@ export function useWorkspace(catalog: Catalog) {
       const completeChampionIds = catalog.champions.map((champion) => champion.id);
       const championRosterMigrated = loaded.some((system) => completeChampionIds.some((id) => !system.championIds.includes(id)));
       const emptyGroupMigrated = loaded.some((system) => system.taskGroups.some((group) => group.tasks.length === 0));
-      const initial = (loaded.length ? loaded : [makeDefaultSystem(catalog)]).map((system) => ({
+      const initial = (loaded.length ? loaded : [makeDefaultSystem(catalog)]).map((system) => normalizeQuestPresentation({
         ...system,
         localPublic: system.localPublic ?? true,
         heroes: system.heroes.map(normalizeHeroEquipmentSlots),
         championIds: completeChampionIds,
         taskGroups: system.taskGroups.filter((group) => group.tasks.length > 0),
-      }));
+      }, catalog));
       setSystems(initial);
       setActiveId(initial[0]!.id);
       setDirty(!loaded.length || migrated || championRosterMigrated || emptyGroupMigrated);
@@ -47,10 +47,10 @@ export function useWorkspace(catalog: Catalog) {
 
   const save = useCallback(async () => {
     if (!active) return;
-    const saved = await desktopBridge.saveSystem(active);
+    const saved = normalizeQuestPresentation(await desktopBridge.saveSystem(active), catalog);
     setSystems((current) => current.map((system) => system.id === saved.id ? saved : system));
     setDirty(false);
-  }, [active]);
+  }, [active, catalog]);
 
   const createSystem = useCallback((metadata?: { name?: string; description?: string; localPublic?: boolean }) => {
     const next = makeDefaultSystem(catalog);
@@ -66,7 +66,7 @@ export function useWorkspace(catalog: Catalog) {
 
   const importSystem = useCallback((source: LineupSystem) => {
     const now = new Date().toISOString();
-    const next: LineupSystem = {
+    const next: LineupSystem = normalizeQuestPresentation({
       ...clone(source),
       id: crypto.randomUUID(),
       localPublic: false,
@@ -75,12 +75,12 @@ export function useWorkspace(catalog: Catalog) {
       championIds: catalog.champions.map((champion) => champion.id),
       createdAt: now,
       updatedAt: now,
-    };
+    }, catalog);
     setSystems((current) => [...current, next]);
     setActiveId(next.id);
     setDirty(true);
     return next;
-  }, [catalog.champions]);
+  }, [catalog]);
 
   const duplicateSystem = useCallback(() => {
     if (!active) return;
@@ -216,14 +216,14 @@ export function useWorkspace(catalog: Catalog) {
     return system;
   }), [updateActive]);
 
-  const replaceActive = useCallback((replacement: LineupSystem) => updateActive((system) => ({
+  const replaceActive = useCallback((replacement: LineupSystem) => updateActive((system) => normalizeQuestPresentation({
     ...clone(replacement),
     heroes: replacement.heroes.map(normalizeHeroEquipmentSlots),
     championIds: catalog.champions.map((champion) => champion.id),
     id: system.id,
     createdAt: system.createdAt,
     updatedAt: new Date().toISOString(),
-  })), [catalog.champions, updateActive]);
+  }, catalog)), [catalog, updateActive]);
 
   const dropUnit = useCallback((groupId: string, taskId: string, unitId: string) => updateActive((system) => {
     const task = system.taskGroups.find((entry) => entry.id === groupId)?.tasks.find((entry) => entry.id === taskId);

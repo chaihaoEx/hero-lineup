@@ -3,15 +3,33 @@
   "schemaVersion": 1,
   "gameDataVersion": "web-snapshot-2026-07-22",
   "simulatorVersion": "hero-simulator-0.1.0",
-  "assetVersion": "sha256:5c46fdf3e1b5c6b3dac29cf26c1bc7353b9770baf0069ffced39f1dbc3c689d4",
+  "assetVersion": "sha256:277ddb3a0a163426ce0fdfe4487126e44926caeac7ed82a9b9f6e65b335ac983",
   "minimumAppVersion": "0.1.0",
-  "createdAt": "2026-07-22T05:03:38.594866Z",
+  "createdAt": "2026-07-23T05:23:54.754670Z",
   "files": [
     {
       "path": "Sprite/1000bp.png",
       "kind": "sprite",
       "size": 10348,
       "sha256": "c67f9da1224a4e93e1724aeacff1aba36e96557a10196d9b5a65aa83bd685d13"
+    },
+    {
+      "path": "Sprite/FQ_castle_boss.png",
+      "kind": "sprite",
+      "size": 8853,
+      "sha256": "400375a10c2901b49560fffe0d657432a2164d3d90f4a1fda6942c0eb7b7bddf"
+    },
+    {
+      "path": "Sprite/FQ_desert_boss.png",
+      "kind": "sprite",
+      "size": 9958,
+      "sha256": "accc7908fc097a3c9cbcdc358ed39637fb898f38f4b028babd10d57746bc513e"
+    },
+    {
+      "path": "Sprite/FQ_elysiumdark_boss.png",
+      "kind": "sprite",
+      "size": 13280,
+      "sha256": "cd3b3dc69c5c61e7ac70a1d03a86f144fe182bb0e06c8deab07bf91830d4d235"
     },
     {
       "path": "Sprite/FQ_forest_boss_1.png",
@@ -26,6 +44,12 @@
       "sha256": "bc5c48e5424bcea46c3a3027f3cb561ee57bcdf206d8f28321248cf01b780c34"
     },
     {
+      "path": "Sprite/FQ_goldcity_boss.png",
+      "kind": "sprite",
+      "size": 10122,
+      "sha256": "cefc9d809175000fc084cc356f5cd5454607d8526d4b6932f666c80cfb225268"
+    },
+    {
       "path": "Sprite/FQ_goldcity_boss_1.png",
       "kind": "sprite",
       "size": 7759,
@@ -38,6 +62,24 @@
       "sha256": "a940cc33720e24064db9f425c23ec8f709ce9bc5db267c982dd0a6b368a3da33"
     },
     {
+      "path": "Sprite/FQ_grotto_boss.png",
+      "kind": "sprite",
+      "size": 8803,
+      "sha256": "0706a634109c6270741d4080f2cf0cc928abdfa9b756bd4a7cb1c5ff42837b4c"
+    },
+    {
+      "path": "Sprite/FQ_peak_boss.png",
+      "kind": "sprite",
+      "size": 10503,
+      "sha256": "195e6010a9d90a1e7b25f326e484c0b2e79e595012d4892e0d0a8fa326f7ae41"
+    },
+    {
+      "path": "Sprite/FQ_pyramid_boss.png",
+      "kind": "sprite",
+      "size": 10086,
+      "sha256": "8d342d2114e29272dc5479c0dfa59d7676410427c717b2dd0d7b14d5f16fd1a5"
+    },
+    {
       "path": "Sprite/FQ_ruins_boss_1.png",
       "kind": "sprite",
       "size": 9472,
@@ -48,6 +90,30 @@
       "kind": "sprite",
       "size": 9624,
       "sha256": "e26015fa249c698ac59cf6872fb6ce0f8cfa3ee4fabc4a7b58b1e41c40faa67a"
+    },
+    {
+      "path": "Sprite/FQ_slimer_boss.png",
+      "kind": "sprite",
+      "size": 13626,
+      "sha256": "643e97ea9cf3cb1bd933ddae5b3552d81c2e88afe449376f3b181d9a525bba74"
+    },
+    {
+      "path": "Sprite/FQ_swamp_boss.png",
+      "kind": "sprite",
+      "size": 8785,
+      "sha256": "b8622048a7e5daf9c6854e8719efe1c1e716dacac086f828ee58d14addf64120"
+    },
+    {
+      "path": "Sprite/FQ_temple_boss.png",
+      "kind": "sprite",
+      "size": 9969,
+      "sha256": "37b2f13574460b961c6a4f2fdcb585da36c1281adc2dbd7400bf18c0f28cd60e"
+    },
+    {
+      "path": "Sprite/FQ_volcano_boss.png",
+      "kind": "sprite",
+      "size": 10328,
+      "sha256": "e6232e5b3f0461a1671ce61d1ae98e99b129a54798aa44efab6a679e6235c3da"
     },
     {
       "path": "Sprite/Light_05_epic.png",
@@ -3984,6 +4050,84 @@
       "kind": "sprite",
       "size": 10841,
       "sha256": "8c0aeda2669b998e2bca9505f25aee91cb3471c1204083f484ea8d9ce2eef83e"
+    },
+    {
+      "path": "Sprite/icon_difficulty_1.png",
+      "kind": "sprite",
+      "size": 856,
+      "sha256": "cd5c7e473c2f5375e88cc80dd47730b5aaa54cfc622d68a465fcad193bb3fef8"
+    },
+    {
+      "path": "Sprite/icon_difficulty_10.png",
+      "kind": "sprite",
+      "size": 1121,
+      "sha256": "fc7834f465902dea1b8962fe77658315bd1e2920c89da83491a25f3a9a685544"
+    },
+    {
+      "path": "Sprite/icon_difficulty_11.png",
+      "kind": "sprite",
+      "size": 932,
+      "sha256": "9ee00c063e0cc7f6e31c3ad5f8ea01b876e2ca5bf644537887396b7ecfc7836f"
+    },
+    {
+      "path": "Sprite/icon_difficulty_12.png",
+      "kind": "sprite",
+      "size": 1077,
+      "sha256": "48ddfe592c684279cb591e0ffbcc05e791cd111705a63dca756466a8a9af6d11"
+    },
+    {
+      "path": "Sprite/icon_difficulty_13.png",
+      "kind": "sprite",
+      "size": 1120,
+      "sha256": "9f52126e6bda08787ffa3b26569a37e903d3dd9f57d06655d09bde5266346453"
+    },
+    {
+      "path": "Sprite/icon_difficulty_2.png",
+      "kind": "sprite",
+      "size": 958,
+      "sha256": "0574ba8e064a56be0ac73815638c0279babc164d961a88d260aff9ccdc6e8c96"
+    },
+    {
+      "path": "Sprite/icon_difficulty_3.png",
+      "kind": "sprite",
+      "size": 1034,
+      "sha256": "b02b9990ace266f337067cbafdb09071438f62a2d75e3f5ce64c446bd890d4d7"
+    },
+    {
+      "path": "Sprite/icon_difficulty_4.png",
+      "kind": "sprite",
+      "size": 990,
+      "sha256": "8580b9fc15cef2c0b9d6cea0fb539c6a369a291827e813131cf0fd4ae433770a"
+    },
+    {
+      "path": "Sprite/icon_difficulty_5.png",
+      "kind": "sprite",
+      "size": 1056,
+      "sha256": "78c222e6f2e3a7da63cea31c513504aa1dad2c535acb09e0a93bc5361a661fe7"
+    },
+    {
+      "path": "Sprite/icon_difficulty_6.png",
+      "kind": "sprite",
+      "size": 1027,
+      "sha256": "550456c00654521a43f2cbff3f9118e74ee4e60e2972d897ad3df5634cd501ce"
+    },
+    {
+      "path": "Sprite/icon_difficulty_7.png",
+      "kind": "sprite",
+      "size": 995,
+      "sha256": "ee35f2f1e4228e67d52f9670ed3233cae95499b3165260035ebbf97a7c4e58e3"
+    },
+    {
+      "path": "Sprite/icon_difficulty_8.png",
+      "kind": "sprite",
+      "size": 1014,
+      "sha256": "562196115e09f61a2dae4942af58ea8294b7ef21d17453ae1fdfb32013be8978"
+    },
+    {
+      "path": "Sprite/icon_difficulty_9.png",
+      "kind": "sprite",
+      "size": 981,
+      "sha256": "869f9ba913165363ed0942ba03746285184b4a3b629172c8bb3283681c7fa42e"
     },
     {
       "path": "Sprite/icon_difficulty_easy.png",
@@ -13617,10 +13761,10 @@
     }
   ],
   "statistics": {
-    "bytes": 24185991,
+    "bytes": 24313465,
     "chestodds": 21,
     "classes": 42,
-    "files": 2268,
+    "files": 2292,
     "heroes": 15,
     "items": 1660,
     "jsonDocuments": 16,
@@ -13630,7 +13774,7 @@
     "skillTreeNodes": 878,
     "skillTreePoints": 61,
     "skills": 544,
-    "sprites": 2252,
+    "sprites": 2276,
     "texts_zh": 22778
   }
 }

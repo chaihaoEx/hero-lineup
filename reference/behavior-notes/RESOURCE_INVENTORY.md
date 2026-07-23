@@ -42,7 +42,7 @@
 ### Sprite
 
 - 候选数：2,315。
-- 成功下载：2,252 张 PNG。
+- 成功下载并纳入当前内容包：2,276 张 PNG。
 - Sprite 总字节：15,041,872。
 - 完整候选：`sprite-candidates.txt`。
 - 每个请求的结果、状态、Content-Type、字节数和最终 CDN 地址：`sprite-downloads.tsv`。

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyEquipmentFieldToAll, championElementValue, heroSlotNames, itemsForSlot, makeHero, normalizeHeroEquipmentSlots, previewCatalog, skillsForClass, skillsForSlot, type Catalog } from "../src/data/catalog";
+import { applyEquipmentFieldToAll, championElementValue, heroSlotNames, itemsForSlot, makeDefaultSystem, makeHero, normalizeHeroEquipmentSlots, normalizeQuestPresentation, previewCatalog, skillsForClass, skillsForSlot, type Catalog } from "../src/data/catalog";
 import { previewEquipmentStats } from "../src/data/equipmentPreview";
 
 describe("local catalog projections", () => {
@@ -95,5 +95,27 @@ describe("local catalog projections", () => {
   it("matches the online champion rank element thresholds", () => {
     expect([4, 5, 7, 8, 9, 11, 12, 14, 16, 20].map(championElementValue))
       .toEqual([0, 15, 30, 45, 60, 80, 90, 100, 110, 125]);
+  });
+
+  it("rehydrates Titan Tower variant labels from the exact quest id after storage", () => {
+    const system = makeDefaultSystem(previewCatalog);
+    const titan = previewCatalog.quests.find((quest) => quest.id === "titantower01_terror")!;
+    system.taskGroups = [{ id: "tower-group", name: "", tasks: [{
+      id: "tower-task",
+      questId: titan.id,
+      name: "stale",
+      map: "第1层",
+      difficulty: "难度1",
+      maxMembers: 4,
+      memberIds: [],
+      barrier: {},
+      config: { iterations: 10000, seed: 1, booster: false, elite: false, titanTower: true },
+    }] }];
+    expect(normalizeQuestPresentation(system, previewCatalog).taskGroups[0]!.tasks[0]).toMatchObject({
+      name: "泰坦之塔1层",
+      map: "泰坦之塔1层",
+      difficulty: "奇异",
+      maxMembers: 3,
+    });
   });
 });

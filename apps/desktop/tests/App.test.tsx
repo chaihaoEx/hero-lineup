@@ -321,8 +321,9 @@ test("opens the quest picker before adding a task to an existing group", async (
   await user.click(screen.getByRole("button", { name: "添加任务" }));
   expect(screen.getByRole("dialog", { name: "选择冒险任务" })).toBeInTheDocument();
   expect(document.querySelectorAll(".task-card")).toHaveLength(1);
-  await user.click(screen.getByRole("button", { name: "咆哮森林" }));
-  await user.click(screen.getByRole("button", { name: "简单" }));
+  const questDialog = screen.getByRole("dialog", { name: "选择冒险任务" });
+  await user.click(within(questDialog).getByRole("button", { name: /咆哮森林/ }));
+  await user.click(within(questDialog).getByRole("button", { name: /简单/ }));
   expect(screen.queryByRole("dialog", { name: "选择冒险任务" })).not.toBeInTheDocument();
   expect(document.querySelectorAll(".task-card")).toHaveLength(2);
 });
@@ -410,15 +411,35 @@ test("mirrors the online map, booster and elite selection flows", async () => {
   await user.click(screen.getByRole("button", { name: /切换地图/ }));
   expect(screen.getByRole("dialog", { name: "选择冒险任务" })).toBeInTheDocument();
   expect(["普通冒险", "黄金城", "泰坦塔", "快闪"].map((name) => screen.getByRole("button", { name }))).toHaveLength(4);
-  await user.click(screen.getByRole("button", { name: "咆哮森林" }));
-  expect(screen.getByRole("button", { name: "简单" })).toBeInTheDocument();
-  await user.click(screen.getByRole("button", { name: "简单" }));
+  const questDialog = screen.getByRole("dialog", { name: "选择冒险任务" });
+  await user.click(within(questDialog).getByRole("button", { name: /咆哮森林/ }));
+  expect(within(questDialog).getByRole("button", { name: /简单/ })).toBeInTheDocument();
+  await user.click(within(questDialog).getByRole("button", { name: /简单/ }));
   await user.click(screen.getByRole("button", { name: "强化道具：无" }));
   await user.click(screen.getByRole("button", { name: /超级威力强化品/ }));
   expect(screen.getByRole("button", { name: "强化道具：超级威力强化品" })).toBeInTheDocument();
   await user.click(screen.getByRole("button", { name: "精英怪：无" }));
   await user.click(screen.getByRole("option", { name: "巨大" }));
   expect(screen.getByRole("button", { name: "精英怪：巨大" })).toBeInTheDocument();
+});
+
+test("uses the online two-stage Titan Tower floor and variant flow", async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  await appReady();
+  await user.click(screen.getByRole("button", { name: /切换地图/ }));
+  await user.click(screen.getByRole("button", { name: "泰坦塔" }));
+  await user.click(screen.getByRole("button", { name: /第1层/ }));
+  const picker = screen.getByRole("dialog", { name: "选择冒险任务" });
+  for (const variant of ["阿尔法", "贝塔", "伽马", "德尔塔", "艾普斯龙", "奇异"]) {
+    expect(within(picker).getByRole("button", { name: new RegExp(variant) })).toBeInTheDocument();
+  }
+  await user.click(within(picker).getByRole("button", { name: /奇异/ }));
+  expect(screen.queryByRole("dialog", { name: "选择冒险任务" })).not.toBeInTheDocument();
+  const task = document.querySelector<HTMLElement>(".task-card")!;
+  expect(task).toHaveTextContent("泰坦之塔1层");
+  expect(within(task).getByLabelText("奇异")).toBeInTheDocument();
+  expect(within(task).getByAltText("第1层")).toHaveAttribute("src", expect.stringContaining("icon_global_questarea_titantower_small"));
 });
 
 test("enforces the online 48-adventure limit across add group, add task and clone controls", async () => {

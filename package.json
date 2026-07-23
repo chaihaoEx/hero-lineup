@@ -14,7 +14,7 @@
     "reference:hashes": "node scripts/refresh-reference-hashes.mjs reference",
     "templates:snapshot": "node scripts/snapshot-hero-templates.mjs",
     "data:validate": "cargo run -p hero-data -- validate content",
-    "data:build": "cargo run -p hero-data -- build content --output dist/hero-data.zysdata --game-data-version web-snapshot-2026-07-22 --simulator-version hero-simulator-0.1.0 --asset-version sha256:5c46fdf3e1b5c6b3dac29cf26c1bc7353b9770baf0069ffced39f1dbc3c689d4"
+    "data:build": "cargo run -p hero-data -- build content --output dist/hero-data.zysdata --game-data-version web-snapshot-2026-07-22 --simulator-version hero-simulator-0.1.0 --asset-version sha256:277ddb3a0a163426ce0fdfe4487126e44926caeac7ed82a9b9f6e65b335ac983"
   },
   "engines": {
     "node": ">=20"

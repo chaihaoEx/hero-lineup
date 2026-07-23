@@ -11,7 +11,7 @@
 | `dist/hero-data.zysdata` | 16 MB | `f0cb92dcaa528e56026c11d2d08267f69f4452676acf0492dd1953cbe39f4753`；`hero-data verify` 通过 |
 | `content/manifest.json` | 2,268 条目 | `d41c43046b82a1b863f7d16bbf61fc20cd3fc8778c6a831d13184bc810a497ac` |
 
-`.app/Contents/Resources/content/manifest.json` 的 SHA-256 与源码 manifest 完全相同。原始数据含 15 条勇士记录；目标页公开阵容为 13 名（11 条正式记录，加以“塔马什/莱茵霍尔德”公开的 `leather/king` 两条记录，排除联动临时记录）。其余统计为 42 职业、391 任务、1,660 装备、544 技能、22,778 中文文本、2,252 Sprite，共 24,185,991 字节（manifest 自身除外）。
+`.app/Contents/Resources/content/manifest.json` 的 SHA-256 与源码 manifest 完全相同，当前均为 `3538fdd4eaebbca76c1238fb0871027f9b26eca42ccd7d216f19c1a1ad52e8b0`。原始数据含 15 条勇士记录；目标页公开阵容为 13 名（11 条正式记录，加以“塔马什/莱茵霍尔德”公开的 `leather/king` 两条记录，排除联动临时记录）。其余统计为 42 职业、391 任务、1,660 装备、544 技能、22,778 中文文本、2,276 Sprite，共 24,313,465 字节（manifest 自身除外）。
 
 ## 自动质量门禁
 

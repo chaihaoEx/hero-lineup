@@ -48,10 +48,14 @@ export interface CatalogQuest {
   id: string;
   name: string;
   mapName: string;
+  /** Label shown in the first-stage map grid when it differs from the task title. */
+  mapLabel?: string;
   mapKey: string;
   category: "普通冒险" | "黄金城" | "泰坦塔" | "快闪";
   difficulty: string;
   difficultyLevel: number;
+  /** Stable online order for variants that share one difficulty level (Titan Tower). */
+  variantOrder?: number;
   isBoss: boolean;
   maxMembers: number;
   /** Every possible barrier element; some quests randomly choose among several. */
@@ -59,6 +63,12 @@ export interface CatalogQuest {
   barrierElement?: ElementType;
   barrierPower: number;
   spritePath?: string;
+  /** Map/area art used by the first-stage picker and task card. */
+  mapSpritePath?: string;
+  /** Difficulty badge used by the second-stage picker and task card. */
+  difficultySpritePath?: string;
+  /** Optional layered background used by Titan Tower difficulty badges. */
+  difficultyBackgroundPath?: string;
 }
 
 export interface CatalogItem {
@@ -161,6 +171,31 @@ export function normalizeHeroEquipmentSlots(hero: Hero): Hero {
   };
 }
 
+/**
+ * Canonical storage keeps the exact quest id and numeric difficulty. Rehydrate all
+ * display fields from the active catalog so Titan variants and localized Flash
+ * Quest names survive save/reload without duplicating presentation strings in SQLite.
+ */
+export function normalizeQuestPresentation(system: LineupSystem, catalog: Catalog): LineupSystem {
+  const byId = new Map(catalog.quests.map((quest) => [quest.id, quest]));
+  return {
+    ...system,
+    taskGroups: system.taskGroups.map((group) => ({
+      ...group,
+      tasks: group.tasks.map((task) => {
+        const quest = task.questId ? byId.get(task.questId) : undefined;
+        return quest ? {
+          ...task,
+          name: quest.name,
+          map: quest.mapName,
+          difficulty: quest.difficulty,
+          maxMembers: quest.maxMembers,
+        } : task;
+      }),
+    })),
+  };
+}
+
 /** Used only by browser preview and tests; packaged applications always load the full Rust catalog. */
 export const previewCatalog: Catalog = {
   schemaVersion: 1,
@@ -173,7 +208,26 @@ export const previewCatalog: Catalog = {
     { id: "argonleader3", name: "英雄光环", tier: 3, effects: ["为小队 +30% 额外攻击力、+30% 额外防御力"] },
     { id: "argonleader4", name: "圣骑光环", tier: 4, effects: ["为小队 +40% 额外攻击力、+40% 额外防御力"] },
   ], stats: defaultStats }],
-  quests: [{ id: "forest01", name: "咆哮森林", mapName: "咆哮森林", mapKey: "forest:normal", category: "普通冒险", difficulty: "简单", difficultyLevel: 0, isBoss: false, maxMembers: 4, barrierPower: 0 }],
+  quests: [
+    { id: "forest01", name: "咆哮森林", mapName: "咆哮森林", mapKey: "forest:normal", category: "普通冒险", difficulty: "简单", difficultyLevel: 0, isBoss: false, maxMembers: 4, barrierPower: 0, mapSpritePath: "Sprite/icon_global_questarea_forest_small.png", difficultySpritePath: "Sprite/icon_difficulty_easy.png" },
+    ...(["alpha", "beta", "gamma", "delta", "epsilon", "terror"] as const).map((variant, variantOrder): CatalogQuest => ({
+      id: `titantower01_${variant}`,
+      name: "泰坦之塔1层",
+      mapName: "泰坦之塔1层",
+      mapLabel: "第1层",
+      mapKey: "titantower:0",
+      category: "泰坦塔",
+      difficulty: ["阿尔法", "贝塔", "伽马", "德尔塔", "艾普斯龙", "奇异"][variantOrder]!,
+      difficultyLevel: 0,
+      variantOrder,
+      isBoss: false,
+      maxMembers: 3,
+      barrierPower: 0,
+      mapSpritePath: "Sprite/icon_global_questarea_titantower_small.png",
+      difficultySpritePath: `Sprite/icon_global_titantower_${variant}_big.png`,
+      difficultyBackgroundPath: "Sprite/icon_global_skill_bg_titan.png",
+    })),
+  ],
   items: [
     { id: "shortsword", name: "学徒短剑", itemType: "ws", typeName: "剑", tier: 1, level: 1, attack: 16, shinyMultiplier: 1, transcendMultiplier: 1.1, transcendAttack: 2, transcendDefense: 1, elementAffinity: "ember", spiritAffinity: "behemoth" },
     { id: "ember", name: "余烬元素", itemType: "z", typeName: "元素附魔", tier: 4, attack: 16, defense: 11, health: 3, elements: "fire+5" },

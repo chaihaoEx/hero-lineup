@@ -5,9 +5,9 @@
 | 编号 | 要求 | 验收证据 | 状态 |
 | --- | --- | --- | --- |
 | A01 | macOS 可安装或直接运行 | 最终 `.app` 实际启动为 PID，初始化 SQLite；ad-hoc `codesign --verify --deep --strict` 和 DMG `hdiutil verify` 均通过 | 通过 |
-| A02 | 断网可用 | 16 个 Playwright 流程逐页拦截远程请求并断言为空；最终原生进程运行时 `lsof -a -p PID -i` 无输出 | 通过 |
+| A02 | 断网可用 | 20 个 Playwright 流程逐页拦截远程请求并断言为空；最终原生进程运行时 `lsof -a -p PID -i` 无输出 | 通过 |
 | A03 | 无 CDN、Socket.IO、统计及远程字体 | CSP 仅允许自身/IPC，`npm run verify:offline` 扫描源码和产物，运行时套接字审计为空 | 通过 |
-| A04 | 数据、图片随包提供 | 2,268 个 manifest 文件、24,185,991 字节、2,252 张 Sprite 全哈希通过；`.app` 内 manifest 与源码 SHA-256 相同 | 通过 |
+| A04 | 数据、图片随包提供 | 2,292 个 manifest 文件、24,313,465 字节、2,276 张 Sprite 全哈希通过；`.app` 内 manifest 与源码 SHA-256 均为 `3538fdd4eaebbca76c1238fb0871027f9b26eca42ccd7d216f19c1a1ad52e8b0` | 通过 |
 | A05 | 体系完整 CRUD | 浏览器 E2E 覆盖新建、编辑、保存、重载、复制、删除、多体系；Tauri 命令只通过 Rust Storage 写 SQLite | 通过 |
 | A06 | 重启后体系保留 | `hero-storage` 使用临时 SQLite 保存后关闭、重开并精确恢复的测试；最终应用数据库 `PRAGMA integrity_check = ok` | 通过 |
 | A07 | 英雄、勇士配装 | 42 职业、线上同款 13 勇士、1,660 装备、544 技能；六槽、技能、种子、阶数、卡片、塔/墓、使魔/光环之歌、模板与 Rust 计算/限制校验 | 通过 |
@@ -19,7 +19,7 @@
 | A13 | 更新失败回滚 | 截断/篡改/预检失败/最低版本不符测试均证明旧目录与 `user.db` 不变；切换失败路径恢复备份目录 | 通过 |
 | A14 | UI 接近线上 | 在线与本地 1440 基准，以及 1280、1024、窄窗口、Retina 2× 截图；蓝紫色、白卡、阴影、分组、弹窗和四功能顺序均保留 | 通过 |
 | A15 | 正式运行代码可维护 | React/Rust 全部源码存在；构建资源不含 `reference/`，线上 bundle 只作为证据归档 | 通过 |
-| A16 | 质量门禁通过 | TypeScript strict、ESLint、fmt、clippy `-D warnings`、21 前端测试、45 Rust 测试、16 E2E、内容/离线校验全部通过 | 通过 |
+| A16 | 质量门禁通过 | TypeScript strict、ESLint、fmt、clippy `-D warnings`、47 前端测试、52 Rust 测试、20 E2E、内容/离线校验全部通过 | 通过 |
 | A17 | macOS/Windows 文档与配置 | 两平台 Tauri 配置、跨平台路径/交换格式、macOS 发布步骤与 Windows MSI/NSIS 文档齐全 | 通过 |
 | A18 | 完整实现而非脚手架 | A01–A17 均有交付物和可重复证据；剩余仅为公开证据不足的数值等价差异，并有明确影响范围 | 通过 |
 
