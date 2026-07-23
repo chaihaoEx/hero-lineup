@@ -84,7 +84,7 @@ test("adds a hero and edits equipment", async () => {
   await user.click(screen.getByRole("button", { name: "配装" }));
   await user.click(screen.getByRole("button", { name: "武器装备槽" }));
   await user.click(screen.getByRole("button", { name: /学徒短剑/ }));
-  expect(screen.getAllByRole("button", { name: "全部应用" })).toHaveLength(5);
+  expect(screen.getAllByRole("button", { name: "全部应用" })).toHaveLength(3);
   await user.click(screen.getByRole("button", { name: "完成选择" }));
   await screen.findByText("修改已实时同步到当前体系");
   expect(screen.getByText("999")).toBeInTheDocument();
@@ -106,6 +106,34 @@ test("updates equipment catalog attributes immediately when Transcend is toggled
   expect(shortSword).toHaveTextContent("◆ +1");
 });
 
+test("stages picker filters until an item or apply-all action commits them", async () => {
+  const user = userEvent.setup();
+  const calculate = vi.spyOn(desktopBridge, "calculateHero");
+  render(<App />);
+  await appReady();
+  await user.click(screen.getByRole("button", { name: "配装" }));
+  await waitFor(() => expect(calculate).toHaveBeenCalled());
+  calculate.mockClear();
+  await user.click(screen.getByRole("button", { name: "武器装备槽" }));
+  await user.click(screen.getByRole("button", { name: /学徒短剑/ }));
+  await user.click(screen.getByRole("button", { name: "武器超越" }));
+  expect(calculate).not.toHaveBeenCalled();
+  await user.click(screen.getByRole("button", { name: "完成选择" }));
+  await waitFor(() => expect(calculate).toHaveBeenCalled());
+  const firstCommit = calculate.mock.calls.at(-1)?.[0];
+  expect(firstCommit?.equipment[0]).toMatchObject({ itemId: "shortsword", transcendence: 0 });
+
+  calculate.mockClear();
+  await user.click(screen.getByRole("button", { name: "武器装备槽" }));
+  await user.click(screen.getByRole("button", { name: "武器超越" }));
+  await user.click(screen.getByRole("button", { name: /学徒短剑/ }));
+  await user.click(screen.getByRole("button", { name: /学徒短剑/ }));
+  await user.click(screen.getByRole("button", { name: "完成选择" }));
+  await waitFor(() => expect(calculate).toHaveBeenCalled());
+  const enhancedCommit = calculate.mock.calls.at(-1)?.[0];
+  expect(enhancedCommit?.equipment[0]).toMatchObject({ itemId: "shortsword", transcendence: 1 });
+});
+
 test("shows online affinity badges when the selected equipment matches both attachments", async () => {
   const user = userEvent.setup();
   render(<App />);
@@ -115,6 +143,7 @@ test("shows online affinity badges when the selected equipment matches both atta
   await user.click(screen.getByRole("button", { name: /学徒短剑/ }));
   await user.click(screen.getByRole("button", { name: /余烬元素/ }));
   await user.click(screen.getByRole("button", { name: /比蒙精魂/ }));
+  expect(screen.getAllByRole("button", { name: "全部应用" })).toHaveLength(5);
   await user.click(screen.getByRole("button", { name: "完成选择" }));
   expect(screen.getByTitle("元素附魔获得 50% 亲和加成")).toHaveTextContent("元素亲和");
   expect(screen.getByTitle("精萃附魔获得 50% 亲和加成")).toHaveTextContent("精萃亲和");
@@ -150,9 +179,9 @@ test("persists equipment and calculated attributes even when validation reports 
   await user.click(screen.getByRole("button", { name: "配装" }));
   await user.click(screen.getByRole("button", { name: "武器装备槽" }));
   await user.click(screen.getByRole("button", { name: /学徒短剑/ }));
+  await user.click(screen.getByRole("button", { name: "完成选择" }));
   await screen.findByText(/修改已同步；存在未计入属性的无效配置/);
   expect(screen.getByText("777")).toBeInTheDocument();
-  await user.click(screen.getByRole("button", { name: "完成选择" }));
   await user.click(screen.getByRole("button", { name: /^关闭$/ }));
   expect(screen.getByTitle("学徒短剑")).toBeInTheDocument();
   await user.click(screen.getByRole("button", { name: "配装" }));
@@ -185,10 +214,15 @@ test("shows champion soul, full rank range, team skill and full equipment contro
   expect(screen.getByRole("option", { name: "11+60" })).toBeInTheDocument();
   await user.click(screen.getByRole("option", { name: "11+60" }));
   await user.click(screen.getByRole("button", { name: "使魔装备槽" }));
+  expect(screen.getByRole("heading", { name: "装备选择 - 使魔" })).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "全部应用" })).not.toBeInTheDocument();
   expect(screen.getByText("星能铸造")).toBeInTheDocument();
   expect(screen.getByText("超越")).toBeInTheDocument();
   expect(screen.getByText("元素附魔")).toBeInTheDocument();
   expect(screen.getByText("精萃附魔")).toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "完成选择" }));
+  await user.click(screen.getByRole("button", { name: "光环装备槽" }));
+  expect(screen.getByRole("heading", { name: "装备选择 - 光环" })).toBeInTheDocument();
 });
 
 test("supports drag payload into an adventure task", async () => {
@@ -367,10 +401,14 @@ test("saves, applies and deletes a local equipment template", async () => {
   const weapon = screen.getByLabelText("武器名称");
   await user.clear(weapon);
   await user.type(weapon, "模板长剑");
+  await user.click(screen.getByRole("button", { name: "完成选择" }));
   await user.click(screen.getByRole("button", { name: "保存为模板" }));
   await waitFor(() => expect(localStorage.getItem("zys.hero-lineup.templates.v1")).toContain("骑士黄金模板"));
-  await user.clear(weapon);
+  await user.click(screen.getByRole("button", { name: "武器装备槽" }));
+  await user.clear(screen.getByLabelText("武器名称"));
+  await user.click(screen.getByRole("button", { name: "完成选择" }));
   await user.selectOptions(screen.getByLabelText("英雄配装模板"), screen.getByRole("option", { name: "骑士黄金模板" }));
+  await user.click(screen.getByRole("button", { name: "武器装备槽" }));
   expect(screen.getByLabelText("武器名称")).toHaveValue("模板长剑");
   await user.click(screen.getByRole("button", { name: "完成选择" }));
   await user.click(screen.getByRole("button", { name: "关闭" }));

@@ -39,11 +39,11 @@ test.describe("浏览器预览中的主要离线工作流", () => {
     await page.getByLabel("英雄名称").fill("E2E 骑士");
     await page.getByLabel("英雄名称").press("Enter");
     await page.getByRole("button", { name: "武器装备槽" }).click();
+    await page.getByRole("button", { name: "传奇", exact: true }).click();
+    await page.getByRole("button", { name: "武器超越" }).click();
     await page.getByRole("button", { name: /T1 学徒短剑/ }).click();
     await page.getByRole("button", { name: /T4 .*余烬元素/ }).click();
     await page.getByRole("button", { name: /T14 比蒙精魂/ }).click();
-    await page.getByRole("button", { name: "传奇", exact: true }).click();
-    await page.getByRole("button", { name: "武器超越" }).click();
     await page.getByRole("button", { name: "完成选择" }).click();
     await expect(page.getByLabel("自带技能 堡垒")).toBeVisible();
     await page.getByRole("button", { name: "技能 未选择" }).first().click();
@@ -62,7 +62,7 @@ test.describe("浏览器预览中的主要离线工作流", () => {
     await page.getByRole("button", { name: "勇士阶数" }).click();
     await page.getByRole("option", { name: "11+1", exact: true }).click();
     await expect(page.getByRole("button", { name: "使魔装备槽" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "光环之歌装备槽" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "光环装备槽" })).toBeVisible();
     await expect(page.getByText("修改已实时同步到当前体系")).toBeVisible();
     await page.getByRole("button", { name: "关闭", exact: true }).click();
     await expect(champion.getByTitle(/Lv\.45 · Rank 12/)).toBeVisible();

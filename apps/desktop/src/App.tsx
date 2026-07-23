@@ -10,7 +10,7 @@ import { encodeOnlineChampionConfig, importOnlineChampionConfig } from "./data/c
 import { decodeOnlineHeroTemplate, encodeOnlineHeroConfig, heroTemplateSnapshotDate, importOnlineHeroConfig, makeHeroFromOnlineTemplate, templatesForClass } from "./data/heroCreationTemplates";
 import { desktopBridge } from "./platform/bridge";
 import { useWorkspace } from "./state/useWorkspace";
-import type { AdventureTask, BuildTemplate, CalculatedSheet, Champion, ChampionLoadout, ElementType, Hero, LineupSystem, PartyUnit, Quality, SimulationProgress, TaskGroup } from "./types/domain";
+import type { AdventureTask, BuildTemplate, CalculatedSheet, Champion, ChampionEquipmentConfig, ChampionLoadout, ElementType, Hero, LineupSystem, PartyUnit, Quality, SimulationProgress, TaskGroup } from "./types/domain";
 import {
   decodeClipboard, encodeClipboard, exportChampionPng, exportHeroPng, exportLineupPng, exportSimulationPng, readClipboard, writeClipboard,
 } from "./utils/localTransfer";
@@ -215,6 +215,8 @@ function EquipmentModal({ hero, catalog, templates, onClose, onPrevious, onNext,
   const [heroNameDraft, setHeroNameDraft] = useState(draft.name);
   const [selectedSlot, setSelectedSlot] = useState(0);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerEquipment, setPickerEquipment] = useState<Hero["equipment"] | null>(null);
+  const [pickerConfig, setPickerConfig] = useState<EquipmentPreviewConfig>({ quality: "普通", shiny: false, transcendence: 0 });
   const [itemSearch, setItemSearch] = useState("");
   const [skillPickerIndex, setSkillPickerIndex] = useState<number | null>(null);
   const [sheet, setSheet] = useState<CalculatedSheet | null>(null);
@@ -234,7 +236,7 @@ function EquipmentModal({ hero, catalog, templates, onClose, onPrevious, onNext,
       ?? catalog.skills.find((skill) => skill.family === family && skill.tier === 1);
   };
   const currentInnateSkill = currentSkill(heroClass?.innateSkillFamily) ?? innateSkill;
-  const slot = draft.equipment[selectedSlot]!;
+  const slot = (pickerEquipment ?? draft.equipment)[selectedSlot]!;
   const slotItem = catalog.items.find((candidate) => candidate.id === slot.itemId);
   const selectedElementId = slotItem?.builtInElementId ?? slot.element;
   const selectedSpiritId = slotItem?.builtInSpiritId ?? slot.spirit;
@@ -262,12 +264,26 @@ function EquipmentModal({ hero, catalog, templates, onClose, onPrevious, onNext,
     return () => { active = false; };
   }, [draft]);
   const updateSlot = (patch: Partial<Hero["equipment"][number]>) => {
-    const equipment = [...draft.equipment];
+    const equipment = [...(pickerEquipment ?? draft.equipment)];
     equipment[selectedSlot] = { ...equipment[selectedSlot]!, ...patch };
-    setDraft({ ...draft, equipment });
+    setPickerEquipment(equipment);
   };
   const applySlotFieldToAll = (field: EquipmentApplyField) => {
-    setDraft({ ...draft, equipment: applyEquipmentFieldToAll(draft.equipment, catalog, slot, field) });
+    const source = { ...slot, ...pickerConfig };
+    setPickerEquipment(applyEquipmentFieldToAll(pickerEquipment ?? draft.equipment, catalog, source, field));
+  };
+  const openEquipmentPicker = (index: number) => {
+    const selected = draft.equipment[index]!;
+    setSelectedSlot(index);
+    setItemSearch("");
+    setPickerEquipment(structuredClone(draft.equipment));
+    setPickerConfig({ quality: selected.quality, shiny: selected.shiny, transcendence: selected.transcendence });
+    setPickerOpen(true);
+  };
+  const commitEquipmentPicker = () => {
+    if (pickerEquipment) setDraft({ ...draft, equipment: pickerEquipment });
+    setPickerEquipment(null);
+    setPickerOpen(false);
   };
   const copyLoadout = async () => {
     try { await writeClipboard(encodeOnlineHeroConfig(draft)); setTransferStatus("线上兼容英雄配置码已复制"); }
@@ -285,7 +301,7 @@ function EquipmentModal({ hero, catalog, templates, onClose, onPrevious, onNext,
       setTransferStatus("英雄配装已校验并载入，正在实时同步");
     } catch (error) { setTransferStatus(error instanceof Error ? error.message : "粘贴失败"); }
   };
-  return <EquipmentPreviewContext.Provider value={{ ...slot, catalog }}><div className="modal-backdrop equipment-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+  return <EquipmentPreviewContext.Provider value={{ ...slot, ...pickerConfig, catalog }}><div className="modal-backdrop equipment-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
     <button className="equipment-hero-nav previous" aria-label="上一个英雄" onClick={onPrevious}>‹</button>
     <section className="modal equipment-modal equipment-studio" role="dialog" aria-modal="true" aria-labelledby="equipment-title">
       <header className="modal-header">
@@ -364,12 +380,12 @@ function EquipmentModal({ hero, catalog, templates, onClose, onPrevious, onNext,
           const effectiveSpiritId = item?.builtInSpiritId ?? entry.spirit;
           const elementAffinity = Boolean(item?.builtInElementId) || hasAttachmentAffinity(item, effectiveElementId, "element");
           const spiritAffinity = Boolean(item?.builtInSpiritId) || hasAttachmentAffinity(item, effectiveSpiritId, "spirit");
-          return <button key={entry.slot} aria-label={`${entry.slot}装备槽`} className={`overview-slot quality-${entry.quality}`} onClick={() => { setSelectedSlot(index); setItemSearch(""); setPickerOpen(true); }}>
+          return <button key={entry.slot} aria-label={`${entry.slot}装备槽`} className={`overview-slot quality-${entry.quality}`} onClick={() => openEquipmentPicker(index)}>
             <span className="overview-slot-art">{item ? <AssetImage path={item.spritePath} alt={item.name} /> : <span>{entry.slot.slice(0, 1)}</span>}</span><strong>{item?.name ?? entry.slot}</strong><small>{item ? `T${item.tier} · ${qualityDisplay[entry.quality]}` : "点击选择装备"}</small>{effectiveElementId && (() => { const family = enchantFamily(catalog.items.find((candidate) => candidate.id === effectiveElementId)) ?? (elements.includes(effectiveElementId as Hero["element"]) ? effectiveElementId as Hero["element"] : undefined); return family ? <i className={`element-${family}`}>{family}</i> : null; })()}<span className="slot-affinity-badges">{elementAffinity && <b title="元素附魔获得 50% 亲和加成">元素亲和</b>}{spiritAffinity && <b title="精萃附魔获得 50% 亲和加成">精萃亲和</b>}</span>
           </button>;
         })}</div></section>
       </div>
-      {pickerOpen && <div className="nested-picker-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setPickerOpen(false); }}><section className="equipment-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="equipment-picker-title"><header><h3 id="equipment-picker-title">装备选择 - {selectedSlot + 1}</h3><button className="zys-button red" onClick={() => setPickerOpen(false)}>关闭</button></header><div className="picker-filter-bar"><div><strong>星能铸造{slot.itemId && <button className="apply-all" onClick={() => applySlotFieldToAll("shiny")}>全部应用</button>}</strong><button className={slot.shiny ? "active" : ""} onClick={() => updateSlot({ shiny: !slot.shiny })}>{slot.shiny ? "已开启" : "已关闭"}</button></div><div><strong>超越{slot.itemId && <button className="apply-all" onClick={() => applySlotFieldToAll("transcendence")}>全部应用</button>}</strong><button aria-label={`${slot.slot}超越`} className={slot.transcendence > 0 ? "active" : ""} onClick={() => updateSlot({ transcendence: slot.transcendence > 0 ? 0 : 1 })}>{slot.transcendence > 0 ? "已开启" : "已关闭"}</button></div><div className="rarity-row"><strong>稀有度{slot.itemId && <button className="apply-all" onClick={() => applySlotFieldToAll("quality")}>全部应用</button>}</strong>{quality.map((value) => <button key={value} className={slot.quality === value ? "active" : ""} onClick={() => updateSlot({ quality: value })}>{qualityDisplay[value]}</button>)}</div><input aria-label="搜索装备" placeholder="搜索全部图鉴" value={itemSearch} onChange={(event) => setItemSearch(event.target.value)} /></div><div className="equipment-picker-columns"><section><h4>装备 <small>{slotItems.length}</small></h4><div className="item-grid"><button className={`item-tile catalog-tile ${!slot.itemId ? "selected" : ""}`} onClick={() => updateSlot({ itemId: undefined, name: undefined })}><span className="item-art">×</span><strong>不装备</strong><small><span>清空槽位</span></small></button>{slotItems.map((item) => <ItemTile key={item.id} item={item} selected={slot.itemId === item.id} onClick={() => updateSlot({ itemId: item.id, name: item.name })} />)}</div></section><section><h4>元素附魔 <small>{elementItems.length}</small>{slot.itemId && <button className="apply-all" onClick={() => applySlotFieldToAll("element")}>全部应用</button>}</h4><div className="enchant-catalog-grid"><button disabled={Boolean(slotItem?.builtInElementId)} className={`item-tile catalog-tile compact ${!selectedElementId ? "selected" : ""}`} onClick={() => updateSlot({ element: undefined })}><span className="item-art">×</span><strong>无元素</strong><small><span>清空附魔</span></small></button>{elementItems.map((item) => <ItemTile compact key={item.id} item={item} selected={selectedElementId === item.id || enchantFamily(item) === selectedElementId} onClick={() => { if (!slotItem?.builtInElementId) updateSlot({ element: item.id }); }} />)}</div></section><section><h4>精萃附魔 <small>{spiritItems.length}</small>{slot.itemId && <button className="apply-all" onClick={() => applySlotFieldToAll("spirit")}>全部应用</button>}</h4><div className="spirit-catalog-grid"><button disabled={Boolean(slotItem?.builtInSpiritId)} className={`item-tile catalog-tile compact ${!selectedSpiritId ? "selected" : ""}`} onClick={() => updateSlot({ spirit: undefined })}><span className="item-art">×</span><strong>无精萃</strong><small><span>清空附魔</span></small></button>{spiritItems.map((item) => <ItemTile compact key={item.id} item={item} selected={selectedSpiritId === item.id || selectedSpiritId === item.name} onClick={() => { if (!slotItem?.builtInSpiritId) updateSlot({ spirit: item.id }); }} />)}</div></section></div><footer><details className="picker-advanced"><summary>自定义装备名称</summary><label>装备名称<input aria-label={`${slot.slot}名称`} value={slot.name ?? ""} onChange={(event) => updateSlot({ name: event.target.value || undefined })} /></label></details><button className="zys-button blue" onClick={() => setPickerOpen(false)}>完成选择</button></footer></section></div>}
+      {pickerOpen && <div className="nested-picker-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) commitEquipmentPicker(); }}><section className="equipment-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="equipment-picker-title"><header><h3 id="equipment-picker-title">装备选择 - {selectedSlot + 1}</h3><button className="zys-button red" onClick={commitEquipmentPicker}>关闭</button></header><div className="picker-filter-bar"><div><strong>星能铸造{slot.itemId && <button className="apply-all" onClick={() => applySlotFieldToAll("shiny")}>全部应用</button>}</strong><button className={pickerConfig.shiny ? "active" : ""} onClick={() => setPickerConfig({ ...pickerConfig, shiny: !pickerConfig.shiny })}>{pickerConfig.shiny ? "已开启" : "已关闭"}</button></div><div><strong>超越{slot.itemId && <button className="apply-all" onClick={() => applySlotFieldToAll("transcendence")}>全部应用</button>}</strong><button aria-label={`${slot.slot}超越`} className={pickerConfig.transcendence > 0 ? "active" : ""} onClick={() => setPickerConfig({ ...pickerConfig, transcendence: pickerConfig.transcendence > 0 ? 0 : 1 })}>{pickerConfig.transcendence > 0 ? "已开启" : "已关闭"}</button></div><div className="rarity-row"><strong>稀有度{slot.itemId && <button className="apply-all" onClick={() => applySlotFieldToAll("quality")}>全部应用</button>}</strong>{quality.map((value) => <button key={value} className={pickerConfig.quality === value ? "active" : ""} onClick={() => setPickerConfig({ ...pickerConfig, quality: value })}>{qualityDisplay[value]}</button>)}</div><input aria-label="搜索装备" placeholder="搜索全部图鉴" value={itemSearch} onChange={(event) => setItemSearch(event.target.value)} /></div><div className="equipment-picker-columns"><section><h4>装备 <small>{slotItems.length}</small></h4><div className="item-grid"><button className={`item-tile catalog-tile ${!slot.itemId ? "selected" : ""}`} onClick={() => updateSlot({ itemId: undefined, name: undefined })}><span className="item-art">×</span><strong>不装备</strong><small><span>清空槽位</span></small></button>{slotItems.map((item) => <ItemTile key={item.id} item={item} selected={slot.itemId === item.id} onClick={() => updateSlot(slot.itemId === item.id ? { itemId: undefined, name: undefined } : { itemId: item.id, name: item.name, ...pickerConfig, ...(item.builtInElementId ? { element: undefined } : {}), ...(item.builtInSpiritId ? { spirit: undefined } : {}) })} />)}</div></section><section><h4>元素附魔 <small>{elementItems.length}</small>{selectedElementId && <button className="apply-all" onClick={() => applySlotFieldToAll("element")}>全部应用</button>}</h4><div className="enchant-catalog-grid"><button disabled={Boolean(slotItem?.builtInElementId)} className={`item-tile catalog-tile compact ${!selectedElementId ? "selected" : ""}`} onClick={() => updateSlot({ element: undefined })}><span className="item-art">×</span><strong>无元素</strong><small><span>清空附魔</span></small></button>{elementItems.map((item) => <ItemTile compact key={item.id} item={item} selected={selectedElementId === item.id || enchantFamily(item) === selectedElementId} onClick={() => { if (!slotItem?.builtInElementId) updateSlot({ element: item.id }); }} />)}</div></section><section><h4>精萃附魔 <small>{spiritItems.length}</small>{selectedSpiritId && <button className="apply-all" onClick={() => applySlotFieldToAll("spirit")}>全部应用</button>}</h4><div className="spirit-catalog-grid"><button disabled={Boolean(slotItem?.builtInSpiritId)} className={`item-tile catalog-tile compact ${!selectedSpiritId ? "selected" : ""}`} onClick={() => updateSlot({ spirit: undefined })}><span className="item-art">×</span><strong>无精萃</strong><small><span>清空附魔</span></small></button>{spiritItems.map((item) => <ItemTile compact key={item.id} item={item} selected={selectedSpiritId === item.id || selectedSpiritId === item.name} onClick={() => { if (!slotItem?.builtInSpiritId) updateSlot({ spirit: item.id }); }} />)}</div></section></div><footer><details className="picker-advanced"><summary>自定义装备名称</summary><label>装备名称<input aria-label={`${slot.slot}名称`} value={slot.name ?? ""} onChange={(event) => updateSlot({ name: event.target.value || undefined })} /></label></details><button className="zys-button blue" onClick={commitEquipmentPicker}>完成选择</button></footer></section></div>}
       <div className="validation-note"><ShieldCheck size={17} /> 本地规则引擎会在保存时校验职业、槽位和装备限制。</div>
       <div className="template-row"><label>本地英雄模板<select aria-label="英雄配装模板" defaultValue="" onChange={(event) => {
         const template = heroTemplates.find((entry) => entry.id === event.target.value);
@@ -401,6 +417,8 @@ function ChampionEquipmentModal({ champion, catalog, loadout, templates, onClose
   const [transferStatus, setTransferStatus] = useState("");
   const [importText, setImportText] = useState("");
   const [picker, setPicker] = useState<"familiar" | "aurasong" | null>(null);
+  const [pickerEquipment, setPickerEquipment] = useState<{ familiar: ChampionEquipmentConfig; aurasong: ChampionEquipmentConfig } | null>(null);
+  const [pickerConfig, setPickerConfig] = useState<EquipmentPreviewConfig>({ quality: "普通", shiny: false, transcendence: 0 });
   const [sheet, setSheet] = useState<CalculatedSheet | null>(null);
   const [calculating, setCalculating] = useState(false);
   const initialDraftRef = useRef(JSON.stringify(draft));
@@ -414,14 +432,46 @@ function ChampionEquipmentModal({ champion, catalog, loadout, templates, onClose
   const auraItems = catalog.items.filter((item) => item.itemType === "xx").sort((left, right) => right.tier - left.tier || left.name.localeCompare(right.name));
   const championElementItems = catalog.items.filter((item) => item.itemType === "z" && Boolean(item.elements)).sort((left, right) => right.tier - left.tier || left.name.localeCompare(right.name));
   const championSpiritItems = catalog.items.filter((item) => item.itemType === "z" && Boolean(item.skill)).sort((left, right) => right.tier - left.tier || left.name.localeCompare(right.name));
-  const selectedChampionEquipment = picker === "familiar"
-    ? (draft.familiarEquipment ?? { itemId: draft.familiar || undefined, quality: "普通" as Quality, shiny: false, transcendence: 0 })
-    : (draft.auraSongEquipment ?? { itemId: draft.aurasong || undefined, quality: "普通" as Quality, shiny: false, transcendence: 0 });
+  const storedChampionEquipment = {
+    familiar: draft.familiarEquipment ?? { itemId: draft.familiar || undefined, quality: "普通" as Quality, shiny: false, transcendence: 0 },
+    aurasong: draft.auraSongEquipment ?? { itemId: draft.aurasong || undefined, quality: "普通" as Quality, shiny: false, transcendence: 0 },
+  };
+  const selectedChampionEquipment = (pickerEquipment ?? storedChampionEquipment)[picker ?? "familiar"];
+  const selectedChampionItem = catalog.items.find((item) => item.id === selectedChampionEquipment.itemId);
+  const selectedChampionElementId = selectedChampionItem?.builtInElementId ?? selectedChampionEquipment.element;
+  const selectedChampionSpiritId = selectedChampionItem?.builtInSpiritId ?? selectedChampionEquipment.spirit;
   const updateChampionEquipment = (patch: Partial<typeof selectedChampionEquipment>) => {
     if (!picker) return;
-    const next = { ...selectedChampionEquipment, ...patch };
-    if (picker === "familiar") setDraft({ ...draft, familiar: next.itemId ?? "", familiarEquipment: next });
-    else setDraft({ ...draft, aurasong: next.itemId ?? "", auraSongEquipment: next });
+    setPickerEquipment({ ...(pickerEquipment ?? storedChampionEquipment), [picker]: { ...selectedChampionEquipment, ...patch } });
+  };
+  const openChampionPicker = (kind: "familiar" | "aurasong") => {
+    const equipment = structuredClone(storedChampionEquipment);
+    setPickerEquipment(equipment);
+    setPickerConfig({ quality: equipment[kind].quality, shiny: equipment[kind].shiny, transcendence: equipment[kind].transcendence });
+    setPicker(kind);
+  };
+  const commitChampionPicker = () => {
+    if (pickerEquipment) setDraft({
+      ...draft,
+      familiar: pickerEquipment.familiar.itemId ?? "",
+      aurasong: pickerEquipment.aurasong.itemId ?? "",
+      familiarEquipment: pickerEquipment.familiar,
+      auraSongEquipment: pickerEquipment.aurasong,
+    });
+    setPickerEquipment(null);
+    setPicker(null);
+  };
+  const applyChampionFieldToAll = (field: EquipmentApplyField) => {
+    const source = { ...selectedChampionEquipment, ...pickerConfig };
+    const equipment = pickerEquipment ?? storedChampionEquipment;
+    const apply = (entry: ChampionEquipmentConfig) => {
+      if (!entry.itemId) return entry;
+      const item = catalog.items.find((candidate) => candidate.id === entry.itemId);
+      if (field === "element" && item?.builtInElementId) return entry;
+      if (field === "spirit" && item?.builtInSpiritId) return entry;
+      return { ...entry, [field]: source[field] };
+    };
+    setPickerEquipment({ familiar: apply(equipment.familiar), aurasong: apply(equipment.aurasong) });
   };
   useEffect(() => {
     let active = true;
@@ -454,7 +504,7 @@ function ChampionEquipmentModal({ champion, catalog, loadout, templates, onClose
       setTransferStatus("勇士配装已校验并载入，正在实时同步");
     } catch (error) { setTransferStatus(error instanceof Error ? error.message : "粘贴失败"); }
   };
-  return <EquipmentPreviewContext.Provider value={{ ...selectedChampionEquipment, catalog }}><div className="modal-backdrop equipment-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+  return <EquipmentPreviewContext.Provider value={{ ...selectedChampionEquipment, ...pickerConfig, catalog }}><div className="modal-backdrop equipment-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
     <button className="equipment-hero-nav previous" aria-label="上一个勇士" onClick={onPrevious}>‹</button>
     <section className="modal champion-modal equipment-studio" role="dialog" aria-modal="true" aria-labelledby="champion-equipment-title">
       <header className="modal-header"><div><span className="eyebrow">勇士配装模拟</span><h2 id="champion-equipment-title">{champion.name} <small>{champion.element}属性勇士</small></h2></div><div className="modal-header-actions"><button className="zys-button blue" onClick={() => void pasteLoadout()}>导入</button><input className="modal-import-code" aria-label="粘贴配置码" placeholder="粘贴配置码" value={importText} onChange={(event) => setImportText(event.target.value)} /><button className="zys-button violet" onClick={() => void copyLoadout()}>导出</button><button className="zys-button blue" onClick={() => void exportChampionPng(champion, draft, sheet ?? undefined).then(() => setTransferStatus("勇士配装图片已导出")).catch((error: unknown) => setTransferStatus(error instanceof Error ? error.message : "图片导出失败"))}>导出图片</button><button className="zys-button red" onClick={onClose}>关闭</button></div></header>
@@ -473,10 +523,10 @@ function ChampionEquipmentModal({ champion, catalog, loadout, templates, onClose
           ["生命", "health", "♥"], ["攻击", "attack", "⚔"], ["防御", "defense", "◆"], ["暴击", "critical", "✹"], ["回避", "evasion", "➟"], ["威胁", "aggro", "⚠"],
         ] as const).map(([label, key, icon]) => <div className="live-stat" key={key}><span>{icon} {label}</span><strong>{Number(sheet?.stats[key] ?? (key === "critical" ? champion.stats.crit : champion.stats[key as keyof typeof champion.stats] ?? 0)).toLocaleString()}</strong></div>)}{sheet?.issues.length ? <div className="sheet-issues">{sheet.issues.slice(0, 3).map((issue) => <small key={issue.code}>{issue.message}</small>)}</div> : <div className="sheet-valid"><ShieldCheck size={15} />当前配装通过本地规则校验</div>}</aside>
         <section className="equipment-slot-stage"><div className="workbench-title"><div><strong>勇士专属装备</strong><small>点击槽位从完整本地图鉴中选择</small></div></div><div className="champion-slot-grid">{([
-          ["familiar", "使魔", draft.familiar, familiarItems], ["aurasong", "光环之歌", draft.aurasong, auraItems],
-        ] as const).map(([kind, label, value, items]) => { const config = kind === "familiar" ? draft.familiarEquipment : draft.auraSongEquipment; const itemId = config?.itemId ?? value; const item = items.find((entry) => entry.id === itemId || entry.name === itemId); return <button key={kind} aria-label={`${label}装备槽`} className={`overview-slot champion-slot quality-${config?.quality ?? "普通"}`} onClick={() => setPicker(kind)}><span className="overview-slot-art">{item ? <AssetImage path={item.spritePath} alt={item.name} /> : <span>{label.slice(0, 1)}</span>}</span><strong>{item?.name ?? (itemId || label)}</strong><small>{item ? `T${item.tier} · ${qualityDisplay[config?.quality ?? "普通"]}` : "点击选择装备"}</small></button>; })}</div></section>
+          ["familiar", "使魔", draft.familiar, familiarItems], ["aurasong", "光环", draft.aurasong, auraItems],
+        ] as const).map(([kind, label, value, items]) => { const config = kind === "familiar" ? draft.familiarEquipment : draft.auraSongEquipment; const itemId = config?.itemId ?? value; const item = items.find((entry) => entry.id === itemId || entry.name === itemId); return <button key={kind} aria-label={`${label}装备槽`} className={`overview-slot champion-slot quality-${config?.quality ?? "普通"}`} onClick={() => openChampionPicker(kind)}><span className="overview-slot-art">{item ? <AssetImage path={item.spritePath} alt={item.name} /> : <span>{label.slice(0, 1)}</span>}</span><strong>{item?.name ?? (itemId || label)}</strong><small>{item ? `T${item.tier} · ${qualityDisplay[config?.quality ?? "普通"]}` : "点击选择装备"}</small></button>; })}</div></section>
       </div>
-      {picker && <div className="nested-picker-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setPicker(null); }}><section className="equipment-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="champion-picker-title"><header><h3 id="champion-picker-title">装备选择 - {picker === "familiar" ? 1 : 2}</h3><button className="zys-button red" onClick={() => setPicker(null)}>关闭</button></header><div className="picker-filter-bar champion-full-filter"><div><strong>星能铸造</strong><button className={selectedChampionEquipment.shiny ? "active" : ""} onClick={() => updateChampionEquipment({ shiny: !selectedChampionEquipment.shiny })}>{selectedChampionEquipment.shiny ? "已开启" : "已关闭"}</button></div><div><strong>超越</strong><button className={selectedChampionEquipment.transcendence > 0 ? "active" : ""} onClick={() => updateChampionEquipment({ transcendence: selectedChampionEquipment.transcendence > 0 ? 0 : 1 })}>{selectedChampionEquipment.transcendence > 0 ? "已开启" : "已关闭"}</button></div><div className="rarity-row"><strong>稀有度</strong>{quality.map((value) => <button key={value} className={selectedChampionEquipment.quality === value ? "active" : ""} onClick={() => updateChampionEquipment({ quality: value })}>{qualityDisplay[value]}</button>)}</div></div><div className="equipment-picker-columns"><section><h4>装备</h4><div className="item-grid"><button className={`item-tile catalog-tile ${!selectedChampionEquipment.itemId ? "selected" : ""}`} onClick={() => updateChampionEquipment({ itemId: undefined, name: undefined })}><span className="item-art">×</span><strong>不装备</strong><small><span>清空槽位</span></small></button>{(picker === "familiar" ? familiarItems : auraItems).map((item) => <ItemTile key={item.id} item={item} selected={selectedChampionEquipment.itemId === item.id} onClick={() => updateChampionEquipment({ itemId: item.id, name: item.name })} />)}</div></section><section><h4>元素附魔</h4><div className="enchant-catalog-grid"><button className={`item-tile catalog-tile compact ${!selectedChampionEquipment.element ? "selected" : ""}`} onClick={() => updateChampionEquipment({ element: undefined })}><span className="item-art">×</span><strong>无元素</strong><small><span>清空附魔</span></small></button>{championElementItems.map((item) => <ItemTile compact key={item.id} item={item} selected={selectedChampionEquipment.element === item.id} onClick={() => updateChampionEquipment({ element: item.id })} />)}</div></section><section><h4>精萃附魔</h4><div className="spirit-catalog-grid"><button className={`item-tile catalog-tile compact ${!selectedChampionEquipment.spirit ? "selected" : ""}`} onClick={() => updateChampionEquipment({ spirit: undefined })}><span className="item-art">×</span><strong>无精萃</strong><small><span>清空附魔</span></small></button>{championSpiritItems.map((item) => <ItemTile compact key={item.id} item={item} selected={selectedChampionEquipment.spirit === item.id} onClick={() => updateChampionEquipment({ spirit: item.id })} />)}</div></section></div><footer><span /><button className="zys-button blue" onClick={() => setPicker(null)}>完成选择</button></footer></section></div>}
+      {picker && <div className="nested-picker-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) commitChampionPicker(); }}><section className="equipment-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="champion-picker-title"><header><h3 id="champion-picker-title">装备选择 - {picker === "familiar" ? "使魔" : "光环"}</h3><button className="zys-button red" onClick={commitChampionPicker}>关闭</button></header><div className="picker-filter-bar champion-full-filter"><div><strong>星能铸造{selectedChampionEquipment.itemId && <button className="apply-all" onClick={() => applyChampionFieldToAll("shiny")}>全部应用</button>}</strong><button className={pickerConfig.shiny ? "active" : ""} onClick={() => setPickerConfig({ ...pickerConfig, shiny: !pickerConfig.shiny })}>{pickerConfig.shiny ? "已开启" : "已关闭"}</button></div><div><strong>超越{selectedChampionEquipment.itemId && <button className="apply-all" onClick={() => applyChampionFieldToAll("transcendence")}>全部应用</button>}</strong><button className={pickerConfig.transcendence > 0 ? "active" : ""} onClick={() => setPickerConfig({ ...pickerConfig, transcendence: pickerConfig.transcendence > 0 ? 0 : 1 })}>{pickerConfig.transcendence > 0 ? "已开启" : "已关闭"}</button></div><div className="rarity-row"><strong>稀有度{selectedChampionEquipment.itemId && <button className="apply-all" onClick={() => applyChampionFieldToAll("quality")}>全部应用</button>}</strong>{quality.map((value) => <button key={value} className={pickerConfig.quality === value ? "active" : ""} onClick={() => setPickerConfig({ ...pickerConfig, quality: value })}>{qualityDisplay[value]}</button>)}</div></div><div className="equipment-picker-columns"><section><h4>装备</h4><div className="item-grid"><button className={`item-tile catalog-tile ${!selectedChampionEquipment.itemId ? "selected" : ""}`} onClick={() => updateChampionEquipment({ itemId: undefined, name: undefined })}><span className="item-art">×</span><strong>不装备</strong><small><span>清空槽位</span></small></button>{(picker === "familiar" ? familiarItems : auraItems).map((item) => <ItemTile key={item.id} item={item} selected={selectedChampionEquipment.itemId === item.id} onClick={() => updateChampionEquipment(selectedChampionEquipment.itemId === item.id ? { itemId: undefined, name: undefined } : { itemId: item.id, name: item.name, ...pickerConfig, ...(item.builtInElementId ? { element: undefined } : {}), ...(item.builtInSpiritId ? { spirit: undefined } : {}) })} />)}</div></section><section><h4>元素附魔{selectedChampionEquipment.itemId && <button className="apply-all" onClick={() => applyChampionFieldToAll("element")}>全部应用</button>}</h4><div className="enchant-catalog-grid"><button disabled={Boolean(selectedChampionItem?.builtInElementId)} className={`item-tile catalog-tile compact ${!selectedChampionElementId ? "selected" : ""}`} onClick={() => updateChampionEquipment({ element: undefined })}><span className="item-art">×</span><strong>无元素</strong><small><span>清空附魔</span></small></button>{championElementItems.map((item) => <ItemTile compact key={item.id} item={item} selected={selectedChampionElementId === item.id || enchantFamily(item) === selectedChampionElementId} onClick={() => { if (!selectedChampionItem?.builtInElementId) updateChampionEquipment({ element: item.id }); }} />)}</div></section><section><h4>精萃附魔{selectedChampionSpiritId && <button className="apply-all" onClick={() => applyChampionFieldToAll("spirit")}>全部应用</button>}</h4><div className="spirit-catalog-grid"><button disabled={Boolean(selectedChampionItem?.builtInSpiritId)} className={`item-tile catalog-tile compact ${!selectedChampionSpiritId ? "selected" : ""}`} onClick={() => updateChampionEquipment({ spirit: undefined })}><span className="item-art">×</span><strong>无精萃</strong><small><span>清空附魔</span></small></button>{championSpiritItems.map((item) => <ItemTile compact key={item.id} item={item} selected={selectedChampionSpiritId === item.id || selectedChampionSpiritId === item.name} onClick={() => { if (!selectedChampionItem?.builtInSpiritId) updateChampionEquipment({ spirit: item.id }); }} />)}</div></section></div><footer><span /><button className="zys-button blue" onClick={commitChampionPicker}>完成选择</button></footer></section></div>}
       <div className="validation-note"><ShieldCheck size={17} /> 勇士等级、Rank、卡片与专属装备随当前体系保存。</div>
       <div className="template-row"><label>本地勇士模板<select aria-label="勇士配装模板" defaultValue="" onChange={(event) => {
         const template = championTemplates.find((entry) => entry.id === event.target.value);
