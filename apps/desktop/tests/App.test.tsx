@@ -92,6 +92,33 @@ test("adds a hero and edits equipment", async () => {
   expect(screen.getByTitle("学徒短剑")).toBeInTheDocument();
 });
 
+test("matches online equipment statistics instead of opening the template manager", async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  await appReady();
+
+  await user.click(within(document.getElementById("champions-section")!).getByRole("button", { name: "装备统计" }));
+  const emptyDialog = screen.getByRole("dialog", { name: "勇士装备需求统计" });
+  expect(within(emptyDialog).getByText("暂无装备需求")).toBeInTheDocument();
+  await user.click(within(emptyDialog).getByRole("button", { name: "关闭" }));
+
+  await user.click(screen.getByRole("button", { name: "配装" }));
+  await user.click(screen.getByRole("button", { name: "武器装备槽" }));
+  await user.click(screen.getByRole("button", { name: /学徒短剑/ }));
+  await user.click(screen.getAllByRole("button", { name: "关闭" }).at(-1)!);
+  await user.click(screen.getByRole("button", { name: /^关闭$/ }));
+
+  await user.click(within(document.getElementById("heroes-section")!).getByRole("button", { name: "装备统计" }));
+  const needsDialog = screen.getByRole("dialog", { name: "英雄装备需求统计" });
+  expect(within(needsDialog).getByTitle("学徒短剑")).toBeInTheDocument();
+  expect(within(needsDialog).getByText("需要：")).toBeInTheDocument();
+  expect(within(needsDialog).getByText("1", { selector: ".equipment-need-counts b" })).toBeInTheDocument();
+  const owned = within(needsDialog).getByRole("spinbutton", { name: "已有 学徒短剑" });
+  await user.clear(owned);
+  await user.type(owned, "1");
+  expect(localStorage.getItem("zys.hero-lineup.owned-equipment.v1")).toContain('"shortsword":1');
+});
+
 test("updates equipment catalog attributes immediately when Transcend is toggled", async () => {
   const user = userEvent.setup();
   render(<App />);
@@ -222,7 +249,11 @@ test("shows champion soul, full rank range, team skill and full equipment contro
   await appReady();
   await user.click(screen.getByRole("button", { name: "勇士配装 阿尔贡" }));
   expect(screen.getByText(/固定团队技能/)).toBeInTheDocument();
-  expect(screen.getByText("勇士之魂")).toBeInTheDocument();
+  expect(screen.getByText(/勇士之魂/)).toBeInTheDocument();
+  const currentLevel = screen.getByRole("button", { name: "勇士等级" }).textContent;
+  await user.click(screen.getByRole("button", { name: "勇士等级" }));
+  await user.click(screen.getByRole("option", { name: new RegExp(`^${currentLevel}$`) }));
+  expect(screen.queryByRole("listbox", { name: "勇士等级选项" })).not.toBeInTheDocument();
   await user.click(screen.getByRole("button", { name: "勇士阶数" }));
   expect(screen.getByRole("option", { name: "11+60" })).toBeInTheDocument();
   await user.click(screen.getByRole("option", { name: "11+60" }));

@@ -333,3 +333,466 @@ body { background: #f3f5fa; }
   .simulation-detail-modal .simulation-members { grid-template-columns:1fr; padding-left:20px; padding-right:20px; }
   .simulation-detail-modal .simulation-quest-banner,.simulation-detail-modal .simulation-summary,.simulation-detail-modal .simulation-member-summary,.simulation-config-hint { margin-left:20px; margin-right:20px; }
 }
+
+/* The online editor is a compact two-column workbench: identity/parameters and
+   skills above, live attributes and equipment below. Keep offline-only tools out
+   of the primary flow so the same controls stay in the same visual positions. */
+.equipment-studio {
+  position:relative;
+  width:min(1152px,calc(100vw - 128px));
+  max-height:calc(100vh - 36px);
+  display:grid;
+  grid-template-columns:40% 60%;
+  grid-template-rows:auto auto auto;
+  overflow:auto;
+  border-radius:14px;
+  background:#fff;
+}
+.equipment-studio > .modal-header {
+  grid-column:1/-1;
+  min-height:80px;
+  position:sticky;
+  top:0;
+  padding:18px 32px;
+  align-items:center;
+  background:#fff;
+}
+.equipment-studio .modal-header h2 {
+  margin:0;
+  color:#3f36a5;
+  font-size:22px;
+}
+.equipment-studio .modal-header-actions { gap:8px; }
+.equipment-studio .modal-import-code { width:205px; min-height:40px; }
+.equipment-studio .zys-button { min-height:40px; font-size:14px; }
+.equipment-studio > .hero-parameter-bar {
+  grid-column:1;
+  grid-row:2;
+  min-height:210px;
+  display:grid;
+  grid-template-columns:160px minmax(0,1fr);
+  grid-template-rows:repeat(4,38px);
+  gap:6px 12px;
+  align-content:center;
+  padding:14px 12px 14px 34px;
+  border:0;
+  background:#fff;
+}
+.equipment-studio .hero-identity {
+  grid-row:1/-1;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:8px;
+}
+.equipment-studio .hero-identity .unit-avatar {
+  width:104px;
+  height:104px;
+  border-width:0;
+  border-radius:50%;
+  font-size:38px;
+  box-shadow:none;
+}
+.equipment-studio .hero-name-editor { width:138px; text-align:center; }
+.equipment-studio .hero-name-editor button,
+.equipment-studio .hero-identity > strong {
+  width:100%;
+  min-height:40px;
+  padding:4px 8px;
+  overflow:hidden;
+  color:#fff;
+  border:0;
+  border-radius:0;
+  background:#6d3e57;
+  font-size:20px;
+  font-weight:700;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.equipment-studio .hero-name-editor input {
+  width:100%;
+  min-height:40px;
+  margin:0;
+  padding:4px 8px;
+  color:#fff;
+  text-align:center;
+  border:0;
+  border-radius:0;
+  background:#6d3e57;
+  font-size:18px;
+}
+.equipment-studio > .hero-parameter-bar > label {
+  min-width:0;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 74px;
+  align-items:center;
+  gap:8px;
+  color:#25242a;
+  font-size:17px;
+  font-weight:600;
+}
+.equipment-studio .choice-picker { margin:0; }
+.equipment-studio .hero-parameter-bar .choice-picker > button {
+  width:74px;
+  min-height:36px;
+  padding:4px 8px;
+  color:#fff;
+  text-align:center;
+  border:0;
+  border-radius:2px;
+  background:#6d3e57;
+  font-size:18px;
+}
+.equipment-studio .hero-parameter-bar .choice-picker > button::after { display:none; }
+.equipment-studio .parameter-readonly {
+  display:block;
+  padding:0 8px;
+  color:#25242a;
+  font-size:16px;
+  font-weight:600;
+}
+.equipment-studio > .hero-skill-stage {
+  grid-column:2;
+  grid-row:2;
+  min-height:210px;
+  display:grid;
+  grid-template-columns:1fr;
+  grid-template-rows:1fr auto;
+  gap:5px;
+  align-content:center;
+  padding:18px 38px 20px;
+  border:0;
+  background:#fff;
+}
+.equipment-studio .hero-skill-slots { gap:8px; align-self:end; }
+.equipment-studio .hero-skill-card {
+  width:86px;
+  min-height:105px;
+  padding:2px 3px;
+}
+.equipment-studio .hero-skill-card .skill-art {
+  width:78px;
+  height:78px;
+  flex-basis:78px;
+}
+.equipment-studio .hero-skill-card strong { font-size:12px; }
+.equipment-studio .innate-effect {
+  min-height:38px;
+  align-self:start;
+  padding:6px 10px;
+  border:1px solid #dedee2;
+  border-radius:6px;
+  background:#fff;
+  text-align:center;
+}
+.equipment-studio .innate-effect strong { font-size:11px; font-weight:500; }
+.equipment-studio > .equipment-overview {
+  grid-column:1/-1;
+  grid-row:3;
+  min-height:500px;
+  display:grid;
+  grid-template-columns:40% 60%;
+  padding:0 64px 28px;
+  border-top:1px solid #dedede;
+  background:#fff;
+}
+.equipment-studio .overview-stats {
+  padding:10px 54px 10px 20px;
+  background:#fff;
+}
+.equipment-studio .overview-stats .workbench-title {
+  min-height:50px;
+  justify-content:center;
+}
+.equipment-studio .tower-preview-button {
+  min-height:37px;
+  padding:6px 14px;
+  color:#655a6b;
+  border:1px solid #d7b04c;
+  border-radius:6px;
+  background:#fff;
+  font-size:13px;
+}
+.equipment-studio .tower-preview-button.active {
+  color:#463d19;
+  border-color:#d2a534;
+  background:#fff7dc;
+}
+.equipment-studio .overview-stats .live-stat {
+  min-height:52px;
+  display:grid;
+  grid-template-columns:1fr auto;
+  align-items:center;
+  padding:0 8px;
+  border-bottom:1px solid #dfe0e3;
+}
+.equipment-studio .live-stat > span {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#28282d;
+  font-size:20px;
+  font-weight:700;
+}
+.equipment-studio .live-stat > span img { width:31px; height:31px; object-fit:contain; }
+.equipment-studio .live-stat > span .asset-fallback {
+  width:31px;
+  height:31px;
+  flex:0 0 31px;
+  display:grid;
+  place-items:center;
+  color:#46414b;
+  border-radius:50%;
+  background:#efedf7;
+  font-size:10px;
+}
+.equipment-studio .live-stat > strong {
+  color:#25252b;
+  font-size:22px;
+  font-weight:700;
+}
+.threat-stat-icon {
+  width:27px;
+  height:27px;
+  display:grid;
+  place-items:center;
+  color:#29231a;
+  border:2px solid #8b691b;
+  border-radius:7px 7px 10px 10px;
+  background:#f0c34f;
+  font-size:18px;
+  line-height:1;
+}
+.equipment-studio .sheet-valid { display:none; }
+.equipment-studio .sheet-issues {
+  max-height:50px;
+  overflow:auto;
+  margin-top:6px;
+}
+.equipment-studio .equipment-slot-stage {
+  padding:0 0 22px 42px;
+  border-left:0;
+}
+.editor-attribution {
+  min-height:58px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#17171a;
+  font-size:15px;
+  font-weight:650;
+}
+.equipment-studio .equipment-slot-grid {
+  grid-template-columns:repeat(3,156px);
+  gap:26px 38px;
+  justify-content:center;
+  margin:0;
+}
+.equipment-studio .overview-slot {
+  width:156px;
+  min-height:182px;
+  padding:0;
+}
+.equipment-studio .overview-slot-art {
+  width:156px;
+  height:156px;
+  border-width:5px;
+  border-radius:13px;
+}
+.equipment-studio .overview-slot strong { max-width:156px; font-size:12px; }
+.equipment-studio .overview-slot small { font-size:9px; }
+.equipment-studio > .validation-note,
+.equipment-studio > .template-row,
+.equipment-studio > .auto-save-footer { display:none; }
+.equipment-studio > .transfer-status {
+  position:fixed;
+  right:28px;
+  bottom:24px;
+  z-index:90;
+  max-width:420px;
+  margin:0;
+  color:#fff;
+  border:0;
+  background:#302b45;
+  box-shadow:0 8px 28px rgba(24,20,54,.28);
+}
+
+.champion-modal { grid-template-columns:50% 50%; }
+.champion-modal > .champion-parameter-bar {
+  min-height:184px;
+  grid-template-columns:160px repeat(2,minmax(0,1fr));
+  grid-template-rows:repeat(3,42px);
+  gap:6px 10px;
+  padding-left:28px;
+}
+.champion-modal .champion-parameter-bar .hero-identity { grid-row:1/-1; }
+.champion-modal > .champion-parameter-bar > label {
+  grid-template-columns:minmax(0,1fr) 64px;
+  font-size:14px;
+}
+.champion-modal .champion-parameter-bar .choice-picker > button { width:64px; font-size:16px; }
+.champion-modal .champion-parameter-bar label > small {
+  grid-column:1/-1;
+  margin:0;
+  font-size:8px;
+}
+.champion-modal .champion-parameter-bar .titan-toggle {
+  display:flex;
+  justify-content:flex-start;
+  gap:8px;
+}
+.champion-modal .champion-parameter-bar .titan-toggle input {
+  width:28px;
+  height:28px;
+  margin:0;
+  accent-color:#6d3e57;
+}
+.champion-modal > .champion-team-skill {
+  grid-column:2;
+  grid-row:2;
+  min-height:184px;
+  display:flex;
+  justify-content:center;
+  gap:18px;
+  padding:20px 34px;
+  border:0;
+  background:#fff;
+}
+.champion-modal .champion-team-skill .skill-art {
+  width:92px;
+  height:92px;
+  flex-basis:92px;
+}
+.champion-modal .champion-team-skill > div { max-width:190px; }
+.champion-modal .champion-team-skill small { display:none; }
+.champion-modal .champion-team-skill strong { font-size:13px; text-align:center; }
+.champion-modal .champion-team-skill span { font-size:13px; text-align:center; }
+.champion-modal > .champion-overview {
+  grid-template-columns:40% 60%;
+  min-height:500px;
+}
+.champion-modal .champion-slot-grid {
+  grid-template-columns:repeat(2,156px);
+  gap:72px;
+  justify-content:center;
+  max-width:none;
+  margin:58px 0 0;
+}
+.champion-modal .champion-slot { width:156px; min-height:182px; }
+.champion-modal .champion-slot .overview-slot-art { width:156px; height:156px; }
+
+.equipment-needs-backdrop { z-index:46; }
+.equipment-needs-modal {
+  width:min(1040px,calc(100vw - 64px));
+  max-height:82vh;
+  overflow:hidden;
+  background:#fff;
+}
+.equipment-needs-modal > .modal-header {
+  min-height:72px;
+  align-items:center;
+  padding:14px 20px;
+  background:#fff;
+}
+.equipment-needs-modal > .modal-header h2 { margin:0; color:#3f36a5; font-size:21px; }
+.equipment-needs-grid {
+  max-height:calc(82vh - 72px);
+  overflow:auto;
+  display:grid;
+  grid-template-columns:repeat(5,minmax(150px,1fr));
+  gap:12px;
+  padding:20px;
+}
+.equipment-needs-grid > article {
+  position:relative;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  padding:12px 9px 10px;
+  border:1px solid #dedfe5;
+  border-radius:9px;
+  background:#fff;
+}
+.equipment-needs-grid > article.enough { border-color:#9bd2ba; background:#f5fbf8; }
+.equipment-need-tier {
+  position:absolute;
+  top:8px;
+  left:8px;
+  width:30px;
+  height:36px;
+  display:grid;
+  place-items:center;
+  align-content:center;
+  color:#fff;
+  border-radius:5px;
+  background:#715d37;
+  line-height:1;
+}
+.equipment-need-tier small { font-size:6px; }
+.equipment-need-tier strong { font-size:13px; }
+.equipment-need-type { min-height:18px; color:#777d8c; font-size:9px; }
+.equipment-need-art {
+  width:88px;
+  height:88px;
+  object-fit:contain;
+}
+.equipment-needs-grid .asset-fallback.equipment-need-art {
+  display:grid;
+  place-items:center;
+  color:#fff;
+  border:4px solid #453947;
+  border-radius:10px;
+  background:#70465e;
+  font-size:24px;
+}
+.equipment-needs-grid > article > strong {
+  width:100%;
+  overflow:hidden;
+  color:#35323c;
+  text-align:center;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:11px;
+}
+.equipment-need-counts {
+  width:100%;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  align-items:center;
+  gap:5px;
+  padding-top:7px;
+  border-top:1px solid #ececf0;
+  color:#6e7482;
+  font-size:9px;
+}
+.equipment-need-counts span { text-align:center; }
+.equipment-need-counts b { color:#2e2c34; font-size:12px; }
+.equipment-need-counts label { display:flex; align-items:center; gap:3px; }
+.equipment-need-counts input {
+  width:46px;
+  padding:4px;
+  border:1px solid #d9dae1;
+  border-radius:5px;
+  background:#fff;
+  text-align:center;
+}
+.equipment-needs-empty {
+  min-height:260px;
+  display:grid;
+  place-items:center;
+  color:#8b909d;
+  font-size:15px;
+}
+
+@media (max-width:1100px) {
+  .equipment-studio { width:calc(100vw - 92px); grid-template-columns:42% 58%; }
+  .equipment-studio > .equipment-overview,.champion-modal > .champion-overview { grid-template-columns:42% 58%; padding-left:36px; padding-right:36px; }
+  .equipment-studio .equipment-slot-grid { grid-template-columns:repeat(3,132px); gap:24px; }
+  .equipment-studio .overview-slot,.equipment-studio .overview-slot-art { width:132px; }
+  .equipment-studio .overview-slot-art { height:132px; }
+  .champion-modal { grid-template-columns:52% 48%; }
+  .equipment-needs-grid { grid-template-columns:repeat(4,minmax(140px,1fr)); }
+}

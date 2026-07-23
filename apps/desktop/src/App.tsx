@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState } from 
 import {
   Archive, BarChart3, Check, Clipboard, Copy, Download,
   GripVertical, HardDrive, PackageOpen, PauseCircle, Plus, ShieldCheck,
-  Sparkles, Sword, Trash2, Upload, Users, X,
+  Sword, Trash2, Upload, Users, X,
 } from "lucide-react";
 import { applyEquipmentFieldToAll, catalogChampions, championElementValue, elements, itemsForSlot, makeHero, normalizeHeroEquipmentSlots, skillsForSlot, type Catalog, type CatalogItem, type CatalogQuest, type CatalogSkill, type EquipmentApplyField } from "./data/catalog";
 import { previewEquipmentStats, type EquipmentPreviewConfig } from "./data/equipmentPreview";
@@ -10,7 +10,7 @@ import { encodeOnlineChampionConfig, importOnlineChampionConfig } from "./data/c
 import { decodeOnlineHeroTemplate, encodeOnlineHeroConfig, heroTemplateSnapshotDate, importOnlineHeroConfig, makeHeroFromOnlineTemplate, templatesForClass } from "./data/heroCreationTemplates";
 import { desktopBridge } from "./platform/bridge";
 import { useWorkspace } from "./state/useWorkspace";
-import type { AdventureTask, BuildTemplate, CalculatedSheet, Champion, ChampionEquipmentConfig, ChampionLoadout, ElementType, Hero, LineupSystem, PartyUnit, Quality, SimulationProgress, TaskGroup } from "./types/domain";
+import type { AdventureTask, BuildTemplate, CalculatedSheet, Champion, ChampionEquipmentConfig, ChampionLoadout, ElementType, Hero, LineupSystem, PartyUnit, Quality, SimulationProgress, TaskGroup, UnitStats } from "./types/domain";
 import {
   copySimulationPng, decodeClipboard, encodeClipboard, exportChampionPng, exportHeroPng, exportLineupPng, exportSimulationPng, readClipboard, writeClipboard,
 } from "./utils/localTransfer";
@@ -47,6 +47,33 @@ function clampOnlineHeroName(value: string): string {
   return result;
 }
 
+const editorStatMeta = {
+  health: ["生命", "/Sprite/icon_global_health.png"],
+  attack: ["攻击", "/Sprite/icon_global_attack.png"],
+  critical: ["暴击", "/Sprite/icon_global_critchance.png"],
+  defense: ["防御", "/Sprite/icon_global_defense.png"],
+  evasion: ["回避", "/Sprite/icon_global_evasion.png"],
+  aggro: ["威胁", undefined],
+  elementValue: ["元素", "/Sprite/icon_global_elemental_all.png"],
+} as const;
+
+function EditorStatRow({ statKey, sheet, fallback }: {
+  statKey: keyof typeof editorStatMeta;
+  sheet: CalculatedSheet | null;
+  fallback: UnitStats;
+}) {
+  const [label, spritePath] = editorStatMeta[statKey];
+  const fallbackKey = statKey === "critical" ? "crit" : statKey === "elementValue" ? "element" : statKey;
+  const value = Number(sheet?.stats[statKey] ?? fallback[fallbackKey as keyof UnitStats] ?? 0);
+  const display = statKey === "critical"
+    ? `${value.toLocaleString()}% / ${Math.round((sheet?.stats.criticalDamage ?? ((fallback.criticalDamage ?? 200) / 100)) * 100)}%`
+    : statKey === "evasion" ? `${value.toLocaleString()}%` : value.toLocaleString();
+  return <div className="live-stat">
+    <span>{spritePath ? <AssetImage path={spritePath} alt={label} /> : <b className="threat-stat-icon">!</b>}{label}</span>
+    <strong>{display}</strong>
+  </div>;
+}
+
 function enchantFamily(item: CatalogItem | undefined): Hero["element"] | undefined {
   if (!item?.elements) return undefined;
   return elementCode[item.elements.split("+")[0] ?? ""];
@@ -72,10 +99,16 @@ function ChoicePicker({ label, value, options, onChange, format = String }: {
   format?: (value: number) => string;
 }) {
   const [open, setOpen] = useState(false);
+  useEffect(() => { setOpen(false); }, [value]);
   return <div className="choice-picker">
     <button type="button" aria-label={label} aria-expanded={open} onClick={() => setOpen(!open)}>{format(value)}</button>
     {open && <div className="choice-picker-menu" role="listbox" aria-label={`${label}选项`}>
-      {options.map((option) => <button type="button" role="option" aria-selected={option === value} className={option === value ? "active" : ""} key={option} onClick={() => { onChange(option); setOpen(false); }}>{format(option)}</button>)}
+      {options.map((option) => {
+        const choose = () => { setOpen(false); onChange(option); };
+        return <button type="button" role="option" aria-selected={option === value} className={option === value ? "active" : ""} key={option}
+          onPointerDown={(event) => { event.preventDefault(); event.stopPropagation(); choose(); }}
+          onClick={(event) => { event.stopPropagation(); choose(); }}>{format(option)}</button>;
+      })}
     </div>}
   </div>;
 }
@@ -351,15 +384,15 @@ function EquipmentModal({ hero, catalog, templates, onClose, onPrevious, onNext,
     <button className="equipment-hero-nav previous" aria-label="上一个英雄" onClick={onPrevious}>‹</button>
     <section className="modal equipment-modal equipment-studio" role="dialog" aria-modal="true" aria-labelledby="equipment-title">
       <header className="modal-header">
-        <div><span className="eyebrow">英雄配装模拟</span><h2 id="equipment-title">{draft.name} <small>{draft.className} · {draft.element}</small></h2></div>
-        <div className="modal-header-actions"><button className="zys-button blue" onClick={() => void pasteLoadout()}>导入</button><input className="modal-import-code" aria-label="粘贴配置码" placeholder="粘贴配置码" value={importText} onChange={(event) => setImportText(event.target.value)} /><button className="zys-button violet" onClick={() => void copyLoadout()}>导出</button><button className="zys-button purple" onClick={() => onClone(draft)}>克隆</button><button className="zys-button blue" onClick={() => void exportHeroPng(draft, sheet ?? undefined).then(() => setTransferStatus("英雄配装图片已导出")).catch((error: unknown) => setTransferStatus(error instanceof Error ? error.message : "图片导出失败"))}>导出图片</button><button className="zys-button red" onClick={onClose}>关闭</button></div>
+        <div><h2 id="equipment-title">英雄配装模拟 - {draft.className}</h2></div>
+        <div className="modal-header-actions"><button className="zys-button blue" onClick={() => void pasteLoadout()}>导入</button><input className="modal-import-code" aria-label="粘贴配置码" placeholder="粘贴配置码" value={importText} onChange={(event) => setImportText(event.target.value)} /><button className="zys-button violet" onClick={() => void copyLoadout()}>导出</button><button className="zys-button green" onClick={() => onClone(draft)}>克隆</button><button className="zys-button violet" onClick={() => void exportHeroPng(draft, sheet ?? undefined).then(() => setTransferStatus("英雄配装图片已导出")).catch((error: unknown) => setTransferStatus(error instanceof Error ? error.message : "图片导出失败"))}>导出图片</button><button className="zys-button red" onClick={onClose}>关闭</button></div>
       </header>
       <div className="hero-parameter-bar">
-        <div className="hero-identity"><UnitAvatar unit={draft} /><div className="hero-name-editor"><small>英雄名称</small>{editingName ? <input aria-label="英雄名称" autoFocus value={heroNameDraft} onChange={(event) => setHeroNameDraft(event.target.value)} onBlur={() => { const name = clampOnlineHeroName(heroNameDraft) || draft.name; setHeroNameDraft(name); setDraft({ ...draft, name }); setEditingName(false); }} onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); if (event.key === "Escape") { setHeroNameDraft(draft.name); setEditingName(false); } }} /> : <button type="button" title="点击改名" onClick={() => { setHeroNameDraft(draft.name); setEditingName(true); }}>{draft.name}</button>}</div></div>
-        <label>英雄等级<ChoicePicker label="英雄等级" value={draft.level} options={Array.from({ length: 50 }, (_, index) => index + 1)} onChange={(level) => setDraft({ ...draft, level })} /></label>
-        <label>最大装备阶数<strong className="parameter-readonly">{maxEquipmentTier(draft.level)}</strong></label>
-        <label>种子数量<ChoicePicker label="种子数量" value={draft.seed} options={Array.from({ length: 81 }, (_, index) => index)} onChange={(seed) => setDraft({ ...draft, seed })} /></label>
-        <label>收藏卡牌<ChoicePicker label="收藏卡牌" value={draft.cardLevel} options={[0, 1, 2, 3]} onChange={(cardLevel) => setDraft({ ...draft, cardLevel })} /></label>
+        <div className="hero-identity"><UnitAvatar unit={draft} /><div className="hero-name-editor">{editingName ? <input aria-label="英雄名称" autoFocus value={heroNameDraft} onChange={(event) => setHeroNameDraft(event.target.value)} onBlur={() => { const name = clampOnlineHeroName(heroNameDraft) || draft.name; setHeroNameDraft(name); setDraft({ ...draft, name }); setEditingName(false); }} onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); if (event.key === "Escape") { setHeroNameDraft(draft.name); setEditingName(false); } }} /> : <button type="button" title="点击改名" onClick={() => { setHeroNameDraft(draft.name); setEditingName(true); }}>{draft.name}</button>}</div></div>
+        <label>英雄等级：<ChoicePicker key={`hero-level-${draft.level}`} label="英雄等级" value={draft.level} options={Array.from({ length: 50 }, (_, index) => index + 1)} onChange={(level) => setDraft({ ...draft, level })} /></label>
+        <label>最大装备阶数：<strong className="parameter-readonly">{maxEquipmentTier(draft.level)}</strong></label>
+        <label>种子数量：<ChoicePicker key={`hero-seed-${draft.seed}`} label="种子数量" value={draft.seed} options={Array.from({ length: 81 }, (_, index) => index)} onChange={(seed) => setDraft({ ...draft, seed })} /></label>
+        <label>收藏卡牌：<ChoicePicker key={`hero-card-${draft.cardLevel}`} label="收藏卡牌" value={draft.cardLevel} options={[0, 1, 2, 3]} onChange={(cardLevel) => setDraft({ ...draft, cardLevel })} /></label>
       </div>
       <section className="hero-skill-stage" aria-label="英雄技能">
         <div className="hero-skill-slots">
@@ -406,19 +439,11 @@ function EquipmentModal({ hero, catalog, templates, onClose, onPrevious, onNext,
       </div>}
       <div className="equipment-overview">
         <aside className="live-sheet overview-stats">
-          <div className="workbench-title"><div><strong>实时属性</strong><small>{calculating ? "Rust 计算中…" : "每次选择即时刷新"}</small></div><button className={`tower-preview-button ${draft.titan ? "active" : ""}`} onClick={() => setDraft({ ...draft, titan: !draft.titan })}>泰坦之塔/墓</button></div>
-          {([
-            ["生命", "health", "♥"], ["攻击", "attack", "⚔"], ["防御", "defense", "◆"], ["暴击", "critical", "✹"], ["回避", "evasion", "➟"], ["威胁", "aggro", "⚠"], ["元素", "elementValue", "✦"],
-          ] as const).map(([label, key, icon]) => {
-            const value = sheet?.stats[key] ?? (key === "critical" ? draft.stats.crit : key in draft.stats ? draft.stats[key as keyof typeof draft.stats] : 0);
-            const baseKey = key === "critical" ? "crit" : key;
-            const base = baseKey in hero.stats ? hero.stats[baseKey as keyof typeof hero.stats] : 0;
-            const delta = Number(value) - Number(base);
-            return <div className="live-stat" key={key}><span>{icon} {label}</span><strong>{Number(value).toLocaleString()}</strong>{delta !== 0 && <small className={delta > 0 ? "up" : "down"}>{delta > 0 ? "+" : ""}{delta.toLocaleString()}</small>}</div>;
-          })}
+          <div className="workbench-title"><button className={`tower-preview-button ${draft.titan ? "active" : ""}`} onClick={() => setDraft({ ...draft, titan: !draft.titan })}>▣ 泰坦之塔/墓</button><small>{calculating ? "计算中…" : ""}</small></div>
+          {(["health", "attack", "critical", "defense", "evasion", "aggro", "elementValue"] as const).map((statKey) => <EditorStatRow key={statKey} statKey={statKey} sheet={sheet} fallback={draft.stats} />)}
           {sheet?.issues.length ? <div className="sheet-issues">{sheet.issues.slice(0, 3).map((issue) => <small key={`${issue.code}-${issue.slot ?? ""}`}>{issue.message}</small>)}</div> : <div className="sheet-valid"><ShieldCheck size={15} />当前配装通过本地规则校验</div>}
         </aside>
-        <section className="equipment-slot-stage"><div className="workbench-title"><div><strong>六槽装备</strong><small>点击装备槽打开装备、元素附魔和精萃附魔选择</small></div></div><div className="equipment-slot-grid">{draft.equipment.map((entry, index) => {
+        <section className="equipment-slot-stage"><div className="editor-attribution">© 2026 cq-zys.cn | CC BY-NC-ND 4.0</div><div className="equipment-slot-grid">{draft.equipment.map((entry, index) => {
           const item = catalog.items.find((candidate) => candidate.id === entry.itemId);
           const effectiveElementId = item?.builtInElementId ?? entry.element;
           const effectiveSpiritId = item?.builtInSpiritId ?? entry.spirit;
@@ -577,22 +602,20 @@ function ChampionEquipmentModal({ champion, catalog, loadout, templates, onClose
   return <EquipmentPreviewContext.Provider value={{ ...selectedChampionEquipment, ...pickerConfig, catalog }}><div className="modal-backdrop equipment-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
     <button className="equipment-hero-nav previous" aria-label="上一个勇士" onClick={onPrevious}>‹</button>
     <section className="modal champion-modal equipment-studio" role="dialog" aria-modal="true" aria-labelledby="champion-equipment-title">
-      <header className="modal-header"><div><span className="eyebrow">勇士配装模拟</span><h2 id="champion-equipment-title">{champion.name} <small>{champion.element}属性勇士</small></h2></div><div className="modal-header-actions"><button className="zys-button blue" onClick={() => void pasteLoadout()}>导入</button><input className="modal-import-code" aria-label="粘贴配置码" placeholder="粘贴配置码" value={importText} onChange={(event) => setImportText(event.target.value)} /><button className="zys-button violet" onClick={() => void copyLoadout()}>导出</button><button className="zys-button blue" onClick={() => void exportChampionPng(champion, draft, sheet ?? undefined).then(() => setTransferStatus("勇士配装图片已导出")).catch((error: unknown) => setTransferStatus(error instanceof Error ? error.message : "图片导出失败"))}>导出图片</button><button className="zys-button red" onClick={onClose}>关闭</button></div></header>
+      <header className="modal-header"><div><h2 id="champion-equipment-title">勇士配装模拟 - {champion.name}</h2></div><div className="modal-header-actions"><button className="zys-button blue" onClick={() => void pasteLoadout()}>导入</button><input className="modal-import-code" aria-label="粘贴配置码" placeholder="粘贴配置码" value={importText} onChange={(event) => setImportText(event.target.value)} /><button className="zys-button violet" onClick={() => void copyLoadout()}>导出</button><button className="zys-button violet" onClick={() => void exportChampionPng(champion, draft, sheet ?? undefined).then(() => setTransferStatus("勇士配装图片已导出")).catch((error: unknown) => setTransferStatus(error instanceof Error ? error.message : "图片导出失败"))}>导出图片</button><button className="zys-button red" onClick={onClose}>关闭</button></div></header>
       <div className="hero-parameter-bar champion-parameter-bar">
         <div className="hero-identity"><UnitAvatar unit={champion} /><strong>{champion.name}</strong></div>
-        <label>勇士等级<ChoicePicker label="勇士等级" value={draft.level} options={Array.from({ length: 50 }, (_, index) => index + 1)} onChange={(level) => setDraft({ ...draft, level })} /></label>
-        <label>最大装备阶数<strong className="parameter-readonly">{maxEquipmentTier(draft.level)}</strong></label>
-        <label>勇士阶数<ChoicePicker label="勇士阶数" value={draft.rank} options={Array.from({ length: 71 }, (_, index) => index + 1)} format={(rank) => rank <= 11 ? String(rank) : `11+${rank - 11}`} onChange={(rank) => setDraft({ ...draft, rank })} /></label>
-        <label>种子数量<ChoicePicker label="勇士种子数量" value={draft.seed} options={Array.from({ length: 81 }, (_, index) => index)} onChange={(seed) => setDraft({ ...draft, seed })} /></label>
-        <label>收藏卡牌<ChoicePicker label="勇士收藏卡牌" value={draft.cardLevel} options={[0, 1, 2, 3]} onChange={(cardLevel) => setDraft({ ...draft, cardLevel })} /><small>({draft.cardLevel === 0 ? 0 : draft.cardLevel === 1 ? 5 : draft.cardLevel === 2 ? 10 : 25}% 攻防血增益)</small></label>
-        <label className="titan-toggle"><input type="checkbox" checked={draft.titan} onChange={(event) => setDraft({ ...draft, titan: event.target.checked })} /><span>勇士之魂</span></label>
+        <label>勇士等级：<ChoicePicker key={`champion-level-${draft.level}`} label="勇士等级" value={draft.level} options={Array.from({ length: 50 }, (_, index) => index + 1)} onChange={(level) => setDraft({ ...draft, level })} /></label>
+        <label>最大装备阶数：<strong className="parameter-readonly">{maxEquipmentTier(draft.level)}</strong></label>
+        <label>勇士阶数：<ChoicePicker key={`champion-rank-${draft.rank}`} label="勇士阶数" value={draft.rank} options={Array.from({ length: 71 }, (_, index) => index + 1)} format={(rank) => rank <= 11 ? String(rank) : `11+${rank - 11}`} onChange={(rank) => setDraft({ ...draft, rank })} /></label>
+        <label>种子数量：<ChoicePicker key={`champion-seed-${draft.seed}`} label="勇士种子数量" value={draft.seed} options={Array.from({ length: 81 }, (_, index) => index)} onChange={(seed) => setDraft({ ...draft, seed })} /></label>
+        <label>收藏卡牌：<ChoicePicker key={`champion-card-${draft.cardLevel}`} label="勇士收藏卡牌" value={draft.cardLevel} options={[0, 1, 2, 3]} onChange={(cardLevel) => setDraft({ ...draft, cardLevel })} /><small>({draft.cardLevel === 0 ? 0 : draft.cardLevel === 1 ? 5 : draft.cardLevel === 2 ? 10 : 25}% 攻防血增益)</small></label>
+        <label className="titan-toggle"><span>勇士之魂：</span><input aria-label="勇士之魂" type="checkbox" checked={draft.titan} onChange={(event) => setDraft({ ...draft, titan: event.target.checked })} /></label>
       </div>
       <section className="champion-team-skill" aria-label="勇士团队技能"><SkillArt skill={teamSkill} innate level={teamSkillLevel} /><div><small>固定团队技能 · 等级 {teamSkillLevel}</small><strong>{teamSkill?.name ?? catalogChampion?.teamSkillIds[teamSkillLevel - 1] ?? "团队技能"}</strong>{teamSkill?.effects.slice(0, 3).map((effect) => <span key={effect}>{effect}</span>)}</div></section>
       <div className="equipment-overview champion-overview">
-        <aside className="live-sheet overview-stats"><div className="workbench-title"><div><strong>实时属性</strong><small>{calculating ? "Rust 计算中…" : "配装变化即时刷新"}</small></div><Sparkles size={18} /></div>{([
-          ["生命", "health", "♥"], ["攻击", "attack", "⚔"], ["防御", "defense", "◆"], ["暴击", "critical", "✹"], ["回避", "evasion", "➟"], ["威胁", "aggro", "⚠"],
-        ] as const).map(([label, key, icon]) => <div className="live-stat" key={key}><span>{icon} {label}</span><strong>{Number(sheet?.stats[key] ?? (key === "critical" ? champion.stats.crit : champion.stats[key as keyof typeof champion.stats] ?? 0)).toLocaleString()}</strong></div>)}{sheet?.issues.length ? <div className="sheet-issues">{sheet.issues.slice(0, 3).map((issue) => <small key={issue.code}>{issue.message}</small>)}</div> : <div className="sheet-valid"><ShieldCheck size={15} />当前配装通过本地规则校验</div>}</aside>
-        <section className="equipment-slot-stage"><div className="workbench-title"><div><strong>勇士专属装备</strong><small>点击槽位从完整本地图鉴中选择</small></div></div><div className="champion-slot-grid">{([
+        <aside className="live-sheet overview-stats"><div className="workbench-title"><button className={`tower-preview-button ${draft.titan ? "active" : ""}`} onClick={() => setDraft({ ...draft, titan: !draft.titan })}>▣ 泰坦之塔/墓</button><small>{calculating ? "计算中…" : ""}</small></div>{(["health", "attack", "critical", "defense", "evasion", "aggro", "elementValue"] as const).map((statKey) => <EditorStatRow key={statKey} statKey={statKey} sheet={sheet} fallback={draft.stats ?? champion.stats} />)}{sheet?.issues.length ? <div className="sheet-issues">{sheet.issues.slice(0, 3).map((issue) => <small key={issue.code}>{issue.message}</small>)}</div> : <div className="sheet-valid"><ShieldCheck size={15} />当前配装通过本地规则校验</div>}</aside>
+        <section className="equipment-slot-stage"><div className="editor-attribution">© 2026 cq-zys.cn | CC BY-NC-ND 4.0</div><div className="champion-slot-grid">{([
           ["familiar", "使魔", draft.familiar, familiarItems], ["aurasong", "光环", draft.aurasong, auraItems],
         ] as const).map(([kind, label, value, items]) => { const config = kind === "familiar" ? draft.familiarEquipment : draft.auraSongEquipment; const itemId = config?.itemId ?? value; const item = items.find((entry) => entry.id === itemId || entry.name === itemId); return <button key={kind} aria-label={`${label}装备槽`} className={`overview-slot champion-slot quality-${config?.quality ?? "普通"}`} onClick={() => openChampionPicker(kind)}><span className="overview-slot-art">{item ? <AssetImage path={item.spritePath} alt={item.name} /> : <span>{label.slice(0, 1)}</span>}</span><strong>{item?.name ?? (itemId || label)}</strong><small>{item ? `T${item.tier} · ${qualityDisplay[config?.quality ?? "普通"]}` : "点击选择装备"}</small></button>; })}</div></section>
       </div>
@@ -826,6 +849,39 @@ function TemplateManager({ templates, onDelete, onClose }: {
   </div>;
 }
 
+function EquipmentNeedsModal({ kind, needs, onClose }: {
+  kind: "hero" | "champion";
+  needs: { item: CatalogItem; count: number }[];
+  onClose: () => void;
+}) {
+  const title = `${kind === "hero" ? "英雄" : "勇士"}装备需求统计`;
+  const storageKey = "zys.hero-lineup.owned-equipment.v1";
+  const [owned, setOwned] = useState<Record<string, number>>(() => {
+    try { return JSON.parse(localStorage.getItem(storageKey) ?? "{}") as Record<string, number>; }
+    catch { return {}; }
+  });
+  const updateOwned = (itemId: string, value: number) => {
+    const next = { ...owned, [itemId]: Math.max(0, Math.floor(Number.isFinite(value) ? value : 0)) };
+    setOwned(next);
+    localStorage.setItem(storageKey, JSON.stringify(next));
+  };
+  return <div className="modal-backdrop equipment-needs-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+    <section className="modal equipment-needs-modal" role="dialog" aria-modal="true" aria-labelledby="equipment-needs-title">
+      <header className="modal-header"><h2 id="equipment-needs-title">{title}</h2><button className="zys-button red" onClick={onClose}>关闭</button></header>
+      {needs.length ? <div className="equipment-needs-grid">{needs.map(({ item, count }) => {
+        const ownedCount = owned[item.id] ?? 0;
+        return <article key={item.id} className={ownedCount >= count ? "enough" : ""}>
+          <div className="equipment-need-tier"><small>阶数</small><strong>{item.tier}</strong></div>
+          <span className="equipment-need-type">{item.typeName}</span>
+          <AssetImage path={item.spritePath} alt={item.name} className="equipment-need-art" />
+          <strong title={item.name}>{item.name}</strong>
+          <div className="equipment-need-counts"><span>需要：<b>{count}</b></span><label>已有：<input aria-label={`已有 ${item.name}`} type="number" min={0} step={1} value={ownedCount} onChange={(event) => updateOwned(item.id, Number(event.target.value))} /></label></div>
+        </article>;
+      })}</div> : <div className="equipment-needs-empty">暂无装备需求</div>}
+    </section>
+  </div>;
+}
+
 function SystemEditModal({ system, onClose, onSave }: { system: LineupSystem; onClose: () => void; onSave: (name: string, description: string, localPublic: boolean) => void }) {
   const [name, setName] = useState(system.name);
   const [description, setDescription] = useState(system.description);
@@ -923,6 +979,7 @@ function WorkspaceApp({ catalog, onCatalogChange }: { catalog: Catalog; onCatalo
   const [editingChampion, setEditingChampion] = useState<Champion | null>(null);
   const [templates, setTemplates] = useState<BuildTemplate[]>([]);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [equipmentNeedsKind, setEquipmentNeedsKind] = useState<"hero" | "champion" | null>(null);
   const [showClassPicker, setShowClassPicker] = useState(false);
   const [toast, setToast] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
@@ -943,6 +1000,20 @@ function WorkspaceApp({ catalog, onCatalogChange }: { catalog: Catalog; onCatalo
   const heroes = useMemo(() => [...(workspace.active?.heroes ?? [])].sort((a, b) => sortMode === "element"
     ? elements.indexOf(a.element) - elements.indexOf(b.element)
     : classes.findIndex((entry) => entry.id === a.classId) - classes.findIndex((entry) => entry.id === b.classId)), [classes, sortMode, workspace.active?.heroes]);
+  const equipmentNeeds = useMemo(() => {
+    if (!workspace.active || !equipmentNeedsKind) return [];
+    const itemIds = equipmentNeedsKind === "hero"
+      ? workspace.active.heroes.flatMap((hero) => hero.equipment.map((entry) => entry.itemId).filter((itemId): itemId is string => Boolean(itemId)))
+      : Object.values(workspace.active.championLoadouts ?? {}).flatMap((loadout) => [
+        loadout.familiarEquipment?.itemId ?? loadout.familiar,
+        loadout.auraSongEquipment?.itemId ?? loadout.aurasong,
+      ].filter((itemId): itemId is string => Boolean(itemId)));
+    const counts = new Map<string, number>();
+    itemIds.forEach((itemId) => counts.set(itemId, (counts.get(itemId) ?? 0) + 1));
+    return [...counts].map(([itemId, count]) => ({ item: catalog.items.find((item) => item.id === itemId), count }))
+      .filter((entry): entry is { item: CatalogItem; count: number } => Boolean(entry.item))
+      .sort((left, right) => right.item.tier - left.item.tier || left.item.typeName.localeCompare(right.item.typeName) || (left.item.sourceOrder ?? 0) - (right.item.sourceOrder ?? 0));
+  }, [catalog.items, equipmentNeedsKind, workspace.active]);
 
   const selectSystem = (id: string) => {
     if (id === workspace.activeId) return true;
@@ -1071,8 +1142,8 @@ function WorkspaceApp({ catalog, onCatalogChange }: { catalog: Catalog; onCatalo
       <div className="tool-container"><section className="tool-hero"><h1>英雄体系搭配平台</h1><div className="offline-warning"><HardDrive size={17} />当前为完全离线版，所有体系、配装、模拟记录和图片均保存在本机；数据版本 {catalog.gameDataVersion}</div></section>
         <SystemSidebar systems={workspace.systems} activeId={workspace.activeId} dirty={workspace.dirty} contentVersion={catalog.gameDataVersion} onSelect={selectSystem} onCreate={(name, description, localPublic) => workspace.createSystem({ name, description, localPublic })} onImportCode={importSystemCode} onUseCollection={(system) => { const imported = workspace.importSystem(system); setToast(`已从本地收藏导入“${imported.name}”，请保存后持久化`); }} onDuplicate={workspace.duplicateSystem} onDelete={() => { if (window.confirm("确定删除当前体系吗？")) void workspace.deleteActive(); }} onSave={() => void workspace.save().then(() => setToast("所有更改已保存在本机"))} onImport={() => { if (desktopBridge.isDesktop()) void importFromDialog(); else fileInput.current?.click(); }} onExport={(system) => void exportCurrent(system)} onBackup={() => void exportBackup()} onRestore={() => void restoreBackup()} onDataUpdate={() => void installDataPackage()} onRename={(name, description, localPublic) => workspace.updateActive((system) => ({ ...system, name, description, localPublic }))} />
       <div className="content online-content">
-        <section id="champions-section" className="flow-section"><section className="section-heading"><div><h2>勇士阵容</h2><p>点击勇士图标进行配装，可拖动到下方任务卡片中组队冒险</p></div><button className="zys-button blue" onClick={() => setShowTemplates(true)}><BarChart3 size={16} />装备统计</button></section><div className="champion-grid">{champions.map((unit) => { const loadout = workspace.active!.championLoadouts?.[unit.id]; return <ChampionCard key={unit.id} unit={{ ...unit, ...(loadout ?? {}), stats: { ...unit.stats, ...(loadout?.stats ?? {}), element: loadout?.stats?.element ?? championElementValue(loadout?.rank ?? unit.rank) } }} onEdit={() => setEditingChampion(unit)} />; })}</div></section>
-        <section id="heroes-section" className="flow-section"><section className="section-heading"><div><h2>英雄阵容 ({workspace.active.heroes.length}/41)</h2><p>点击英雄图标进行配装，可拖动到下方任务卡片中组队冒险</p></div><div className="toolbar"><button className="zys-button blue" onClick={() => setShowTemplates(true)}>装备统计</button><button className="zys-button violet" onClick={() => void exportCurrentPng()}>导出阵容</button><button className="zys-button green" disabled={workspace.active.heroes.length >= 41} onClick={() => setShowClassPicker(true)}>添加英雄</button><button className={`manager-tab ${sortMode === "class" ? "active" : ""}`} onClick={() => setSortMode("class")}>职业排序</button><button className={`manager-tab ${sortMode === "element" ? "active" : ""}`} onClick={() => setSortMode("element")}>元素排序</button></div></section><div className="hero-list">{heroes.map((hero) => <HeroCard key={hero.id} hero={hero} onEdit={() => setEditingHero(hero)} onCopy={() => workspace.duplicateHero(hero)} onDelete={() => workspace.deleteHero(hero.id)} />)}{!heroes.length && <div className="empty-state"><Users size={30} /><h3>还没有英雄</h3><p>点击“添加英雄”选择职业。</p></div>}</div></section>
+        <section id="champions-section" className="flow-section"><section className="section-heading"><div><h2>勇士阵容</h2><p>点击勇士图标进行配装，可拖动到下方任务卡片中组队冒险</p></div><button className="zys-button blue" onClick={() => setEquipmentNeedsKind("champion")}><BarChart3 size={16} />装备统计</button></section><div className="champion-grid">{champions.map((unit) => { const loadout = workspace.active!.championLoadouts?.[unit.id]; return <ChampionCard key={unit.id} unit={{ ...unit, ...(loadout ?? {}), stats: { ...unit.stats, ...(loadout?.stats ?? {}), element: loadout?.stats?.element ?? championElementValue(loadout?.rank ?? unit.rank) } }} onEdit={() => setEditingChampion(unit)} />; })}</div></section>
+        <section id="heroes-section" className="flow-section"><section className="section-heading"><div><h2>英雄阵容 ({workspace.active.heroes.length}/41)</h2><p>点击英雄图标进行配装，可拖动到下方任务卡片中组队冒险</p></div><div className="toolbar"><button className="zys-button blue" onClick={() => setEquipmentNeedsKind("hero")}>装备统计</button><button className="zys-button violet" onClick={() => void exportCurrentPng()}>导出阵容</button><button className="zys-button green" disabled={workspace.active.heroes.length >= 41} onClick={() => setShowClassPicker(true)}>添加英雄</button><button className={`manager-tab ${sortMode === "class" ? "active" : ""}`} onClick={() => setSortMode("class")}>职业排序</button><button className={`manager-tab ${sortMode === "element" ? "active" : ""}`} onClick={() => setSortMode("element")}>元素排序</button></div></section><div className="hero-list">{heroes.map((hero) => <HeroCard key={hero.id} hero={hero} onEdit={() => setEditingHero(hero)} onCopy={() => workspace.duplicateHero(hero)} onDelete={() => workspace.deleteHero(hero.id)} />)}{!heroes.length && <div className="empty-state"><Users size={30} /><h3>还没有英雄</h3><p>点击“添加英雄”选择职业。</p></div>}</div></section>
         <section id="adventures-section" className="flow-section"><section className="section-heading"><div><h2>冒险任务 ({workspace.active.taskGroups.reduce((sum, group) => sum + group.tasks.length, 0)}/48)</h2><p>点击冒险任务卡片左上角冒险图标可以切换地图，拖动冒险任务卡片切换分组</p></div><button className="primary-button" disabled={workspace.active.taskGroups.reduce((sum, group) => sum + group.tasks.length, 0) >= 48} onClick={workspace.addGroup}><Plus size={16} />添加分组</button></section>{workspace.active.taskGroups.map((group) => <AdventureGroup key={group.id} systemId={workspace.active!.id} systemGameVersion={catalog.gameDataVersion} group={group} units={workspace.units} quests={catalog.quests} catalog={catalog} assignedUnitIds={assignedUnitIds} canAddTask={workspace.active!.taskGroups.reduce((sum, entry) => sum + entry.tasks.length, 0) < 48} onAddTask={(quest) => workspace.addTask(group.id, quest)} onDrop={(taskId, unitId) => workspace.dropUnit(group.id, taskId, unitId)} onMoveTask={(sourceGroupId, taskId, targetIndex) => workspace.moveTask(sourceGroupId, taskId, group.id, targetIndex)} onRemove={(taskId, unitId) => workspace.removeUnit(group.id, taskId, unitId)} onCopyTask={(task) => workspace.duplicateTask(group.id, task)} onDeleteTask={(taskId) => workspace.deleteTask(group.id, taskId)} onResult={workspace.setTaskResult} onTaskChange={(task) => workspace.updateTask(group.id, task)} />)}</section>
       </div></div>
     </main>
@@ -1100,6 +1171,7 @@ function WorkspaceApp({ catalog, onCatalogChange }: { catalog: Catalog; onCatalo
       workspace.updateChampionLoadout(editingChampion.id, loadout);
     }} onSaveTemplate={(name, loadout) => saveBuildTemplate(name, `champion:${editingChampion.id}`, "champion-loadout", loadout)} />}
     {showTemplates && <TemplateManager templates={templates} onDelete={deleteBuildTemplate} onClose={() => setShowTemplates(false)} />}
+    {equipmentNeedsKind && <EquipmentNeedsModal kind={equipmentNeedsKind} needs={equipmentNeeds} onClose={() => setEquipmentNeedsKind(null)} />}
     {showClassPicker && <ClassPickerModal catalog={catalog} heroIndex={workspace.active.heroes.length + 1} onClose={() => setShowClassPicker(false)} onChoose={(hero) => { workspace.addHero(hero.classId, hero); setShowClassPicker(false); }} />}
     {toast && <button className="toast" onClick={() => setToast("")}><Check size={16} />{toast}<X size={14} /></button>}
   </div>;

@@ -50,7 +50,7 @@ test("生成线上同款配装交互验收截图", async ({ page }) => {
   await page.locator(".class-picker-grid button").first().click();
   await page.getByRole("button", { name: /空白模板/ }).click();
   await page.getByRole("button", { name: "配装", exact: true }).click();
-  await expect(page.getByRole("dialog", { name: /骑士1/ })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "英雄配装模拟 - 骑士" })).toBeVisible();
   await page.screenshot({ path: path.join(outputDirectory, "local-equipment-overview-1440x900.png") });
   await page.getByRole("button", { name: "武器装备槽" }).click();
   await expect(page.getByRole("dialog", { name: /装备选择 - 1/ })).toBeVisible();
@@ -86,5 +86,19 @@ test("生成冒险任务卡与强化道具弹窗验收截图", async ({ page }) 
   await page.getByRole("button", { name: "强化道具：无" }).click();
   await expect(page.getByRole("dialog", { name: "冒险强化道具" })).toBeVisible();
   await page.screenshot({ path: path.join(outputDirectory, "local-booster-picker-1440x900.png") });
+  await assertOffline(remoteRequests);
+});
+
+test("生成勇士编辑器与装备需求统计验收截图", async ({ page }) => {
+  const remoteRequests = await installOfflineGuard(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  await page.locator(".champion-card").first().getByRole("button", { name: /勇士配装/ }).click();
+  await expect(page.getByRole("dialog", { name: "勇士配装模拟 - 阿尔贡" })).toBeVisible();
+  await page.screenshot({ path: path.join(outputDirectory, "local-champion-equipment-1440x900.png") });
+  await page.getByRole("button", { name: "关闭", exact: true }).click();
+  await page.locator("#champions-section").getByRole("button", { name: "装备统计" }).click();
+  await expect(page.getByRole("dialog", { name: "勇士装备需求统计" })).toBeVisible();
+  await page.screenshot({ path: path.join(outputDirectory, "local-champion-equipment-needs-1440x900.png") });
   await assertOffline(remoteRequests);
 });
