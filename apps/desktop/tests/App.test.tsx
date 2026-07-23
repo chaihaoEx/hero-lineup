@@ -144,10 +144,14 @@ test("matches online equipment statistics instead of opening the template manage
   expect(within(needsDialog).getByTitle("学徒短剑")).toBeInTheDocument();
   expect(within(needsDialog).getByText("需要：")).toBeInTheDocument();
   expect(within(needsDialog).getByText("1", { selector: ".equipment-need-counts b" })).toBeInTheDocument();
-  const owned = within(needsDialog).getByRole("spinbutton", { name: "已有 学徒短剑" });
+  const owned = within(needsDialog).getByRole("spinbutton", { name: "已有 学徒短剑 普通" });
   await user.clear(owned);
   await user.type(owned, "1");
-  expect(localStorage.getItem("zys.hero-lineup.owned-equipment.v1")).toContain('"shortsword":1');
+  expect(within(needsDialog).getByText("(0)")).toHaveClass("complete");
+  expect(localStorage.getItem("zys.hero-lineup.owned-equipment.v1")).toBeNull();
+  await user.click(within(needsDialog).getByRole("button", { name: "关闭" }));
+  await user.click(screen.getByRole("button", { name: /保存当前体系/ }));
+  await waitFor(() => expect(localStorage.getItem("zys.hero-lineup.systems.v1")).toContain('"shortsword_普通":1'));
 });
 
 test("updates equipment catalog attributes immediately when Transcend is toggled", async () => {

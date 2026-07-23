@@ -163,6 +163,11 @@ export interface LineupSystem {
   heroes: Hero[];
   championIds: string[];
   championLoadouts: Record<string, ChampionLoadout>;
+  /** Online-compatible owned inventory, keyed by `${itemId}_${quality}` for each roster kind. */
+  equipmentOwnedCounts?: {
+    hero: Record<string, number | "">;
+    champion: Record<string, number | "">;
+  } | undefined;
   taskGroups: TaskGroup[];
   createdAt: string;
   updatedAt: string;
@@ -221,7 +226,9 @@ export interface CanonicalTask {
 export interface CanonicalSystem {
   id: string; name: string; description: string; localPublic: boolean; localTag: string; schemaVersion: number;
   gameDataVersion: string; groups: { id: string; name: string; sortOrder: number }[]; heroes: CanonicalHero[];
-  champions: CanonicalChampion[]; adventureTasks: CanonicalTask[]; createdAt: string; updatedAt: string;
+  champions: CanonicalChampion[];
+  equipmentOwnedCounts?: { hero: Record<string, number | "">; champion: Record<string, number | ""> } | undefined;
+  adventureTasks: CanonicalTask[]; createdAt: string; updatedAt: string;
 }
 
 export interface SimulationProgress {

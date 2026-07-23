@@ -10,6 +10,7 @@ describe("canonical desktop adapter", () => {
     original.heroes = [hero];
     original.taskGroups = [{ id: crypto.randomUUID(), name: "日常冒险", tasks: [{ id: crypto.randomUUID(), questId: quest.id, name: quest.name, map: quest.mapName, difficulty: quest.difficulty, maxMembers: quest.maxMembers, memberIds: [hero.id], barrier: {}, config: { iterations: 10000, seed: 1, booster: false, elite: false, titanTower: false } }] }];
     original.localTag = "收藏";
+    original.equipmentOwnedCounts = { hero: { "shortsword_传说": 2, "ember_传说": "" }, champion: { "familiar-a_普通": 1 } };
     hero.rank = 12;
     hero.seed = 87;
     hero.cardLevel = 4;

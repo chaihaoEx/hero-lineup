@@ -43,6 +43,8 @@ pub struct LineupSystem {
     #[serde(default)]
     pub champions: Vec<ChampionBuild>,
     #[serde(default)]
+    pub equipment_owned_counts: EquipmentOwnedCounts,
+    #[serde(default)]
     pub adventure_tasks: Vec<AdventureTask>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -62,11 +64,21 @@ impl LineupSystem {
             groups: Vec::new(),
             heroes: Vec::new(),
             champions: Vec::new(),
+            equipment_owned_counts: EquipmentOwnedCounts::default(),
             adventure_tasks: Vec::new(),
             created_at: now,
             updated_at: now,
         }
     }
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct EquipmentOwnedCounts {
+    #[serde(default)]
+    pub hero: BTreeMap<String, serde_json::Value>,
+    #[serde(default)]
+    pub champion: BTreeMap<String, serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -686,6 +698,11 @@ pub fn migrate_legacy_system(value: &serde_json::Value) -> Result<LineupSystem, 
         groups,
         heroes,
         champions,
+        equipment_owned_counts: value
+            .get("equipmentOwnedCounts")
+            .cloned()
+            .and_then(|v| serde_json::from_value(v).ok())
+            .unwrap_or_default(),
         adventure_tasks,
         created_at,
         updated_at,

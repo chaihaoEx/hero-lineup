@@ -9,6 +9,10 @@ import { previewEquipmentStats, type EquipmentPreviewConfig } from "./data/equip
 import { encodeOnlineChampionConfig, importOnlineChampionConfig } from "./data/championConfig";
 import { decodeOnlineHeroTemplate, encodeOnlineHeroConfig, heroTemplateSnapshotDate, importOnlineHeroConfig, makeHeroFromOnlineTemplate, templatesForClass } from "./data/heroCreationTemplates";
 import { sortHeroesLikeOnline, type HeroSortMode } from "./data/heroSorting";
+import {
+  collectEquipmentNeeds, equipmentNeedCategoryLabel, normalizeOwnedCount,
+  numericOwnedCount, ownedEquipmentKey, type EquipmentNeed, type OwnedEquipmentCounts,
+} from "./data/equipmentNeeds";
 import { desktopBridge } from "./platform/bridge";
 import { useWorkspace } from "./state/useWorkspace";
 import type { AdventureTask, BuildTemplate, CalculatedSheet, Champion, ChampionEquipmentConfig, ChampionLoadout, ElementType, Hero, LineupSystem, PartyUnit, Quality, SimulationProgress, TaskGroup, UnitStats } from "./types/domain";
@@ -992,33 +996,41 @@ function TemplateManager({ templates, onDelete, onClose }: {
   </div>;
 }
 
-function EquipmentNeedsModal({ kind, needs, onClose }: {
+function EquipmentNeedsModal({ kind, needs, ownedCounts, onOwnedCountsChange, onClose }: {
   kind: "hero" | "champion";
-  needs: { item: CatalogItem; count: number }[];
+  needs: EquipmentNeed[];
+  ownedCounts: OwnedEquipmentCounts;
+  onOwnedCountsChange: (counts: OwnedEquipmentCounts) => void;
   onClose: () => void;
 }) {
   const title = `${kind === "hero" ? "英雄" : "勇士"}装备需求统计`;
-  const storageKey = "zys.hero-lineup.owned-equipment.v1";
-  const [owned, setOwned] = useState<Record<string, number>>(() => {
-    try { return JSON.parse(localStorage.getItem(storageKey) ?? "{}") as Record<string, number>; }
-    catch { return {}; }
-  });
-  const updateOwned = (itemId: string, value: number) => {
-    const next = { ...owned, [itemId]: Math.max(0, Math.floor(Number.isFinite(value) ? value : 0)) };
-    setOwned(next);
-    localStorage.setItem(storageKey, JSON.stringify(next));
+  const [owned, setOwned] = useState<OwnedEquipmentCounts>(() => ({ ...ownedCounts }));
+  const close = () => {
+    if (JSON.stringify(owned) !== JSON.stringify(ownedCounts)) onOwnedCountsChange(owned);
+    onClose();
   };
-  return <div className="modal-backdrop equipment-needs-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+  const updateOwned = (itemId: string, qualityValue: Quality, value: string) => {
+    setOwned((current) => ({ ...current, [ownedEquipmentKey(itemId, qualityValue)]: normalizeOwnedCount(value) }));
+  };
+  return <div className="modal-backdrop equipment-needs-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) close(); }}>
     <section className="modal equipment-needs-modal" role="dialog" aria-modal="true" aria-labelledby="equipment-needs-title">
-      <header className="modal-header"><h2 id="equipment-needs-title">{title}</h2><button className="zys-button red" onClick={onClose}>关闭</button></header>
-      {needs.length ? <div className="equipment-needs-grid">{needs.map(({ item, count }) => {
-        const ownedCount = owned[item.id] ?? 0;
-        return <article key={item.id} className={ownedCount >= count ? "enough" : ""}>
+      <header className="modal-header"><h2 id="equipment-needs-title">{title}</h2><button className="zys-button red" onClick={close}>关闭</button></header>
+      {needs.length ? <div className="equipment-needs-grid">{needs.map(({ item, quality: qualityValue, category, requiredCount }) => {
+        const categoryLabel = equipmentNeedCategoryLabel[category];
+        const ownedKey = ownedEquipmentKey(item.id, qualityValue);
+        const inputValue = owned[ownedKey] ?? "";
+        const ownedCount = numericOwnedCount(owned, item.id, qualityValue);
+        const remaining = Math.max(0, requiredCount - ownedCount);
+        return <article key={`${category}-${item.id}-${qualityValue}`} className={remaining === 0 ? "enough" : ""}>
           <div className="equipment-need-tier"><small>阶数</small><strong>{item.tier}</strong></div>
-          <span className="equipment-need-type">{item.typeName}</span>
+          <span className="equipment-need-type">{item.typeName === categoryLabel ? categoryLabel : `${categoryLabel} · ${item.typeName}`}</span>
           <AssetImage path={item.spritePath} alt={item.name} className="equipment-need-art" />
           <strong title={item.name}>{item.name}</strong>
-          <div className="equipment-need-counts"><span>需要：<b>{count}</b></span><label>已有：<input aria-label={`已有 ${item.name}`} type="number" min={0} step={1} value={ownedCount} onChange={(event) => updateOwned(item.id, Number(event.target.value))} /></label></div>
+          <small className={`equipment-need-quality quality-text-${qualityValue}`}>{qualityDisplay[qualityValue]}</small>
+          <div className="equipment-need-counts">
+            <span>需要：<b className={ownedCount > 0 ? "owned-applied" : ""}>{requiredCount}</b>{ownedCount > 0 && <em className={remaining > 0 ? "missing" : "complete"}>({remaining})</em>}</span>
+            <label>已有：<input aria-label={`已有 ${item.name} ${qualityDisplay[qualityValue]}`} type="number" min={0} step={1} value={inputValue} onChange={(event) => updateOwned(item.id, qualityValue, event.target.value)} /></label>
+          </div>
         </article>;
       })}</div> : <div className="equipment-needs-empty">暂无装备需求</div>}
     </section>
@@ -1161,17 +1173,12 @@ function WorkspaceApp({ catalog, onCatalogChange }: { catalog: Catalog; onCatalo
   const heroes = useMemo(() => sortHeroesLikeOnline(workspace.active?.heroes ?? [], classes, sortMode), [classes, sortMode, workspace.active?.heroes]);
   const equipmentNeeds = useMemo(() => {
     if (!workspace.active || !equipmentNeedsKind) return [];
-    const itemIds = equipmentNeedsKind === "hero"
-      ? workspace.active.heroes.flatMap((hero) => hero.equipment.map((entry) => entry.itemId).filter((itemId): itemId is string => Boolean(itemId)))
-      : Object.values(workspace.active.championLoadouts ?? {}).flatMap((loadout) => [
-        loadout.familiarEquipment?.itemId ?? loadout.familiar,
-        loadout.auraSongEquipment?.itemId ?? loadout.aurasong,
-      ].filter((itemId): itemId is string => Boolean(itemId)));
-    const counts = new Map<string, number>();
-    itemIds.forEach((itemId) => counts.set(itemId, (counts.get(itemId) ?? 0) + 1));
-    return [...counts].map(([itemId, count]) => ({ item: catalog.items.find((item) => item.id === itemId), count }))
-      .filter((entry): entry is { item: CatalogItem; count: number } => Boolean(entry.item))
-      .sort((left, right) => right.item.tier - left.item.tier || left.item.typeName.localeCompare(right.item.typeName) || (left.item.sourceOrder ?? 0) - (right.item.sourceOrder ?? 0));
+    return collectEquipmentNeeds(
+      equipmentNeedsKind,
+      workspace.active.heroes,
+      workspace.active.championLoadouts ?? {},
+      catalog.items,
+    );
   }, [catalog.items, equipmentNeedsKind, workspace.active]);
 
   const selectSystem = (id: string) => {
@@ -1334,7 +1341,20 @@ function WorkspaceApp({ catalog, onCatalogChange }: { catalog: Catalog; onCatalo
       workspace.updateChampionLoadout(editingChampion.id, loadout);
     }} onSaveTemplate={(name, loadout) => saveBuildTemplate(name, `champion:${editingChampion.id}`, "champion-loadout", loadout)} />}
     {showTemplates && <TemplateManager templates={templates} onDelete={deleteBuildTemplate} onClose={() => setShowTemplates(false)} />}
-    {equipmentNeedsKind && <EquipmentNeedsModal kind={equipmentNeedsKind} needs={equipmentNeeds} onClose={() => setEquipmentNeedsKind(null)} />}
+    {equipmentNeedsKind && <EquipmentNeedsModal
+      kind={equipmentNeedsKind}
+      needs={equipmentNeeds}
+      ownedCounts={workspace.active.equipmentOwnedCounts?.[equipmentNeedsKind] ?? {}}
+      onOwnedCountsChange={(counts) => workspace.updateActive((system) => ({
+        ...system,
+        equipmentOwnedCounts: {
+          hero: system.equipmentOwnedCounts?.hero ?? {},
+          champion: system.equipmentOwnedCounts?.champion ?? {},
+          [equipmentNeedsKind]: counts,
+        },
+      }))}
+      onClose={() => setEquipmentNeedsKind(null)}
+    />}
     {showClassPicker && <ClassPickerModal catalog={catalog} heroIndex={workspace.active.heroes.length + 1} onClose={() => setShowClassPicker(false)} onChoose={(hero) => { workspace.addHero(hero.classId, hero); setShowClassPicker(false); }} />}
     {exportingSystem && <SystemExportModal system={exportingSystem} onClose={() => setExportingSystem(null)} onCopy={() => void copySystemConfig(exportingSystem)} />}
     {toast && <button className="toast" onClick={() => setToast("")}><Check size={16} />{toast}<X size={14} /></button>}

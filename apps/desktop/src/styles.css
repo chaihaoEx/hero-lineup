@@ -776,7 +776,7 @@ body { background: #f3f5fa; }
   max-height:calc(82vh - 72px);
   overflow:auto;
   display:grid;
-  grid-template-columns:repeat(5,minmax(150px,1fr));
+  grid-template-columns:repeat(4,minmax(150px,1fr));
   gap:12px;
   padding:20px;
 }
@@ -833,6 +833,16 @@ body { background: #f3f5fa; }
   white-space:nowrap;
   font-size:11px;
 }
+.equipment-need-quality {
+  min-height:14px;
+  font-size:9px;
+  font-weight:700;
+}
+.quality-text-普通 { color:#6f7581; }
+.quality-text-优质 { color:#2d8b50; }
+.quality-text-高级 { color:#2f69bf; }
+.quality-text-史诗 { color:#7049bd; }
+.quality-text-传说 { color:#b36a19; }
 .equipment-need-counts {
   width:100%;
   display:grid;
@@ -846,6 +856,10 @@ body { background: #f3f5fa; }
 }
 .equipment-need-counts span { text-align:center; }
 .equipment-need-counts b { color:#2e2c34; font-size:12px; }
+.equipment-need-counts b.owned-applied { text-decoration:line-through; color:#858a94; }
+.equipment-need-counts em { margin-left:2px; font-size:10px; font-style:normal; font-weight:700; }
+.equipment-need-counts em.missing { color:#d94242; }
+.equipment-need-counts em.complete { color:#279767; }
 .equipment-need-counts label { display:flex; align-items:center; gap:3px; }
 .equipment-need-counts input {
   width:46px;
@@ -871,4 +885,14 @@ body { background: #f3f5fa; }
   .equipment-studio .overview-slot-art { height:132px; }
   .champion-modal { grid-template-columns:52% 48%; }
   .equipment-needs-grid { grid-template-columns:repeat(4,minmax(140px,1fr)); }
+}
+
+@media (max-width:767px) {
+  .equipment-needs-modal { width:calc(100vw - 16px); max-height:90vh; }
+  .equipment-needs-grid {
+    max-height:calc(90vh - 72px);
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+    padding:12px;
+  }
 }

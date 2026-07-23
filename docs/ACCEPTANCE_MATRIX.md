@@ -19,7 +19,7 @@
 | A13 | 更新失败回滚 | 截断/篡改/预检失败/最低版本不符测试均证明旧目录与 `user.db` 不变；切换失败路径恢复备份目录 | 通过 |
 | A14 | UI 接近线上 | 在线与本地 1440 基准，以及 1280、1024、窄窗口、Retina 2× 截图；蓝紫色、白卡、阴影、分组、弹窗和四功能顺序均保留 | 通过 |
 | A15 | 正式运行代码可维护 | React/Rust 全部源码存在；构建资源不含 `reference/`，线上 bundle 只作为证据归档 | 通过 |
-| A16 | 质量门禁通过 | TypeScript strict、ESLint、fmt、clippy `-D warnings`、52 前端测试、53 Rust 测试、22 E2E、内容/离线校验全部通过 | 通过 |
+| A16 | 质量门禁通过 | TypeScript strict、ESLint、fmt、clippy `-D warnings`、55 前端测试、53 Rust 测试、23 E2E、内容/离线校验全部通过 | 通过 |
 | A17 | macOS/Windows 文档与配置 | 两平台 Tauri 配置、跨平台路径/交换格式、macOS 发布步骤与 Windows MSI/NSIS 文档齐全 | 通过 |
 | A18 | 完整实现而非脚手架 | A01–A17 均有交付物和可重复证据；剩余仅为公开证据不足的数值等价差异，并有明确影响范围 | 通过 |
 

@@ -102,3 +102,29 @@ test("生成勇士编辑器与装备需求统计验收截图", async ({ page }) 
   await page.screenshot({ path: path.join(outputDirectory, "local-champion-equipment-needs-1440x900.png") });
   await assertOffline(remoteRequests);
 });
+
+test("生成含装备与双附魔的英雄需求统计验收截图", async ({ page }) => {
+  const remoteRequests = await installOfflineGuard(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "添加英雄" }).click();
+  await page.locator(".class-picker-grid button").first().click();
+  await page.getByRole("button", { name: /空白模板/ }).click();
+  await page.getByRole("button", { name: "配装", exact: true }).click();
+  await page.getByRole("button", { name: "武器装备槽" }).click();
+  const picker = page.getByRole("dialog", { name: /装备选择 - 1/ });
+  await picker.locator(".item-grid button").first().click();
+  await picker.locator(".rarity-row").getByRole("button", { name: "传奇" }).click();
+  await picker.locator(".enchant-catalog-grid").first().getByRole("button").first().click();
+  await picker.locator(".spirit-catalog-grid").getByRole("button").first().click();
+  await picker.getByRole("button", { name: "关闭", exact: true }).click();
+  await page.getByRole("dialog", { name: /英雄配装模拟/ }).getByRole("button", { name: "关闭", exact: true }).click();
+  await page.locator("#heroes-section").getByRole("button", { name: "装备统计" }).click();
+  await expect(page.getByRole("dialog", { name: "英雄装备需求统计" })).toBeVisible();
+  await expect(page.locator(".equipment-needs-grid > article")).toHaveCount(3);
+  await expect(page.locator(".equipment-needs-grid > article").nth(0)).toContainText("装备");
+  await expect(page.locator(".equipment-needs-grid > article").nth(1)).toContainText("元素附魔");
+  await expect(page.locator(".equipment-needs-grid > article").nth(2)).toContainText("精萃附魔");
+  await page.screenshot({ path: path.join(outputDirectory, "local-hero-equipment-needs-1440x900.png") });
+  await assertOffline(remoteRequests);
+});

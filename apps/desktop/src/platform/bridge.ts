@@ -75,6 +75,7 @@ export function toCanonicalSystem(system: LineupSystem): CanonicalSystem {
         ...(loadout.auraSongEquipment ? { auraSong: toChampionEquipment(loadout.auraSongEquipment, "auraSong") } : {}),
         stats: loadout.stats ?? { attack: 0, defense: 0, health: 0, evasion: 0, crit: 0 }, cardLevels: {} };
     }),
+    equipmentOwnedCounts: system.equipmentOwnedCounts ?? { hero: {}, champion: {} },
     adventureTasks: system.taskGroups.flatMap((group) => group.tasks.map((task) => ({
       id: task.id, questId: task.questId ?? task.map, name: task.name, map: task.map, groupId: group.id,
       heroIds: task.memberIds.filter((id) => system.heroes.some((hero) => hero.id === id)),
@@ -117,6 +118,7 @@ export function fromCanonicalSystem(system: CanonicalSystem): LineupSystem {
       ...(champion.familiar ? { familiarEquipment: fromChampionEquipment(champion.familiar) } : {}),
       ...(champion.auraSong ? { auraSongEquipment: fromChampionEquipment(champion.auraSong) } : {}), stats: champion.stats,
     }])),
+    equipmentOwnedCounts: system.equipmentOwnedCounts ?? { hero: {}, champion: {} },
     taskGroups, createdAt: system.createdAt, updatedAt: system.updatedAt,
     schemaVersion: system.schemaVersion, gameDataVersion: system.gameDataVersion,
   };

@@ -19,6 +19,9 @@
 | 热门体系预览使用 `/systems/preview/{shortCode}` | `gameProfileHeroParser-CHtOPCtb.js` | 已确认 |
 | 任务模拟默认循环 10,000 次，并约每 5% 报进度 | `HeroLineup-DP_2OddU.js` | 已确认 |
 | 每个任务最多允许一名勇士；已有勇士时成员目录不再渲染任何其他勇士，但英雄仍可加入 | `HeroLineup-DP_2OddU.js` 中 `e.champions.length===0`；2026-07-23 在线黑盒双成员样本 | 已确认 |
+| 装备需求按主装备、元素附魔、精萃附魔分组，分组键为 `category_itemId_quality`；附魔继承所在槽品质 | `HeroLineup-DP_2OddU.js` 中 `GB` / `U` 聚合函数 | 已确认 |
+| 装备需求排序为类别、品质降序、阶数降序、中文名；桌面四列、移动端两列，空状态为“暂无装备需求” | `HeroLineup-DP_2OddU.js` 中 `GB` 的排序比较器与响应式分支 | 已确认 |
+| “已有”库存键只包含 `itemId_quality`；允许暂时清空，非空值向下取整并限制为非负；修改仅在关闭弹窗时回写体系 | `HeroLineup-DP_2OddU.js` 中 `m` / `F` / `C` / `H` | 已确认 |
 | 旧模拟器使用浏览器随机数，未提供固定随机种子 | `HeroLineup-DP_2OddU.js` | 已确认 |
 | 排行结果会 POST 到 hero/titan leaderboard API | `HeroLineup-DP_2OddU.js` | 已确认 |
 | 页面进入时调用工具访问统计 hook，入口包含 Socket.IO | `useToolVisit-D4381d2l.js`、`socket-BLRFddlS.js` | 已确认 |
