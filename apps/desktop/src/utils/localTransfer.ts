@@ -215,6 +215,17 @@ async function downloadCanvas(output: HTMLCanvasElement, filename: string): Prom
   window.setTimeout(() => URL.revokeObjectURL(href), 0);
 }
 
+async function copyCanvas(output: HTMLCanvasElement): Promise<void> {
+  if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
+    throw new Error("当前系统不支持复制 PNG 到剪贴板");
+  }
+  const blob = await new Promise<Blob>((resolve, reject) => output.toBlob((value) => {
+    if (value?.type === "image/png") resolve(value);
+    else reject(new Error("PNG 编码失败"));
+  }, "image/png"));
+  await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+}
+
 export async function exportLineupPng(system: LineupSystem, units: PartyUnit[]): Promise<void> {
   const rows = Math.max(system.heroes.length, system.championIds.length, 1);
   const [output, context] = canvas(1400, Math.max(700, 300 + rows * 82));
@@ -300,7 +311,7 @@ export async function exportChampionPng(champion: Champion, loadout: ChampionLoa
   await downloadCanvas(output, `${champion.name}-勇士配装`);
 }
 
-export async function exportSimulationPng(task: AdventureTask, result: SimulationResult, members: PartyUnit[]): Promise<void> {
+function renderSimulationPng(task: AdventureTask, result: SimulationResult, members: PartyUnit[]): HTMLCanvasElement {
   const [output, context] = canvas(1200, 760);
   context.fillStyle = "#282249";
   context.fillRect(0, 0, 1200, 170);
@@ -322,5 +333,14 @@ export async function exportSimulationPng(task: AdventureTask, result: Simulatio
   text(context, `模拟器 ${result.simulatorVersion} · 数据 ${result.gameDataVersion}`, 64, 624, 16, "#77819b");
   text(context, `完成时间 ${new Date(result.completedAt).toLocaleString()}`, 64, 665, 16, "#929aad");
   if (result.stale) text(context, "注意：数据版本已变化，此结果需要重新模拟", 64, 710, 17, "#a26d16", 650);
+  return output;
+}
+
+export async function exportSimulationPng(task: AdventureTask, result: SimulationResult, members: PartyUnit[]): Promise<void> {
+  const output = renderSimulationPng(task, result, members);
   await downloadCanvas(output, `${task.name}-模拟结果`);
+}
+
+export async function copySimulationPng(task: AdventureTask, result: SimulationResult, members: PartyUnit[]): Promise<void> {
+  await copyCanvas(renderSimulationPng(task, result, members));
 }

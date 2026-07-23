@@ -1393,6 +1393,57 @@ mod tests {
     }
 
     #[test]
+    fn current_online_t16_attack_defense_health_picker_and_totals_match_gold_samples() {
+        let catalog = catalog();
+        let stages = |item_id: &str, slot: EquipmentSlot| {
+            let item = catalog.items.get(item_id).unwrap();
+            let mut build = equipment(item_id, slot);
+            let normal = catalog.item_stats(item, &build);
+            build.quality = Quality::Legendary;
+            let legendary = catalog.item_stats(item, &build);
+            build.shiny = true;
+            let star_forged = catalog.item_stats(item, &build);
+            build.transcended = true;
+            let transcended = catalog.item_stats(item, &build);
+            (normal, legendary, star_forged, transcended, build)
+        };
+
+        // Captured from cq-zys.cn/hero-lineup on 2026-07-23.
+        let (weapon_base, weapon_legendary, weapon_star, weapon_transcended, weapon) =
+            stages("demondualwield", EquipmentSlot::Weapon);
+        assert_eq!(weapon_base.atk, 1780.0);
+        assert_eq!(weapon_legendary.atk, 5340.0);
+        assert_eq!(weapon_star.atk, 6675.0);
+        assert_eq!(weapon_transcended.atk, 7930.0);
+        assert_eq!(weapon_transcended.crit, 0.07);
+
+        let (body_base, body_legendary, body_star, body_transcended, body) =
+            stages("tombheavyarmor", EquipmentSlot::Body);
+        assert_eq!(body_base.def, 775.0);
+        assert_eq!(body_legendary.def, 2325.0);
+        assert_eq!(body_star.def, 2906.0);
+        assert_eq!(body_transcended.def, 3924.0);
+        assert_eq!(body_transcended.hp, 470.0);
+
+        let (potion_base, potion_legendary, potion_star, potion_transcended, potion) =
+            stages("tombpotion", EquipmentSlot::Feet);
+        assert_eq!(potion_base.hp, 171.0);
+        assert_eq!(potion_legendary.hp, 513.0);
+        assert_eq!(potion_star.hp, 641.0);
+        assert_eq!(potion_transcended.hp, 867.0);
+        assert_eq!(potion_transcended.atk, 348.0);
+
+        let mut build = knight(40, vec![weapon, body, potion]);
+        build.class_id = "soldier".to_owned();
+        let sheet = catalog.calculate_hero(&build);
+        assert!(sheet.issues.is_empty(), "{:?}", sheet.issues);
+        assert_eq!(sheet.stats.attack, 8628);
+        assert_eq!(sheet.stats.defense, 4374);
+        assert_eq!(sheet.stats.health, 1637);
+        assert!((sheet.stats.critical - 12.0).abs() < 1e-9);
+    }
+
+    #[test]
     fn soldier_skill_element_boundaries_and_class_cap_match_online_sample() {
         let catalog = catalog();
         let soldier = catalog.classes.get("soldier").unwrap();

@@ -44,7 +44,7 @@ test.describe("浏览器预览中的主要离线工作流", () => {
     await page.getByRole("button", { name: /T1 学徒短剑/ }).click();
     await page.getByRole("button", { name: /T4 .*余烬元素/ }).click();
     await page.getByRole("button", { name: /T14 比蒙精魂/ }).click();
-    await page.getByRole("button", { name: "完成选择" }).click();
+    await page.getByRole("dialog", { name: "装备选择 - 1" }).getByRole("button", { name: "关闭", exact: true }).click();
     await expect(page.getByLabel("自带技能 堡垒")).toBeVisible();
     await page.getByRole("button", { name: "技能 未选择" }).first().click();
     await page.getByRole("button", { name: "选择技能 裂痕" }).click();
