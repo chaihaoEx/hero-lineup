@@ -290,6 +290,14 @@ pub struct SimulationConfig {
     #[serde(default)]
     pub selected_element: Option<String>,
     pub titan_tower: bool,
+    pub xp_booster: u8,
+    pub tomb_curse_booster: u8,
+    pub adventure_mastery_xp: Option<bool>,
+    pub guild_xp_boost: Option<bool>,
+    pub event_xp_boost: Option<bool>,
+    pub tower_modifiers: Vec<String>,
+    pub tower_modifier_elements: BTreeMap<String, String>,
+    pub tomb_floor: Option<u16>,
 }
 
 impl Default for SimulationConfig {
@@ -303,6 +311,14 @@ impl Default for SimulationConfig {
             elite_kind: None,
             selected_element: None,
             titan_tower: false,
+            xp_booster: 0,
+            tomb_curse_booster: 0,
+            adventure_mastery_xp: None,
+            guild_xp_boost: None,
+            event_xp_boost: None,
+            tower_modifiers: Vec::new(),
+            tower_modifier_elements: BTreeMap::new(),
+            tomb_floor: None,
         }
     }
 }
@@ -1069,10 +1085,21 @@ mod tests {
     fn online_selected_element_roundtrips_in_simulation_config() {
         let config = SimulationConfig {
             selected_element: Some("force".into()),
+            xp_booster: 2,
+            adventure_mastery_xp: Some(false),
+            guild_xp_boost: Some(true),
+            event_xp_boost: Some(true),
+            tower_modifiers: vec!["powerful".into(), "ignoreelement".into()],
+            tower_modifier_elements: BTreeMap::from([("ignoreelement".into(), "fire".into())]),
+            tomb_floor: Some(31),
             ..SimulationConfig::default()
         };
         let encoded = serde_json::to_value(&config).unwrap();
         assert_eq!(encoded["selectedElement"], "force");
+        assert_eq!(encoded["xpBooster"], 2);
+        assert_eq!(encoded["towerModifiers"][1], "ignoreelement");
+        assert_eq!(encoded["towerModifierElements"]["ignoreelement"], "fire");
+        assert_eq!(encoded["tombFloor"], 31);
         assert_eq!(
             serde_json::from_value::<SimulationConfig>(encoded).unwrap(),
             config

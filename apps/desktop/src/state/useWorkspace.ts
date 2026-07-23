@@ -6,6 +6,11 @@ import type { AdventureTask, ChampionLoadout, Hero, LineupSystem, PartyUnit, Sim
 const clone = <T,>(value: T): T => structuredClone(value);
 const MAX_ADVENTURE_TASKS = 48;
 const taskCount = (system: LineupSystem) => system.taskGroups.reduce((sum, group) => sum + group.tasks.length, 0);
+const invalidateMemberResults = (system: LineupSystem, memberId: string) => {
+  system.taskGroups.forEach((group) => group.tasks.forEach((task) => {
+    if (task.memberIds.includes(memberId)) delete task.result;
+  }));
+};
 const barrierForQuest = (quest: CatalogQuest | undefined): AdventureTask["barrier"] => {
   if (!quest || quest.barrierPower <= 0) return {};
   const elements = quest.barrierElements?.length ? quest.barrierElements : quest.barrierElement ? [quest.barrierElement] : [];
@@ -115,18 +120,23 @@ export function useWorkspace(catalog: Catalog) {
 
   const updateHero = useCallback((hero: Hero) => updateActive((system) => {
     system.heroes = system.heroes.map((entry) => entry.id === hero.id ? hero : entry);
+    invalidateMemberResults(system, hero.id);
     return system;
   }), [updateActive]);
 
   const updateChampionLoadout = useCallback((id: string, loadout: ChampionLoadout) => updateActive((system) => {
     system.championLoadouts ??= {};
     system.championLoadouts[id] = loadout;
+    invalidateMemberResults(system, id);
     return system;
   }), [updateActive]);
 
   const deleteHero = useCallback((id: string) => updateActive((system) => {
     system.heroes = system.heroes.filter((hero) => hero.id !== id);
-    system.taskGroups.forEach((group) => group.tasks.forEach((task) => { task.memberIds = task.memberIds.filter((member) => member !== id); }));
+    system.taskGroups.forEach((group) => group.tasks.forEach((task) => {
+      if (task.memberIds.includes(id)) delete task.result;
+      task.memberIds = task.memberIds.filter((member) => member !== id);
+    }));
     return system;
   }), [updateActive]);
 
@@ -233,13 +243,19 @@ export function useWorkspace(catalog: Catalog) {
     const task = system.taskGroups.find((entry) => entry.id === groupId)?.tasks.find((entry) => entry.id === taskId);
     const championIds = new Set(catalog.champions.map((champion) => champion.id));
     const addingSecondChampion = championIds.has(unitId) && task?.memberIds.some((id) => championIds.has(id));
-    if (task && !addingSecondChampion && !task.memberIds.includes(unitId) && task.memberIds.length < task.maxMembers) task.memberIds.push(unitId);
+    if (task && !addingSecondChampion && !task.memberIds.includes(unitId) && task.memberIds.length < task.maxMembers) {
+      task.memberIds.push(unitId);
+      delete task.result;
+    }
     return system;
   }), [catalog, updateActive]);
 
   const removeUnit = useCallback((groupId: string, taskId: string, unitId: string) => updateActive((system) => {
     const task = system.taskGroups.find((entry) => entry.id === groupId)?.tasks.find((entry) => entry.id === taskId);
-    if (task) task.memberIds = task.memberIds.filter((id) => id !== unitId);
+    if (task) {
+      task.memberIds = task.memberIds.filter((id) => id !== unitId);
+      delete task.result;
+    }
     return system;
   }), [updateActive]);
 

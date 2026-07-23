@@ -6,10 +6,10 @@
 
 | 交付物 | 大小 | SHA-256 / 校验 |
 | --- | ---: | --- |
-| `target/release/bundle/macos/英雄体系搭配.app` | 38 MB | ad-hoc 签名；`codesign --verify --deep --strict` 通过 |
-| `target/release/bundle/dmg/英雄体系搭配_0.1.0_aarch64.dmg` | 25,147,742 字节 | `2475c803fa56bd74ee6490991c5693ebf9cf0f46ec1480bd813c7a82e9e1a66f`；最终 UI 修正后重建，`hdiutil verify` 与挂载后包内 `.app` 严格签名校验通过 |
+| `target/release/bundle/macos/英雄体系搭配.app` | 39 MB | ad-hoc 签名；`codesign --verify --deep --strict` 通过 |
+| `target/release/bundle/dmg/英雄体系搭配_0.1.0_aarch64.dmg` | 25,318,234 字节 | `bf64fa6a755f1b38e033d6d56a3cb806da4c26f38079b135329a7cec54352520`；最终任务条件、泰坦词条与旧结果失效逻辑修正后重建，`hdiutil verify` 通过 |
 | `dist/hero-data.zysdata` | 16 MB | `f0cb92dcaa528e56026c11d2d08267f69f4452676acf0492dd1953cbe39f4753`；`hero-data verify` 通过 |
-| `content/manifest.json` | 2,268 条目 | `d41c43046b82a1b863f7d16bbf61fc20cd3fc8778c6a831d13184bc810a497ac` |
+| `content/manifest.json` | 2,292 条目 | `3538fdd4eaebbca76c1238fb0871027f9b26eca42ccd7d216f19c1a1ad52e8b0` |
 
 `.app/Contents/Resources/content/manifest.json` 的 SHA-256 与源码 manifest 完全相同，当前均为 `3538fdd4eaebbca76c1238fb0871027f9b26eca42ccd7d216f19c1a1ad52e8b0`。原始数据含 15 条勇士记录；目标页公开阵容为 13 名（11 条正式记录，加以“塔马什/莱茵霍尔德”公开的 `leather/king` 两条记录，排除联动临时记录）。其余统计为 42 职业、391 任务、1,660 装备、544 技能、22,778 中文文本、2,276 Sprite，共 24,313,465 字节（manifest 自身除外）。
 

@@ -9,8 +9,8 @@ use hero_domain::{
 use hero_simulator::{
     simulate_advanced, AdvancedSimulationRequest, BarrierMode, BattleRules, BoosterBonus,
     CalculatedStats, CancellationToken, CombatRule, Combatant, Element, ElementBarrier,
-    ElementContribution, EliteKind, QuestEnemy, SimulationRequest as CoreSimulationRequest,
-    TitanFloorCorrection,
+    ElementContribution, EliteKind, EnvironmentModifier, QuestEnemy,
+    SimulationRequest as CoreSimulationRequest, TitanFloorCorrection,
 };
 use hero_storage::Storage;
 use serde::{Deserialize, Serialize};
@@ -114,6 +114,8 @@ struct CatalogQuest {
     map_sprite_path: Option<String>,
     difficulty_sprite_path: Option<String>,
     difficulty_background_path: Option<String>,
+    tower_modifier_limit: u64,
+    is_titan_tomb: bool,
     #[serde(skip)]
     map_order: u64,
 }
@@ -166,6 +168,22 @@ struct CatalogSkill {
     sprite_path: Option<String>,
     effects: Vec<String>,
     innate_effects: Vec<String>,
+    xp_to_attack: f64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct CatalogQuestModifier {
+    id: String,
+    family: String,
+    name: String,
+    description: String,
+    sprite_path: Option<String>,
+    classes: Option<String>,
+    min_tower_tier: u64,
+    max_tower_tier: u64,
+    min_tower_floor: u64,
+    max_tower_floor: u64,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -200,6 +218,7 @@ struct Catalog {
     quests: Vec<CatalogQuest>,
     items: Vec<CatalogItem>,
     skills: Vec<CatalogSkill>,
+    quest_modifiers: Vec<CatalogQuestModifier>,
     counts: CatalogCounts,
 }
 
@@ -1105,6 +1124,8 @@ fn load_catalog_from_content_dir(content_dir: &Path) -> Result<Catalog, String> 
                 map_sprite_path,
                 difficulty_sprite_path,
                 difficulty_background_path,
+                tower_modifier_limit: numeric(value, "miniboss").max(0.0) as u64,
+                is_titan_tomb: id.starts_with("titantower_tomb_"),
                 map_order,
             }
         })
@@ -1243,6 +1264,7 @@ fn load_catalog_from_content_dir(content_dir: &Path) -> Result<Catalog, String> 
             ),
             effects: skill_effects(value),
             innate_effects: innate_effects(value, raw_items),
+            xp_to_attack: numeric(value, "xpToAtk"),
         })
         .collect::<Vec<_>>();
     skills.sort_by(|left, right| {
@@ -1251,6 +1273,58 @@ fn load_catalog_from_content_dir(content_dir: &Path) -> Result<Catalog, String> 
             .then(left.tier.cmp(&right.tier))
             .then(left.name.cmp(&right.name))
     });
+
+    let quest_modifier_icon = |family: &str| match family.to_ascii_lowercase().as_str() {
+        "eagleeyed" => "eagleEyed".to_owned(),
+        "noweakness" => "noWeakness".to_owned(),
+        "elementalmaster" => "elementalMaster".to_owned(),
+        "rainbowelementalshield" => "rainbowElementalShield".to_owned(),
+        "steamroller" => "steamRoller".to_owned(),
+        known @ ("ambusher" | "armored" | "deadly" | "fortified" | "hate" | "massive"
+        | "powerful" | "prescient" | "resistance" | "slayer" | "slippery" | "swift"
+        | "vigorous") => known.to_owned(),
+        _ => "default".to_owned(),
+    };
+    let quest_modifiers = quest_modifiers
+        .iter()
+        .filter(|(id, value)| {
+            value.get("isTower").and_then(Value::as_bool) == Some(true)
+                && matches!(
+                    value.get("modifierProvider").and_then(Value::as_str),
+                    None | Some("miniboss")
+                )
+                && !matches!(id.as_str(), "agile" | "huge" | "dire" | "wealthy" | "epic")
+        })
+        .map(|(id, value)| {
+            let family = value
+                .get("family")
+                .and_then(Value::as_str)
+                .unwrap_or(id)
+                .to_owned();
+            CatalogQuestModifier {
+                id: id.clone(),
+                name: localized(texts, &[format!("{id}_name")], id),
+                description: localized(texts, &[format!("{id}_desc")], ""),
+                sprite_path: choose_sprite(
+                    &sprite_files,
+                    &[format!(
+                        "icon_tomb_modifier_{}.png",
+                        quest_modifier_icon(&family)
+                    )],
+                    "icon_tomb_modifier_default",
+                ),
+                family,
+                classes: value
+                    .get("classes")
+                    .and_then(Value::as_str)
+                    .map(str::to_owned),
+                min_tower_tier: numeric(value, "minTowerTier").max(0.0) as u64,
+                max_tower_tier: numeric(value, "maxTowerTier").max(0.0) as u64,
+                min_tower_floor: numeric(value, "minTowerFloor").max(0.0) as u64,
+                max_tower_floor: numeric(value, "maxTowerFloor").max(0.0) as u64,
+            }
+        })
+        .collect::<Vec<_>>();
 
     let statistics = manifest.get("statistics").unwrap_or(&Value::Null);
     Ok(Catalog {
@@ -1297,6 +1371,7 @@ fn load_catalog_from_content_dir(content_dir: &Path) -> Result<Catalog, String> 
         quests,
         items,
         skills,
+        quest_modifiers,
     })
 }
 
@@ -1774,6 +1849,12 @@ async fn start_simulation(
         .map_err(|_| "活动内容路径锁已损坏")?
         .clone();
     let quests = read_json(&content_root.join("TextAsset/quests.json"))?;
+    let quest_modifiers_document = read_json(&content_root.join("TextAsset/qmodifiers.json"))?;
+    let quest_modifiers = quest_modifiers_document
+        .get("qmodifiers")
+        .and_then(Value::as_object)
+        .or_else(|| quest_modifiers_document.as_object())
+        .ok_or("qmodifiers.json 不是对象")?;
     let quest = quests.get(quest_id).unwrap_or(&Value::Null);
     let quest_health = numeric(quest, "monsterHp");
     let quest_attack = numeric(quest, "dmg");
@@ -1905,6 +1986,38 @@ async fn start_simulation(
         default_barrier_health
     };
     let mut combat_rules = Vec::new();
+    let selected_tower_modifiers = request
+        .task
+        .pointer("/config/towerModifiers")
+        .and_then(Value::as_array)
+        .map(|values| values.iter().filter_map(Value::as_str).collect::<Vec<_>>())
+        .unwrap_or_default();
+    let mut tower_environment = EnvironmentModifier::default();
+    for modifier_id in selected_tower_modifiers {
+        let Some(modifier) = quest_modifiers.get(modifier_id) else {
+            continue;
+        };
+        let duration = numeric(modifier, "duration").max(0.0) as u32;
+        let damage_delta = numeric(modifier, "mDmg");
+        let critical_delta = numeric(modifier, "mCrit");
+        if duration > 0 && (damage_delta != 0.0 || critical_delta != 0.0) {
+            combat_rules.push(CombatRule::TimedMonsterModifier {
+                duration,
+                damage_delta,
+                critical_chance_delta: critical_delta,
+            });
+        } else {
+            tower_environment.monster_attack += damage_delta;
+            tower_environment.monster_critical_chance += critical_delta;
+        }
+        tower_environment.monster_health += numeric(modifier, "mHp");
+        tower_environment.monster_evasion += numeric(modifier, "mEva");
+        tower_environment.monster_critical_damage += numeric(modifier, "mCritMult");
+        let per_round = numeric(modifier, "mDmgPerRound");
+        if per_round != 0.0 {
+            combat_rules.push(CombatRule::MonsterDamagePerRound { delta: per_round });
+        }
+    }
     if defense_threshold > 0 {
         combat_rules.push(CombatRule::DefenseThreshold {
             threshold: defense_threshold,
@@ -1964,15 +2077,31 @@ async fn start_simulation(
                 "epic" => EliteKind::Epic,
                 _ => EliteKind::None,
             },
+            environment: tower_environment,
             titan_floor: titan_tower.then(|| TitanFloorCorrection {
                 floor: request
                     .task
-                    .pointer("/config/titanFloor")
+                    .pointer("/config/tombFloor")
+                    .or_else(|| request.task.pointer("/config/titanFloor"))
                     .and_then(Value::as_u64)
-                    .unwrap_or(1) as u16,
-                reduction: 0.0,
+                    .unwrap_or_else(|| {
+                        quest_id
+                            .strip_prefix("titantower")
+                            .and_then(|suffix| suffix.split('_').next())
+                            .and_then(|floor| floor.parse::<u64>().ok())
+                            .unwrap_or(1)
+                    }) as u16,
+                reduction: request
+                    .task
+                    .pointer("/config/tombCurseBooster")
+                    .and_then(Value::as_u64)
+                    .and_then(|level| {
+                        quest_modifiers
+                            .get(&format!("si_tombcurse{level}"))
+                            .map(|modifier| numeric(modifier, "tombCurse"))
+                    })
+                    .unwrap_or(0.0),
             }),
-            ..BattleRules::default()
         },
         combat_rules,
     };
@@ -2107,6 +2236,23 @@ mod tests {
         assert_eq!(catalog.quests.len(), 391);
         assert!(catalog.items.len() >= 1_600);
         assert_eq!(catalog.skills.len(), 544);
+        assert!(catalog.quest_modifiers.len() >= 35);
+        assert!(catalog
+            .quest_modifiers
+            .iter()
+            .any(|modifier| modifier.id == "ignoreelement"));
+        assert!(catalog
+            .quests
+            .iter()
+            .any(|quest| quest.is_titan_tomb && quest.tower_modifier_limit > 0));
+        assert_eq!(
+            catalog
+                .skills
+                .iter()
+                .find(|skill| skill.id == "a_artifactmagehat")
+                .map(|skill| skill.xp_to_attack),
+            Some(0.5)
+        );
         assert_eq!(catalog.counts.skills, 544);
         assert!(catalog.counts.sprites >= 2_200);
         assert_eq!(

@@ -69,6 +69,22 @@ export interface CatalogQuest {
   difficultySpritePath?: string;
   /** Optional layered background used by Titan Tower difficulty badges. */
   difficultyBackgroundPath?: string;
+  /** Online questData.miniboss; Titan Tower uses it as the selectable modifier limit. */
+  towerModifierLimit?: number;
+  isTitanTomb?: boolean;
+}
+
+export interface CatalogQuestModifier {
+  id: string;
+  family: string;
+  name: string;
+  description: string;
+  spritePath?: string;
+  classes?: string;
+  minTowerTier: number;
+  maxTowerTier: number;
+  minTowerFloor: number;
+  maxTowerFloor: number;
 }
 
 export interface CatalogItem {
@@ -134,6 +150,7 @@ export interface CatalogSkill {
   effects: string[];
   /** Numeric plus class-mechanic text shown under the fixed innate skill. */
   innateEffects?: string[];
+  xpToAttack?: number;
 }
 
 export interface Catalog {
@@ -145,6 +162,7 @@ export interface Catalog {
   quests: CatalogQuest[];
   items: CatalogItem[];
   skills: CatalogSkill[];
+  questModifiers: CatalogQuestModifier[];
   counts: { classes: number; champions: number; quests: number; items: number; skills: number; sprites: number };
 }
 
@@ -248,6 +266,7 @@ export const previewCatalog: Catalog = {
     { id: "p_cleave1", name: "裂痕", family: "p_cleave", tier: 1, classes: ["fighter"], rarity: 0, elements: 0, rank: 16, effects: ["攻击 +30%", "生命 +10"] },
     { id: "p_cleave4", name: "狱火风暴", family: "p_cleave", tier: 4, classes: ["fighter"], rarity: 0, elements: 150, rank: 18, effects: ["攻击 +80%", "生命 +75"] },
   ],
+  questModifiers: [],
   counts: { classes: 1, champions: 1, quests: 1, items: 3, skills: 4, sprites: 0 },
 };
 

@@ -811,6 +811,7 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
     catch { return false; }
   });
   const [boosterPicker, setBoosterPicker] = useState(false);
+  const [towerModifierPicker, setTowerModifierPicker] = useState(false);
   const [elitePicker, setElitePicker] = useState(false);
   const [barrierPicker, setBarrierPicker] = useState(false);
   const [questPicker, setQuestPicker] = useState(false);
@@ -825,10 +826,37 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
     && (showAllMembers || !assignedUnitIds.includes(unit.id)));
   const boosterLevel = task.config.boosterLevel ?? (task.config.booster ? 1 : 0);
   const boosterNames = ["无", "威力强化品", "超级威力强化品", "特级威力强化品"];
+  const xpBoosterNames = ["无", "经验强化品", "超级经验强化品", "特级经验强化品"];
+  const tombBoosterNames = ["无", "神圣提灯", "超级祝福灯笼", "巨型赐福灯笼"];
   const eliteKinds = [["none", "无"], ["agile", "敏捷"], ["huge", "巨大"], ["dire", "凶残"], ["wealthy", "富有"], ["epic", "传奇"]] as const;
   const eliteKind = task.config.eliteKind ?? (task.config.elite ? "epic" : "none");
   const currentQuest = quests.find((entry) => entry.id === task.questId);
   const currentQuestMapSprite = currentQuest?.mapSpritePath ?? currentQuest?.spritePath;
+  const supportsStandardModifiers = currentQuest?.category === "普通冒险";
+  const supportsElite = supportsStandardModifiers && !currentQuest?.isBoss;
+  const supportsTowerModifiers = currentQuest?.category === "泰坦塔" && (currentQuest.towerModifierLimit ?? 0) > 0;
+  const isTitanTomb = currentQuest?.isTitanTomb === true;
+  const hasXpToAttackArtifact = members.some((unit) => unit.kind === "hero" && unit.equipment.some((slot) => {
+    const item = catalog.items.find((entry) => entry.id === slot.itemId);
+    const skill = catalog.skills.find((entry) => entry.id === item?.skill);
+    const familySkill = catalog.skills.find((entry) => entry.id === skill?.family);
+    return skill?.family.startsWith("a_artifact") && (skill.xpToAttack ?? familySkill?.xpToAttack ?? 0) > 0;
+  }));
+  const xpBoosterLevel = task.config.xpBooster ?? 0;
+  const tombBoosterLevel = task.config.tombCurseBooster ?? 0;
+  const activeBoosterKind = tombBoosterLevel > 0 ? "tomb" : xpBoosterLevel > 0 ? "xp" : boosterLevel > 0 ? "atk" : "none";
+  const activeBoosterLevel = activeBoosterKind === "tomb" ? tombBoosterLevel : activeBoosterKind === "xp" ? xpBoosterLevel : boosterLevel;
+  const activeBoosterName = (activeBoosterKind === "tomb" ? tombBoosterNames[activeBoosterLevel]
+    : activeBoosterKind === "xp" ? xpBoosterNames[activeBoosterLevel] : boosterNames[activeBoosterLevel]) ?? "无";
+  const towerModifierLimit = currentQuest?.towerModifierLimit ?? 0;
+  const towerTier = currentQuest?.variantOrder ?? 0;
+  const tombFloor = Math.min(100, Math.max(1, task.config.tombFloor ?? 1));
+  const availableTowerModifiers = catalog.questModifiers.filter((modifier) =>
+    (modifier.minTowerTier <= 0 || towerTier >= modifier.minTowerTier)
+    && (modifier.maxTowerTier <= 0 || towerTier <= modifier.maxTowerTier)
+    && (!isTitanTomb || modifier.minTowerFloor <= 0 || tombFloor >= modifier.minTowerFloor)
+    && (!isTitanTomb || modifier.maxTowerFloor <= 0 || tombFloor <= modifier.maxTowerFloor));
+  const selectedTowerModifiers = task.config.towerModifiers ?? [];
   const barrierOptions = [...new Set([
     ...(currentQuest?.barrierElements ?? (currentQuest?.barrierElement ? [currentQuest.barrierElement] : [])),
     ...elements.filter((element) => (task.barrier[element] ?? 0) > 0),
@@ -840,6 +868,11 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
   const partyElementPower = Math.floor(Math.max(0, ...activeBarrierElements.map((element) => members
     .filter((unit) => unit.element === element)
     .reduce((sum, unit) => sum + (unit.stats.element ?? 0), 0))));
+  const updateTaskConfig = (config: AdventureTask["config"]) => {
+    const nextTask = { ...task, config };
+    delete nextTask.result;
+    onChange?.(nextTask);
+  };
   useEffect(() => {
     if (!details || !task.result) {
       setDetailImage(null);
@@ -858,7 +891,7 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
       if (!detailSurfaceRef.current) return;
       void captureElementPng(detailSurfaceRef.current)
         .then((image) => { if (active) setDetailImage(image); })
-        .catch((error: unknown) => { if (active) setMessage(error instanceof Error ? error.message : "图片准备失败，请关闭后重试"); })
+        .catch(() => { if (active) setMessage("图片准备失败，请关闭后重试"); })
         .finally(() => { if (active) setPreparingDetailImage(false); });
     }, 0);
     return () => {
@@ -867,9 +900,32 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
     };
   }, [details, task.result]);
   const selectQuest = (quest: CatalogQuest) => {
-    onChange?.({ ...task, questId: quest.id, name: quest.name, map: quest.mapName, difficulty: quest.difficulty,
-      maxMembers: quest.maxMembers, barrier: questBarrier(quest),
-      config: { ...task.config, titanTower: quest.category === "泰坦塔", selectedElement: undefined } });
+    const taskWithoutResult = structuredClone(task);
+    delete taskWithoutResult.result;
+    const heroIds = task.memberIds.filter((id) => units.find((unit) => unit.id === id)?.kind !== "champion");
+    const championIds = task.memberIds.filter((id) => units.find((unit) => unit.id === id)?.kind === "champion");
+    let overflow = Math.max(0, heroIds.length + championIds.length - quest.maxMembers);
+    if (overflow > 0) {
+      const championRemovals = Math.min(overflow, championIds.length);
+      championIds.splice(championIds.length - championRemovals, championRemovals);
+      overflow -= championRemovals;
+    }
+    if (overflow > 0) heroIds.splice(Math.max(0, heroIds.length - overflow), overflow);
+    const retainedMembers = new Set([...heroIds, ...championIds]);
+    onChange?.({ ...taskWithoutResult, questId: quest.id, name: quest.name, map: quest.mapName, difficulty: quest.difficulty,
+      maxMembers: quest.maxMembers, memberIds: task.memberIds.filter((id) => retainedMembers.has(id)), barrier: questBarrier(quest),
+      config: {
+        ...task.config,
+        elite: false,
+        eliteKind: "none",
+        titanTower: quest.category === "泰坦塔",
+        selectedElement: undefined,
+        towerModifiers: [],
+        towerModifierElements: {},
+        tombFloor: quest.isTitanTomb ? 1 : undefined,
+      } });
+    setElitePicker(false);
+    setBarrierPicker(false);
     setQuestPicker(false);
   };
 
@@ -893,12 +949,11 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
   const exportResult = () => {
     if (!detailImage) return;
     downloadPng(detailImage, `冒险模拟详情_${task.map}_${task.difficulty}_${Date.now()}`);
-    setMessage("模拟详情已导出为 PNG");
   };
   const copyResult = async () => {
     if (!detailImage) return;
-    try { await copyPng(detailImage); setMessage("模拟详情图片已复制"); }
-    catch (error) { setMessage(error instanceof Error ? error.message : "图片复制失败"); }
+    try { await copyPng(detailImage); setMessage("图片已复制到剪贴板"); }
+    catch { setMessage("复制失败，请使用下载功能"); }
   };
   const copyMemberConfig = async (unit: PartyUnit) => {
     try {
@@ -939,19 +994,44 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
   }}>
     <header className="online-quest-header">
       <button className="quest-switcher" title="点击切换地图" aria-label={`${task.name}切换地图`} onClick={() => setQuestPicker(true)}><span className="quest-switcher-art">{currentQuestMapSprite ? <AssetImage path={currentQuestMapSprite} alt={currentQuest?.mapLabel ?? task.map} /> : "◈"}</span></button>
-      <div className="online-quest-name"><GripVertical className="task-drag-handle" size={14} /><strong>{task.map}</strong>{currentQuest ? <QuestDifficultyArt quest={currentQuest} compact /> : <small>{task.difficulty}</small>}</div>
+      <div className="online-quest-name"><GripVertical className="task-drag-handle" size={14} /><strong>{task.map}{isTitanTomb ? `第${tombFloor}层` : ""}</strong>{currentQuest ? <QuestDifficultyArt quest={currentQuest} compact /> : <small>{task.difficulty}</small>}</div>
       {barrierOptions.length > 0 && selectedElement !== "force" && <span className="task-barrier-meter"><span>{barrierOptions.map((element) => <b className={`element-${element}`} key={element}>✦</b>)}</span><em className={partyElementPower >= barrierPower ? "broken" : ""}>{partyElementPower}/{barrierPower}</em></span>}
       <button className="online-card-action" aria-label="复制任务" disabled={!canDuplicate} onClick={onCopy}>克隆</button>
       <button className="online-delete-task" aria-label="删除任务" onClick={onDelete}>×</button>
     </header>
     {questPicker && <QuestPickerModal quests={quests} onChoose={selectQuest} onClose={() => setQuestPicker(false)} />}
     <div className="online-task-options">
-      <div><span>强化道具</span><button aria-label={`强化道具：${boosterNames[boosterLevel]}`} className={`task-square-option booster-${boosterLevel} ${boosterLevel > 0 ? "active" : ""}`} onClick={() => { setElitePicker(false); setBarrierPicker(false); setBoosterPicker(true); }}>{boosterLevel > 0 ? <><b>♦</b><small>{boosterLevel}</small></> : "+"}</button></div>
-      <div className="task-dropdown-container"><span>精英怪</span><button aria-label={`精英怪：${eliteKinds.find(([value]) => value === eliteKind)?.[1]}`} className={eliteKind !== "none" ? "active" : ""} onClick={() => { setBoosterPicker(false); setBarrierPicker(false); setElitePicker(!elitePicker); }}>{eliteKinds.find(([value]) => value === eliteKind)?.[1]}</button>{elitePicker && <div className="compact-task-dropdown" role="listbox" aria-label="精英怪类型">{eliteKinds.map(([value, label]) => <button role="option" aria-selected={eliteKind === value} key={value} className={eliteKind === value ? "active" : ""} onClick={() => { onChange?.({ ...task, config: { ...task.config, elite: value !== "none", eliteKind: value } }); setElitePicker(false); }}>{label}</button>)}</div>}</div>
-      {(barrierOptions.length > 0 || selectedElement) && <div className="task-dropdown-container"><span>元素屏障</span><button aria-label={`元素屏障：${selectedElementLabel}`} className={selectedElement ? "active" : ""} onClick={() => { setBoosterPicker(false); setElitePicker(false); setBarrierPicker(!barrierPicker); }}>{selectedElementLabel}</button>{barrierPicker && <div className="compact-task-dropdown barrier-task-dropdown" role="listbox" aria-label="元素屏障选择"><button role="option" aria-selected={!selectedElement} onClick={() => { onChange?.({ ...task, config: { ...task.config, selectedElement: undefined } }); setBarrierPicker(false); }}>自动</button>{barrierOptions.map((element) => <button role="option" aria-selected={selectedElement === elementToken[element]} key={element} className={`element-${element}`} onClick={() => { onChange?.({ ...task, config: { ...task.config, selectedElement: elementToken[element] } }); setBarrierPicker(false); }}>{element}</button>)}<button role="option" aria-selected={selectedElement === "force"} onClick={() => { onChange?.({ ...task, config: { ...task.config, selectedElement: "force" } }); setBarrierPicker(false); }}>无屏障</button></div>}</div>}
-      {task.config.titanTower && <label><input type="checkbox" checked onChange={(event) => onChange?.({ ...task, config: { ...task.config, titanTower: event.target.checked } })} />泰坦塔</label>}
+      <div><span>强化道具</span><button aria-label={`强化道具：${activeBoosterName}`} className={`task-square-option booster-${activeBoosterLevel} ${activeBoosterKind !== "none" ? "active" : ""}`} onClick={() => { setElitePicker(false); setBarrierPicker(false); setBoosterPicker(true); }}>{activeBoosterKind === "xp" ? <AssetImage path="Sprite/icon_global_boost_xpboost.png" alt={activeBoosterName} /> : activeBoosterKind === "tomb" ? <AssetImage path="Sprite/icon_global_skill_i_tomb.png" alt={activeBoosterName} /> : activeBoosterLevel > 0 ? <><b>♦</b><small>{activeBoosterLevel}</small></> : "+"}</button></div>
+      {hasXpToAttackArtifact && <div className="task-xp-options"><span>经验加成</span><div><button className={supportsStandardModifiers && task.config.adventureMasteryXp !== false ? "active" : ""} disabled={!supportsStandardModifiers} title="冒险精通 +20%经验 (+10%攻击)" onClick={() => updateTaskConfig({ ...task.config, adventureMasteryXp: task.config.adventureMasteryXp === false })}><AssetImage path="Sprite/icon_worker_xp_bonus.png" alt="冒险精通" /></button><button className={task.config.guildXpBoost !== false ? "active" : ""} title="公会经验强化 +25%经验 (+12.5%攻击)" onClick={() => updateTaskConfig({ ...task.config, guildXpBoost: task.config.guildXpBoost === false })}><AssetImage path="Sprite/icon_global_boost_xpboost.png" alt="公会经验" /></button><button className={task.config.eventXpBoost === true ? "active" : ""} title="小活动经验 +25%经验 (+12.5%攻击)" onClick={() => updateTaskConfig({ ...task.config, eventXpBoost: task.config.eventXpBoost !== true })}><AssetImage path="Sprite/icon_global_timer_sp.png" alt="小活动经验" /></button></div></div>}
+      {supportsElite && <div className="task-dropdown-container"><span>精英怪</span><button aria-label={`精英怪：${eliteKinds.find(([value]) => value === eliteKind)?.[1]}`} className={eliteKind !== "none" ? "active" : ""} onClick={() => { setBoosterPicker(false); setBarrierPicker(false); setElitePicker(!elitePicker); }}>{eliteKinds.find(([value]) => value === eliteKind)?.[1]}</button>{elitePicker && <div className="compact-task-dropdown" role="listbox" aria-label="精英怪类型">{eliteKinds.map(([value, label]) => <button role="option" aria-selected={eliteKind === value} key={value} className={eliteKind === value ? "active" : ""} onClick={() => { updateTaskConfig({ ...task.config, elite: value !== "none", eliteKind: value }); setElitePicker(false); }}>{label}</button>)}</div>}</div>}
+      {supportsTowerModifiers && <div className="task-dropdown-container"><span>词条</span><button aria-label={`词条：${selectedTowerModifiers.length}/${towerModifierLimit}`} className={selectedTowerModifiers.length ? "active" : ""} onClick={() => setTowerModifierPicker(true)}>{selectedTowerModifiers.length}/{towerModifierLimit}</button></div>}
+      {supportsStandardModifiers && (barrierOptions.length > 0 || selectedElement) && <div className="task-dropdown-container"><span>元素屏障</span><button aria-label={`元素屏障：${selectedElementLabel}`} className={selectedElement ? "active" : ""} onClick={() => { setBoosterPicker(false); setElitePicker(false); setBarrierPicker(!barrierPicker); }}>{selectedElementLabel}</button>{barrierPicker && <div className="compact-task-dropdown barrier-task-dropdown" role="listbox" aria-label="元素屏障选择"><button role="option" aria-selected={!selectedElement} onClick={() => { updateTaskConfig({ ...task.config, selectedElement: undefined }); setBarrierPicker(false); }}>自动</button>{barrierOptions.map((element) => <button role="option" aria-selected={selectedElement === elementToken[element]} key={element} className={`element-${element}`} onClick={() => { updateTaskConfig({ ...task.config, selectedElement: elementToken[element] }); setBarrierPicker(false); }}>{element}</button>)}<button role="option" aria-selected={selectedElement === "force"} onClick={() => { updateTaskConfig({ ...task.config, selectedElement: "force" }); setBarrierPicker(false); }}>无屏障</button></div>}</div>}
     </div>
-    {boosterPicker && <div className="nested-picker-backdrop booster-picker-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setBoosterPicker(false); }}><section className="booster-picker-dialog" role="dialog" aria-modal="true" aria-labelledby={`booster-picker-${task.id}`}><header><h3 id={`booster-picker-${task.id}`}>冒险强化道具</h3><button className="zys-button red" onClick={() => setBoosterPicker(false)}>关闭</button></header><strong>威力强化</strong><div>{([1, 2, 3] as const).map((level) => <button key={level} className={boosterLevel === level ? "active" : ""} title={level === 1 ? "攻防 +20% · 暴击 +10%" : level === 2 ? "攻防 +40% · 暴击 +15%" : "攻防 +80% · 暴击 +30% · 暴伤 +50%"} onClick={() => { const nextLevel = boosterLevel === level ? 0 : level; onChange?.({ ...task, config: { ...task.config, booster: nextLevel > 0, boosterLevel: nextLevel } }); setBoosterPicker(false); }}><b className={`booster-gem booster-gem-${level}`}>♦</b><span>{boosterNames[level]}</span></button>)}</div></section></div>}
+    {boosterPicker && <div className="nested-picker-backdrop booster-picker-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setBoosterPicker(false); }}><section className="booster-picker-dialog" role="dialog" aria-modal="true" aria-labelledby={`booster-picker-${task.id}`}><header><h3 id={`booster-picker-${task.id}`}>冒险强化道具</h3><button className="zys-button red" onClick={() => setBoosterPicker(false)}>关闭</button></header>{([
+      { kind: "atk", title: "威力强化", names: boosterNames, icon: undefined },
+      ...(hasXpToAttackArtifact ? [{ kind: "xp", title: "经验强化", names: xpBoosterNames, icon: "Sprite/icon_global_boost_xpboost.png" }] : []),
+      ...(isTitanTomb ? [{ kind: "tomb", title: "祝福灯笼（泰坦之墓）", names: tombBoosterNames, icon: "Sprite/icon_global_skill_i_tomb.png" }] : []),
+    ] as const).map((section) => <div className="booster-picker-section" key={section.kind}><strong>{section.title}</strong><div>{([1, 2, 3] as const).map((level) => <button key={level} className={activeBoosterKind === section.kind && activeBoosterLevel === level ? "active" : ""} onClick={() => {
+      const deselect = activeBoosterKind === section.kind && activeBoosterLevel === level;
+      updateTaskConfig({ ...task.config, booster: section.kind === "atk" && !deselect, boosterLevel: section.kind === "atk" && !deselect ? level : 0, xpBooster: section.kind === "xp" && !deselect ? level : 0, tombCurseBooster: section.kind === "tomb" && !deselect ? level : 0 });
+      setBoosterPicker(false);
+    }}>{section.icon ? <AssetImage path={section.icon} alt={section.names[level] ?? "强化道具"} /> : <b className={`booster-gem booster-gem-${level}`}>♦</b>}<span>{section.names[level]}</span></button>)}</div></div>)}</section></div>}
+    {towerModifierPicker && <div className="nested-picker-backdrop tower-modifier-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setTowerModifierPicker(false); }}><section className="tower-modifier-dialog" role="dialog" aria-modal="true" aria-labelledby={`tower-modifier-${task.id}`}><header><div><h3 id={`tower-modifier-${task.id}`}>选择词条 {selectedTowerModifiers.length}/{towerModifierLimit}</h3>{isTitanTomb && <span>第 {tombFloor} 层 <button disabled={tombFloor <= 1} onClick={() => updateTaskConfig({ ...task.config, tombFloor: tombFloor - 1, towerModifiers: [], towerModifierElements: {} })}>上一层</button><button disabled={tombFloor >= 100} onClick={() => updateTaskConfig({ ...task.config, tombFloor: tombFloor + 1, towerModifiers: [], towerModifierElements: {} })}>下一层</button></span>}</div><div><button onClick={() => {
+      const families = [...new Set(availableTowerModifiers.filter((entry) => entry.id !== "ignoreelement").map((entry) => entry.family))].sort(() => Math.random() - 0.5).slice(0, towerModifierLimit);
+      const randomIds = families.map((family) => availableTowerModifiers.filter((entry) => entry.family === family)[Math.floor(Math.random() * availableTowerModifiers.filter((entry) => entry.family === family).length)]!.id);
+      updateTaskConfig({ ...task.config, towerModifiers: randomIds, towerModifierElements: {} });
+    }}>随机</button><button className="zys-button red" onClick={() => setTowerModifierPicker(false)}>关闭</button></div></header><p className="tower-modifier-warning">同一词条家族只能选择一个；达到任务上限后需先取消已选词条。</p><div className="tower-modifier-grid">{availableTowerModifiers.map((modifier) => {
+      const selected = selectedTowerModifiers.includes(modifier.id);
+      const familySelected = selectedTowerModifiers.some((id) => catalog.questModifiers.find((entry) => entry.id === id)?.family === modifier.family);
+      const disabled = !selected && (selectedTowerModifiers.length >= towerModifierLimit || familySelected);
+      return <button key={modifier.id} className={selected ? "active" : ""} disabled={disabled} title={modifier.description} onClick={() => {
+        const next = selected ? selectedTowerModifiers.filter((id) => id !== modifier.id) : [...selectedTowerModifiers, modifier.id];
+        const modifierElements = { ...(task.config.towerModifierElements ?? {}) };
+        if (selected) delete modifierElements[modifier.id];
+        if (!selected && modifier.id === "ignoreelement") modifierElements[modifier.id] = ["fire", "water", "earth", "air", "light", "dark"].find((entry) => entry !== selectedElement) ?? "fire";
+        updateTaskConfig({ ...task.config, towerModifiers: next, towerModifierElements: modifierElements });
+      }}><AssetImage path={modifier.spritePath} alt={modifier.name} /><span><strong>{modifier.name}</strong><small>{modifier.description}</small></span></button>;
+    })}</div></section></div>}
     <div className="party-dropzone online-party-dropzone">
       {members.map((unit) => <button className="party-member online-party-member" key={unit.id} title={`移除 ${unit.name}`} onClick={() => onRemove(unit.id)}><span className="member-avatar-wrap"><UnitAvatar unit={unit} small /><MemberElementBadge unit={unit} catalog={catalog} className="task-member-element-badge" /><i>×</i></span><span>{unit.name}</span></button>)}
       {members.length < task.maxMembers && <button className="add-party-member online-add-member" aria-label="添加成员" onClick={() => setMemberPicker(true)}><Plus size={20} /><span>添加成员</span></button>}
@@ -964,7 +1044,7 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
     </div> : null}
     <div className="online-result-row">{task.result && <><span className="online-success-icon" aria-label="成功率">☺</span><strong>成功率: {task.result.successRate.toFixed(3)}%</strong><button onClick={() => setDetails(true)}>查看详情</button></>}<button className="online-test-button" onClick={() => void run()} disabled={!members.length}>测试冒险</button></div>
     {task.result?.stale && <small className="stale-result">数据版本已变化，请重新测试</small>}
-    {task.result && details && <div className="modal-backdrop simulation-detail-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setDetails(false); }}><section className="modal simulation-detail-modal" role="dialog" aria-modal="true" aria-labelledby={`simulation-detail-${task.id}`}><header className="modal-header"><h2 id={`simulation-detail-${task.id}`}>冒险模拟详情</h2><div className="modal-header-actions"><button aria-label="复制图片" className="zys-button blue" disabled={!detailImage || preparingDetailImage} onClick={() => void copyResult()}>{preparingDetailImage ? "准备中..." : "复制图片"}</button><button aria-label="下载图片" className="zys-button green" disabled={!detailImage || preparingDetailImage} onClick={() => void exportResult()}>{preparingDetailImage ? "准备中..." : "下载图片"}</button><button className="zys-button red" onClick={() => setDetails(false)}>关闭</button></div></header><div ref={detailSurfaceRef} className="simulation-export-surface"><div className="simulation-quest-banner"><div className="simulation-quest-title"><span className="quest-switcher-art">{currentQuestMapSprite ? <AssetImage path={currentQuestMapSprite} alt={task.map} /> : "◈"}</span><div><strong>{task.map}</strong>{currentQuest ? <QuestDifficultyArt quest={currentQuest} compact /> : <small>{task.difficulty}</small>}</div></div><dl><div><dt>冒险强化道具</dt><dd>{boosterLevel ? boosterNames[boosterLevel] : "无"}</dd></div><div><dt>精英怪</dt><dd>{eliteKinds.find(([value]) => value === eliteKind)?.[1]}</dd></div><div><dt>元素屏障</dt><dd>{selectedElementLabel}</dd></div></dl></div><div className="simulation-summary"><div><span>尝试次数</span><strong>{(task.result.iterations ?? 10000).toLocaleString()}</strong></div><div><span>成功率</span><strong>☹ {task.result.successRate.toFixed(2)}%</strong></div><div><span>平均回合数</span><strong>{task.result.averageTurns.toFixed(2)}</strong></div><div><span>最小回合数</span><strong>{task.result.minTurns}</strong></div><div><span>最大回合数</span><strong>{task.result.maxTurns}</strong></div></div><div className="simulation-member-summary">{members.map((unit) => { const memberResult = task.result?.memberResults?.find((entry) => entry.id === unit.id); const damage = memberResult?.averageDamage ?? task.result!.averageDamage; const remainingHealth = memberResult?.averageRemainingHealth ?? task.result!.averageRemainingHealth; const totalDamage = task.result!.memberResults?.reduce((sum, entry) => sum + entry.averageDamage, 0) ?? task.result!.averageDamage; return <article key={unit.id}><UnitAvatar unit={unit} small /><strong>{unit.name}</strong><span className="survival">☹ {(memberResult?.survivalRate ?? task.result!.survivalRate).toFixed(2)}%</span><span className="damage">⚔ {Math.round(damage).toLocaleString()} <em>({(damage / Math.max(1, totalDamage) * 100).toFixed(1)}%)</em></span><span className="remaining-health">♥ {Math.round(remainingHealth).toLocaleString()} <em>({(remainingHealth / Math.max(1, unit.stats.health) * 100).toFixed(1)}%)</em></span></article>; })}</div><div className="simulation-config-hint">✦ 点击职业图标导出配置码，在英雄体系搭配平台导入使用 ✦</div><div className={`simulation-members count-${members.length}`}>{members.map((unit) => <SimulationMemberConfig key={unit.id} unit={unit} catalog={catalog} onCopy={() => void copyMemberConfig(unit)} />)}</div><footer className="simulation-detail-footer">模拟器 {task.result.simulatorVersion} · 数据 {task.result.gameDataVersion}</footer></div></section></div>}
+    {task.result && details && <div className="modal-backdrop simulation-detail-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setDetails(false); }}><section className="modal simulation-detail-modal" role="dialog" aria-modal="true" aria-labelledby={`simulation-detail-${task.id}`}><header className="modal-header"><h2 id={`simulation-detail-${task.id}`}>冒险模拟详情</h2><div className="modal-header-actions"><button aria-label="复制图片" className="zys-button blue simulation-copy-image" disabled={!detailImage || preparingDetailImage} onClick={() => void copyResult()}>{preparingDetailImage ? "准备中..." : "复制图片"}</button><button aria-label="下载图片" className="zys-button green" disabled={!detailImage || preparingDetailImage} onClick={() => exportResult()}>{preparingDetailImage ? "准备中..." : "下载图片"}</button><button className="zys-button red" onClick={() => setDetails(false)}>关闭</button></div></header><div ref={detailSurfaceRef} className="simulation-export-surface">{preparingDetailImage && <div className="simulation-export-watermark">传奇智游社 cq-zys.cn</div>}<div className="simulation-quest-banner"><div className="simulation-quest-title"><span className="quest-switcher-art">{currentQuestMapSprite ? <AssetImage path={currentQuestMapSprite} alt={task.map} /> : "◈"}</span><div><strong>{task.map}{isTitanTomb ? `第${tombFloor}层` : ""}</strong>{currentQuest ? <QuestDifficultyArt quest={currentQuest} compact /> : <small>{task.difficulty}</small>}</div></div><dl><div><dt>冒险强化道具</dt><dd>{activeBoosterName}</dd></div>{hasXpToAttackArtifact && <div><dt>经验加成</dt><dd>{[supportsStandardModifiers && task.config.adventureMasteryXp !== false ? "冒险精通" : "", task.config.guildXpBoost !== false ? "公会强化" : "", task.config.eventXpBoost === true ? "经验小活动" : ""].filter(Boolean).join("、") || "无"}</dd></div>}{supportsElite && <div><dt>精英怪</dt><dd>{eliteKinds.find(([value]) => value === eliteKind)?.[1]}</dd></div>}{supportsTowerModifiers && <div><dt>词条</dt><dd>{selectedTowerModifiers.length ? selectedTowerModifiers.map((id) => catalog.questModifiers.find((entry) => entry.id === id)?.name ?? id).join("、") : "无"}</dd></div>}{supportsStandardModifiers && <div><dt>元素屏障</dt><dd>{selectedElementLabel}</dd></div>}</dl></div><div className="simulation-summary"><div><span>尝试次数</span><strong>{(task.result.iterations ?? 10000).toLocaleString()}</strong></div><div><span>成功率</span><strong>☹ {task.result.successRate.toFixed(2)}%</strong></div><div><span>平均回合数</span><strong>{task.result.averageTurns.toFixed(2)}</strong></div><div><span>最小回合数</span><strong>{task.result.minTurns}</strong></div><div><span>最大回合数</span><strong>{task.result.maxTurns}</strong></div></div><div className="simulation-member-summary">{members.map((unit) => { const memberResult = task.result?.memberResults?.find((entry) => entry.id === unit.id); const damage = memberResult?.averageDamage ?? task.result!.averageDamage; const remainingHealth = memberResult?.averageRemainingHealth ?? task.result!.averageRemainingHealth; const totalDamage = task.result!.memberResults?.reduce((sum, entry) => sum + entry.averageDamage, 0) ?? task.result!.averageDamage; return <article key={unit.id}><UnitAvatar unit={unit} small /><strong>{unit.name}</strong><span className="survival">☹ {(memberResult?.survivalRate ?? task.result!.survivalRate).toFixed(2)}%</span><span className="damage">⚔ {Math.round(damage).toLocaleString()} <em>({(damage / Math.max(1, totalDamage) * 100).toFixed(1)}%)</em></span><span className="remaining-health">♥ {Math.round(remainingHealth).toLocaleString()} <em>({(remainingHealth / Math.max(1, unit.stats.health) * 100).toFixed(1)}%)</em></span></article>; })}</div><div className="simulation-config-hint">✦ 点击职业图标导出配置码，在英雄体系搭配平台导入使用 ✦</div><div className={`simulation-members count-${members.length}`}>{members.map((unit) => <SimulationMemberConfig key={unit.id} unit={unit} catalog={catalog} onCopy={() => void copyMemberConfig(unit)} />)}</div><footer className="simulation-detail-footer">模拟器 {task.result.simulatorVersion} · 数据 {task.result.gameDataVersion}</footer></div></section></div>}
   </article>;
 }
 
@@ -1202,14 +1282,18 @@ function WorkspaceApp({ catalog, onCatalogChange }: { catalog: Catalog; onCatalo
 
   const exportCurrent = async (selectedSystem = workspace.active) => {
     if (!selectedSystem) return;
-    const payload = await desktopBridge.exportSystems([selectedSystem]);
-    if (desktopBridge.isDesktop()) {
-      if (await desktopBridge.saveInterchange(payload, selectedSystem.name, "zyslineup")) setToast("体系已导出为跨平台文件");
-      return;
+    try {
+      const payload = await desktopBridge.exportSystems([selectedSystem]);
+      if (desktopBridge.isDesktop()) {
+        if (await desktopBridge.saveInterchange(payload, selectedSystem.name, "zyslineup")) setToast("体系已导出为跨平台文件");
+        return;
+      }
+      const blob = new Blob([payload], { type: "application/json" });
+      const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `${selectedSystem.name}.zyslineup`; link.click(); URL.revokeObjectURL(link.href);
+      setToast("体系已导出为跨平台文件");
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "体系导出失败");
     }
-    const blob = new Blob([payload], { type: "application/json" });
-    const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `${selectedSystem.name}.zyslineup`; link.click(); URL.revokeObjectURL(link.href);
-    setToast("体系已导出为跨平台文件");
   };
 
   const importFile = async (file?: File) => {

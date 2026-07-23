@@ -26,6 +26,11 @@
 | 装备需求按主装备、元素附魔、精萃附魔分组，分组键为 `category_itemId_quality`；附魔继承所在槽品质 | `HeroLineup-DP_2OddU.js` 中 `GB` / `U` 聚合函数 | 已确认 |
 | 装备需求排序为类别、品质降序、阶数降序、中文名；桌面四列、移动端两列，空状态为“暂无装备需求” | `HeroLineup-DP_2OddU.js` 中 `GB` 的排序比较器与响应式分支 | 已确认 |
 | “已有”库存键只包含 `itemId_quality`；允许暂时清空，非空值向下取整并限制为非负；修改仅在关闭弹窗时回写体系 | `HeroLineup-DP_2OddU.js` 中 `m` / `F` / `C` / `H` | 已确认 |
+| 任务地图选择固定四页签；普通冒险、黄金城、快闪先选地图再选难度，泰坦塔先选楼层再选六种变体 | `MapSelectionModal-BM74KMOZ.js`；2026-07-23 在线黑盒操作 | 已确认 |
+| 普通非 Boss 冒险可显示精英怪，普通任务存在候选屏障时显示元素屏障；黄金城、泰坦塔、快闪基础状态不显示精英怪/屏障，也没有额外“泰坦塔”复选框；泰坦任务按 `miniboss` 显示词条入口，经验转攻击神器会额外激活经验强化与三项经验开关 | `HeroLineup-DP_2OddU.js` 的 `Un`、`Kn`、`jn`、`gt` 与任务选项组件；2026-07-23 逐类黑盒操作 | 已确认 |
+| 泰坦词条来自 `qmodifiers` 中 `isTower=true` 且 provider 为 miniboss 的记录；上限来自任务 `miniboss`，同 family 互斥；泰坦之墓额外支持 1–100 层与三档祝福灯笼 | `utils-B4Bv7ofN.js` 的 `ut/kn/yn/go/Sn`；`HeroLineup-DP_2OddU.js` 的词条与 Booster 模态 | 已确认 |
+| 切换地图保留已选强化道具，但重置精英怪为“无”、清空屏障选择和旧模拟结果 | `HeroLineup-DP_2OddU.js` 的任务选择回调；2026-07-23 普通→黄金城→普通黑盒操作 | 已确认 |
+| 模拟详情打开后自动以 2× 像素比准备图片；准备失败提示“图片准备失败，请关闭后重试”，复制失败提示“复制失败，请使用下载功能”，移动端不显示复制按钮 | `QuestSimulationDetailModal-CBZ7rik_.js` | 已确认 |
 | 旧模拟器使用浏览器随机数，未提供固定随机种子 | `HeroLineup-DP_2OddU.js` | 已确认 |
 | 排行结果会 POST 到 hero/titan leaderboard API | `HeroLineup-DP_2OddU.js` | 已确认 |
 | 页面进入时调用工具访问统计 hook，入口包含 Socket.IO | `useToolVisit-D4381d2l.js`、`socket-BLRFddlS.js` | 已确认 |

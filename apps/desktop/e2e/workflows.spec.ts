@@ -178,6 +178,9 @@ test.describe("浏览器预览中的主要离线工作流", () => {
     await picker.getByRole("button", { name: /奇异/ }).click();
     await expect(task).toContainText("泰坦之塔1层");
     await expect(task.getByLabel("奇异")).toBeVisible();
+    await expect(task.getByText("精英怪")).toHaveCount(0);
+    await expect(task.getByText("元素屏障")).toHaveCount(0);
+    await expect(task.locator("label", { hasText: "泰坦塔" })).toHaveCount(0);
     await assertOffline(remoteRequests);
   });
 
@@ -191,10 +194,9 @@ test.describe("浏览器预览中的主要离线工作流", () => {
     });
     await expect(page.getByText("规范校验与持久化导入仅在桌面应用中可用")).toBeVisible();
 
-    const exportError = page.waitForEvent("pageerror");
     await page.locator(".local-maintenance summary").click();
     await page.getByRole("button", { name: "导出体系" }).click();
-    await expect(exportError).resolves.toHaveProperty("message", "规范校验与 checksum 导出仅在桌面应用中可用");
+    await expect(page.getByText("规范校验与 checksum 导出仅在桌面应用中可用")).toBeVisible();
     test.info().annotations.push({
       type: "native-boundary",
       description: "浏览器 E2E 只证明导入/导出入口与原生边界；文件对话框、checksum、SQLite 和原子写入需 Tauri 集成测试证明。",

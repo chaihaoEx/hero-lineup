@@ -110,6 +110,14 @@ export interface SimulationConfig {
   /** Online selectedElement: undefined=automatic quest barrier, force=no barrier. */
   selectedElement?: "fire" | "water" | "earth" | "air" | "light" | "dark" | "force" | undefined;
   titanTower: boolean;
+  xpBooster?: 0 | 1 | 2 | 3 | undefined;
+  tombCurseBooster?: 0 | 1 | 2 | 3 | undefined;
+  adventureMasteryXp?: boolean | undefined;
+  guildXpBoost?: boolean | undefined;
+  eventXpBoost?: boolean | undefined;
+  towerModifiers?: string[] | undefined;
+  towerModifierElements?: Record<string, string> | undefined;
+  tombFloor?: number | undefined;
 }
 
 export interface SimulationResult {

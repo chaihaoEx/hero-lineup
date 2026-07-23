@@ -483,6 +483,40 @@ test("mirrors the online map, booster and elite selection flows", async () => {
   await user.click(screen.getByRole("button", { name: "精英怪：无" }));
   await user.click(screen.getByRole("option", { name: "巨大" }));
   expect(screen.getByRole("button", { name: "精英怪：巨大" })).toBeInTheDocument();
+
+  await user.click(screen.getByRole("button", { name: /切换地图/ }));
+  await user.click(screen.getByRole("button", { name: "泰坦塔" }));
+  await user.click(screen.getByRole("button", { name: /第1层/ }));
+  await user.click(within(screen.getByRole("dialog", { name: "选择冒险任务" })).getByRole("button", { name: /阿尔法/ }));
+  const task = document.querySelector<HTMLElement>(".task-card")!;
+  expect(within(task).getByRole("button", { name: "强化道具：超级威力强化品" })).toBeInTheDocument();
+  expect(within(task).queryByRole("button", { name: /精英怪/ })).not.toBeInTheDocument();
+  expect(within(task).queryByText("元素屏障")).not.toBeInTheDocument();
+  expect(within(task).queryByText("泰坦塔", { selector: "label" })).not.toBeInTheDocument();
+
+  await user.click(within(task).getByRole("button", { name: /切换地图/ }));
+  await user.click(screen.getByRole("button", { name: "普通冒险" }));
+  await user.click(screen.getByRole("button", { name: /咆哮森林/ }));
+  await user.click(screen.getByRole("button", { name: /简单/ }));
+  expect(within(task).getByRole("button", { name: "精英怪：无" })).toBeInTheDocument();
+  expect(within(task).getByRole("button", { name: "强化道具：超级威力强化品" })).toBeInTheDocument();
+});
+
+test("invalidates an old simulation result when a task option changes", async () => {
+  const systems = JSON.parse(localStorage.getItem("zys.hero-lineup.systems.v1")!) as ReturnType<typeof makeDefaultSystem>[];
+  systems[0]!.taskGroups[0]!.tasks[0]!.result = {
+    iterations: 10000, successRate: 88, averageTurns: 3, minTurns: 2, maxTurns: 5,
+    survivalRate: 90, averageDamage: 100, averageRemainingHealth: 200,
+    simulatorVersion: "old", gameDataVersion: previewCatalog.gameDataVersion, completedAt: new Date().toISOString(),
+  };
+  localStorage.setItem("zys.hero-lineup.systems.v1", JSON.stringify(systems));
+  const user = userEvent.setup();
+  render(<App />);
+  await appReady();
+  expect(screen.getByRole("button", { name: "查看详情" })).toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "强化道具：无" }));
+  await user.click(screen.getAllByRole("button", { name: /威力强化品$/ })[0]!);
+  expect(screen.queryByRole("button", { name: "查看详情" })).not.toBeInTheDocument();
 });
 
 test("uses the online two-stage Titan Tower floor and variant flow", async () => {
@@ -502,6 +536,83 @@ test("uses the online two-stage Titan Tower floor and variant flow", async () =>
   expect(task).toHaveTextContent("泰坦之塔1层");
   expect(within(task).getByLabelText("奇异")).toBeInTheDocument();
   expect(within(task).getByAltText("第1层")).toHaveAttribute("src", expect.stringContaining("icon_global_questarea_titantower_small"));
+});
+
+test("shows the online Titan modifier count and enforces one entry per family", async () => {
+  const towerCatalog = structuredClone(previewCatalog);
+  towerCatalog.quests.filter((quest) => quest.category === "泰坦塔").forEach((quest) => { quest.towerModifierLimit = 2; });
+  towerCatalog.questModifiers = [
+    { id: "powerful", family: "powerful", name: "强力", description: "怪物攻击提高", minTowerTier: 0, maxTowerTier: 0, minTowerFloor: 0, maxTowerFloor: 0 },
+    { id: "mythical", family: "powerful", name: "神话", description: "同家族高级词条", minTowerTier: 0, maxTowerTier: 0, minTowerFloor: 0, maxTowerFloor: 0 },
+    { id: "swift", family: "swift", name: "迅捷", description: "怪物速度提高", minTowerTier: 0, maxTowerTier: 0, minTowerFloor: 0, maxTowerFloor: 0 },
+  ];
+  vi.spyOn(desktopBridge, "loadCatalog").mockResolvedValue(towerCatalog);
+  const user = userEvent.setup();
+  render(<App />);
+  await appReady();
+  await user.click(screen.getByRole("button", { name: /切换地图/ }));
+  await user.click(screen.getByRole("button", { name: "泰坦塔" }));
+  await user.click(screen.getByRole("button", { name: /第1层/ }));
+  await user.click(within(screen.getByRole("dialog", { name: "选择冒险任务" })).getByRole("button", { name: /阿尔法/ }));
+  await user.click(screen.getByRole("button", { name: "词条：0/2" }));
+  const modifiers = screen.getByRole("dialog", { name: "选择词条 0/2" });
+  await user.click(within(modifiers).getByRole("button", { name: /强力/ }));
+  expect(within(modifiers).getByRole("button", { name: /神话/ })).toBeDisabled();
+  expect(screen.getByRole("heading", { name: "选择词条 1/2" })).toBeInTheDocument();
+  await user.click(within(modifiers).getByRole("button", { name: /迅捷/ }));
+  expect(screen.getByRole("heading", { name: "选择词条 2/2" })).toBeInTheDocument();
+});
+
+test("reveals XP boosters and the three online XP toggles only for an XP-to-attack artifact", async () => {
+  const xpCatalog = structuredClone(previewCatalog);
+  xpCatalog.items.push({ id: "magehat", name: "学者帽", itemType: "hh", typeName: "帽子", tier: 15, skill: "a_artifactmagehat" });
+  xpCatalog.skills.push({ id: "a_artifactmagehat", name: "导师之帽", family: "a_artifactmagehat", tier: 1, classes: [], rarity: 0, elements: 0, rank: 0, effects: [], xpToAttack: 0.5 });
+  vi.spyOn(desktopBridge, "loadCatalog").mockResolvedValue(xpCatalog);
+  const systems = JSON.parse(localStorage.getItem("zys.hero-lineup.systems.v1")!) as ReturnType<typeof makeDefaultSystem>[];
+  systems[0]!.heroes[0]!.equipment[0]!.itemId = "magehat";
+  localStorage.setItem("zys.hero-lineup.systems.v1", JSON.stringify(systems));
+  const user = userEvent.setup();
+  render(<App />);
+  await appReady();
+  expect(screen.getByText("经验加成")).toBeInTheDocument();
+  expect(screen.getByTitle("冒险精通 +20%经验 (+10%攻击)")).toHaveClass("active");
+  expect(screen.getByTitle("公会经验强化 +25%经验 (+12.5%攻击)")).toHaveClass("active");
+  expect(screen.getByTitle("小活动经验 +25%经验 (+12.5%攻击)")).not.toHaveClass("active");
+  await user.click(screen.getByRole("button", { name: "强化道具：无" }));
+  expect(screen.getByText("经验强化")).toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: /超级经验强化品/ }));
+  expect(screen.getByRole("button", { name: "强化道具：超级经验强化品" })).toBeInTheDocument();
+});
+
+test("trims champions first and clears the old result when a new map has fewer party slots", async () => {
+  const systems = JSON.parse(localStorage.getItem("zys.hero-lineup.systems.v1")!) as ReturnType<typeof makeDefaultSystem>[];
+  const first = systems[0]!.heroes[0]!;
+  const second = { ...structuredClone(first), id: crypto.randomUUID(), name: "骑士2" };
+  const third = { ...structuredClone(first), id: crypto.randomUUID(), name: "骑士3" };
+  systems[0]!.heroes.push(second, third);
+  const taskState = systems[0]!.taskGroups[0]!.tasks[0]!;
+  taskState.memberIds = [first.id, second.id, third.id, "argon"];
+  taskState.result = {
+    successRate: 99, averageTurns: 1, minTurns: 1, maxTurns: 1, survivalRate: 100,
+    averageDamage: 1, averageRemainingHealth: 1, simulatorVersion: "old", gameDataVersion: previewCatalog.gameDataVersion,
+    completedAt: new Date().toISOString(),
+  };
+  localStorage.setItem("zys.hero-lineup.systems.v1", JSON.stringify(systems));
+  const user = userEvent.setup();
+  render(<App />);
+  await appReady();
+  const task = document.querySelector<HTMLElement>(".task-card")!;
+  expect(within(task).getByRole("button", { name: "查看详情" })).toBeInTheDocument();
+  expect(within(task).getByTitle("移除 阿尔贡")).toBeInTheDocument();
+
+  await user.click(within(task).getByRole("button", { name: /切换地图/ }));
+  await user.click(screen.getByRole("button", { name: "泰坦塔" }));
+  await user.click(screen.getByRole("button", { name: /第1层/ }));
+  await user.click(screen.getByRole("button", { name: /阿尔法/ }));
+
+  expect(task.querySelectorAll(".online-party-member")).toHaveLength(3);
+  expect(within(task).queryByTitle("移除 阿尔贡")).not.toBeInTheDocument();
+  expect(within(task).queryByRole("button", { name: "查看详情" })).not.toBeInTheDocument();
 });
 
 test("enforces the online 48-adventure limit across add group, add task and clone controls", async () => {
@@ -599,6 +710,13 @@ test("shows the online-style full member configuration in simulation details", a
   expect(dialog.querySelectorAll(".simulation-member-summary article")).toHaveLength(2);
   expect(dialog.querySelectorAll(".simulation-config-card")).toHaveLength(2);
   expect(dialog.querySelectorAll(".simulation-config-equipment > div")).toHaveLength(8);
+
+  Object.defineProperty(navigator, "clipboard", {
+    configurable: true,
+    value: { write: vi.fn().mockRejectedValue(new Error("permission denied")) },
+  });
+  await user.click(screen.getByRole("button", { name: "复制图片" }));
+  expect(screen.getByText("复制失败，请使用下载功能")).toBeInTheDocument();
 });
 
 test("saves, applies and deletes a local equipment template", async () => {
