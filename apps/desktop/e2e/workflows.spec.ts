@@ -138,9 +138,20 @@ test.describe("浏览器预览中的主要离线工作流", () => {
     await page.getByRole("button", { name: "添加分组" }).click();
     const task = page.locator(".task-card").first();
     await task.getByRole("button", { name: /切换地图/ }).click();
+    const picker = page.getByRole("dialog", { name: "选择冒险任务" });
+    await expect(picker.getByRole("heading", { name: "选择冒险任务" })).toHaveCSS("font-size", "24px");
+    await expect(picker.getByRole("button", { name: "关闭", exact: true })).toHaveCSS("font-size", "16px");
+    await expect.poll(() => picker.locator(".quest-map-grid").evaluate((grid) =>
+      getComputedStyle(grid).gridTemplateColumns.split(" ").length,
+    )).toBe(10);
+    await expect.poll(() => picker.locator(".quest-map-grid img").first().evaluate((image) =>
+      Math.round(image.getBoundingClientRect().width),
+    )).toBe(64);
     await page.getByRole("button", { name: "泰坦塔" }).click();
     await page.getByRole("button", { name: "第1层" }).click();
-    const picker = page.getByRole("dialog", { name: "选择冒险任务" });
+    await expect.poll(() => picker.locator(".quest-difficulty-grid").evaluate((grid) =>
+      getComputedStyle(grid).gridTemplateColumns.split(" ").length,
+    )).toBe(12);
     for (const variant of ["阿尔法", "贝塔", "伽马", "德尔塔", "艾普斯龙", "奇异"]) {
       await expect(picker.getByRole("button", { name: new RegExp(variant) })).toBeVisible();
     }
@@ -148,6 +159,9 @@ test.describe("浏览器预览中的主要离线工作流", () => {
     await expect.poll(() => picker.locator(".quest-difficulty-art.titan img").evaluateAll((images) =>
       images.every((image) => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0),
     )).toBe(true);
+    await expect.poll(() => picker.locator(".quest-difficulty-art.titan").first().evaluate((art) =>
+      Math.round(art.getBoundingClientRect().width),
+    )).toBe(48);
     await page.screenshot({ path: "../../reference/screenshots/local-titan-tower-variants-1440x900.png", fullPage: false });
     await picker.getByRole("button", { name: /奇异/ }).click();
     await expect(task).toContainText("泰坦之塔1层");

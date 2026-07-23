@@ -2168,10 +2168,14 @@ mod tests {
         assert_eq!(meteor_zone.barrier_elements, vec!["暗", "光", "土"]);
         assert_eq!(meteor_zone.barrier_power, 320.0);
         let mut unique_normal_maps = Vec::new();
+        let mut unique_gold_maps = Vec::new();
+        let mut unique_titan_maps = Vec::new();
         let mut unique_flash_maps = Vec::new();
         for quest in &catalog.quests {
             let target = match quest.category.as_str() {
                 "普通冒险" => &mut unique_normal_maps,
+                "黄金城" => &mut unique_gold_maps,
+                "泰坦塔" => &mut unique_titan_maps,
                 "快闪" => &mut unique_flash_maps,
                 _ => continue,
             };
@@ -2217,6 +2221,23 @@ mod tests {
                 "space01",
                 "space05",
             ]
+        );
+        assert_eq!(
+            unique_gold_maps
+                .iter()
+                .map(|quest| quest.id.as_str())
+                .collect::<Vec<_>>(),
+            vec!["goldcity01", "goldcity12"]
+        );
+        assert_eq!(
+            unique_titan_maps
+                .iter()
+                .map(|quest| quest.map_label.as_deref().unwrap_or(""))
+                .collect::<Vec<_>>(),
+            (1..=30)
+                .map(|floor| format!("第{floor}层"))
+                .chain(std::iter::once("泰坦之墓".to_owned()))
+                .collect::<Vec<_>>()
         );
         assert_eq!(
             unique_flash_maps

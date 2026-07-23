@@ -41,3 +41,42 @@ test("渲染后的 DOM 不包含远程资源地址", async ({ page }) => {
   expect(remoteDomUrls).toEqual([]);
   await assertOffline(remoteRequests);
 });
+
+test("地图和难度目录沿用线上响应式列数", async ({ page }) => {
+  const remoteRequests = await installOfflineGuard(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  await page.getByRole("button", { name: /冒险任务/ }).click();
+  await page.getByRole("button", { name: "添加分组" }).click();
+  await page.locator(".task-card").first().getByRole("button", { name: /切换地图/ }).click();
+  const picker = page.getByRole("dialog", { name: "选择冒险任务" });
+  const mapColumns = [
+    { width: 390, expected: 4 },
+    { width: 640, expected: 6 },
+    { width: 768, expected: 6 },
+    { width: 1024, expected: 8 },
+    { width: 1280, expected: 10 },
+  ];
+  for (const sample of mapColumns) {
+    await page.setViewportSize({ width: sample.width, height: 900 });
+    await expect.poll(() => picker.locator(".quest-map-grid").evaluate((grid) =>
+      getComputedStyle(grid).gridTemplateColumns.split(" ").length,
+    )).toBe(sample.expected);
+  }
+
+  await picker.locator(".quest-map-grid button").first().click();
+  const difficultyColumns = [
+    { width: 390, expected: 4 },
+    { width: 640, expected: 6 },
+    { width: 768, expected: 8 },
+    { width: 1024, expected: 12 },
+    { width: 1280, expected: 12 },
+  ];
+  for (const sample of difficultyColumns) {
+    await page.setViewportSize({ width: sample.width, height: 900 });
+    await expect.poll(() => picker.locator(".quest-difficulty-grid").evaluate((grid) =>
+      getComputedStyle(grid).gridTemplateColumns.split(" ").length,
+    )).toBe(sample.expected);
+  }
+  await assertOffline(remoteRequests);
+});
