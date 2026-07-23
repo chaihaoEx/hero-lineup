@@ -77,6 +77,26 @@ test("creates a system through the same two-tab dialog flow as online", async ()
   expect(document.querySelector(".online-system-card.active p")).toHaveTextContent("私有");
 });
 
+test("matches online system-card deletion visibility and deletes the targeted card", async () => {
+  const user = userEvent.setup();
+  const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
+  render(<App />);
+  await appReady();
+  expect(screen.queryByRole("button", { name: /删除体系/ })).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "保存当前体系" })).toBeInTheDocument();
+
+  await user.click(screen.getByRole("button", { name: "新增体系" }));
+  await user.type(screen.getByLabelText("新体系名称"), "第二体系");
+  await user.click(screen.getByRole("button", { name: /^创建$/ }));
+  expect(screen.getAllByRole("button", { name: /删除体系/ })).toHaveLength(2);
+  await user.click(screen.getByRole("button", { name: "删除体系 默认体系" }));
+
+  expect(confirm).toHaveBeenCalledWith("删除这个阵容体系吗？此操作不可恢复。");
+  await waitFor(() => expect(screen.queryByText("默认体系", { selector: ".online-system-card > strong" })).not.toBeInTheDocument());
+  expect(document.querySelector(".online-system-card.active > strong")).toHaveTextContent("第二体系");
+  expect(screen.queryByRole("button", { name: /删除体系/ })).not.toBeInTheDocument();
+});
+
 test("explains why an online six-character system code cannot resolve offline", async () => {
   const user = userEvent.setup();
   render(<App />);
@@ -408,7 +428,7 @@ test("selects the online automatic, element and no-barrier modes", async () => {
   expect(screen.getByRole("button", { name: "添加成员" })).toBeInTheDocument();
 });
 
-test("uses the online modal member catalog and global unassigned filter", async () => {
+test("uses the online modal member catalog and group-scoped unassigned filter", async () => {
   const systems = JSON.parse(localStorage.getItem("zys.hero-lineup.systems.v1")!) as ReturnType<typeof makeDefaultSystem>[];
   const original = systems[0]!.taskGroups[0]!.tasks[0]!;
   systems[0]!.taskGroups[0]!.tasks.push({ ...structuredClone(original), id: crypto.randomUUID(), memberIds: [] });
@@ -421,10 +441,11 @@ test("uses the online modal member catalog and global unassigned filter", async 
   const dialog = screen.getByRole("dialog", { name: "选择成员添加到任务" });
   expect(dialog).toBeInTheDocument();
   expect(screen.getByRole("switch", { name: "仅未上阵成员" })).toHaveAttribute("aria-checked", "false");
-  expect(within(dialog).getByRole("button", { name: /骑士1/ })).toBeInTheDocument();
-  await user.click(screen.getByRole("switch", { name: "仅未上阵成员" }));
-  expect(screen.getByRole("switch", { name: "仅未上阵成员" })).toHaveAttribute("aria-checked", "true");
   expect(within(dialog).queryByRole("button", { name: /骑士1/ })).not.toBeInTheDocument();
+  await user.click(screen.getByRole("switch", { name: "仅未上阵成员" }));
+  expect(screen.getByRole("switch", { name: "全部成员" })).toHaveAttribute("aria-checked", "true");
+  expect(within(dialog).getByRole("button", { name: /骑士1/ })).toBeInTheDocument();
+  expect(localStorage.getItem("heroLineup_taskMemberPickerAllMembers")).toBe("1");
 });
 
 test("allows only one champion per task while keeping heroes available", async () => {

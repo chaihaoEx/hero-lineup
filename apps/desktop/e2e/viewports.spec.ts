@@ -42,6 +42,31 @@ test("渲染后的 DOM 不包含远程资源地址", async ({ page }) => {
   await assertOffline(remoteRequests);
 });
 
+test("体系卡与成员目录沿用线上响应式列数", async ({ page }) => {
+  const remoteRequests = await installOfflineGuard(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "添加分组" }).click();
+  await page.locator(".task-card").first().getByRole("button", { name: "添加成员" }).click();
+  const memberPicker = page.getByRole("dialog", { name: "选择成员添加到任务" });
+  const samples = [
+    { width: 390, system: 2, member: 4 },
+    { width: 768, system: 3, member: 4 },
+    { width: 1024, system: 4, member: 5 },
+    { width: 1280, system: 4, member: 6 },
+  ];
+  for (const sample of samples) {
+    await page.setViewportSize({ width: sample.width, height: 900 });
+    await expect.poll(() => page.locator(".system-card-list").evaluate((grid) =>
+      getComputedStyle(grid).gridTemplateColumns.split(" ").length,
+    )).toBe(sample.system);
+    await expect.poll(() => memberPicker.locator(".member-picker-grid").evaluate((grid) =>
+      getComputedStyle(grid).gridTemplateColumns.split(" ").length,
+    )).toBe(sample.member);
+  }
+  await assertOffline(remoteRequests);
+});
+
 test("地图和难度目录沿用线上响应式列数", async ({ page }) => {
   const remoteRequests = await installOfflineGuard(page);
   await page.setViewportSize({ width: 1440, height: 900 });

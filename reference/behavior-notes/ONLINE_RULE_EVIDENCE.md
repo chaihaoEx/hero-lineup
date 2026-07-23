@@ -19,6 +19,10 @@
 | 热门体系预览使用 `/systems/preview/{shortCode}` | `gameProfileHeroParser-CHtOPCtb.js` | 已确认 |
 | 任务模拟默认循环 10,000 次，并约每 5% 报进度 | `HeroLineup-DP_2OddU.js` | 已确认 |
 | 每个任务最多允许一名勇士；已有勇士时成员目录不再渲染任何其他勇士，但英雄仍可加入 | `HeroLineup-DP_2OddU.js` 中 `e.champions.length===0`；2026-07-23 在线黑盒双成员样本 | 已确认 |
+| 成员目录默认仅排除同一分组其他任务已上阵的成员；“全部成员”开关写入 `heroLineup_taskMemberPickerAllMembers`，跨弹窗保留 | `HeroLineup-DP_2OddU.js` 中 `QB` / `BB` / `pB` | 已确认 |
+| 成员目录宽度上限 672px；列数为 `<1024:4`、`1024–1279:5`、`≥1280:6`；头像元素角标是左上角独立图片，分别为 16/20/24px | `HeroLineup-DP_2OddU.js` 中 `QB`；`online-member-picker-1280x720-2026-07-23.png` | 已确认 |
+| 我的体系卡片列数为 `<768:2`、`768–1023:3`、`≥1024:4`；仅体系数大于 1 时显示卡片右上角删除按钮 | `HeroLineup-DP_2OddU.js` 中体系管理组件 | 已确认 |
+| 保存按钮始终显示“保存当前体系”；删除确认文案为“删除这个阵容体系吗？此操作不可恢复。” | `HeroLineup-DP_2OddU.js` 中体系管理组件；2026-07-23 黑盒操作 | 已确认 |
 | 装备需求按主装备、元素附魔、精萃附魔分组，分组键为 `category_itemId_quality`；附魔继承所在槽品质 | `HeroLineup-DP_2OddU.js` 中 `GB` / `U` 聚合函数 | 已确认 |
 | 装备需求排序为类别、品质降序、阶数降序、中文名；桌面四列、移动端两列，空状态为“暂无装备需求” | `HeroLineup-DP_2OddU.js` 中 `GB` 的排序比较器与响应式分支 | 已确认 |
 | “已有”库存键只包含 `itemId_quality`；允许暂时清空，非空值向下取整并限制为非负；修改仅在关闭弹窗时回写体系 | `HeroLineup-DP_2OddU.js` 中 `m` / `F` / `C` / `H` | 已确认 |

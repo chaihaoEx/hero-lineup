@@ -89,6 +89,20 @@ test("生成冒险任务卡与强化道具弹窗验收截图", async ({ page }) 
   await assertOffline(remoteRequests);
 });
 
+test("生成线上同款成员目录与元素角标验收截图", async ({ page }) => {
+  const remoteRequests = await installOfflineGuard(page);
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "添加分组" }).click();
+  await page.locator(".task-card").first().getByRole("button", { name: "添加成员" }).click();
+  const picker = page.getByRole("dialog", { name: "选择成员添加到任务" });
+  await expect(picker).toBeVisible();
+  await expect(picker.locator(".member-picker-grid")).toHaveCSS("grid-template-columns", /.+/);
+  await expect(picker.locator(".picker-member-element-badge").first()).toHaveAttribute("alt", "light");
+  await page.screenshot({ path: path.join(outputDirectory, "local-member-picker-1280x800.png") });
+  await assertOffline(remoteRequests);
+});
+
 test("生成勇士编辑器与装备需求统计验收截图", async ({ page }) => {
   const remoteRequests = await installOfflineGuard(page);
   await page.setViewportSize({ width: 1440, height: 900 });

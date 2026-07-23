@@ -96,15 +96,16 @@ export function useWorkspace(catalog: Catalog) {
     setDirty(true);
   }, [active]);
 
-  const deleteActive = useCallback(async () => {
-    if (!active) return;
-    await desktopBridge.deleteSystem(active.id);
-    const remaining = systems.filter((system) => system.id !== active.id);
-    const next = remaining.length ? remaining : [makeDefaultSystem(catalog)];
-    setSystems(next);
-    setActiveId(next[0]!.id);
-    setDirty(!remaining.length);
-  }, [active, catalog, systems]);
+  const deleteSystem = useCallback(async (id: string) => {
+    if (systems.length <= 1 || !systems.some((system) => system.id === id)) return;
+    await desktopBridge.deleteSystem(id);
+    const remaining = systems.filter((system) => system.id !== id);
+    setSystems(remaining);
+    if (id === activeId) {
+      setActiveId(remaining[0]!.id);
+      setDirty(false);
+    }
+  }, [activeId, systems]);
 
   const addHero = useCallback((classId: string, preset?: Hero) => updateActive((system) => {
     if (system.heroes.length >= 41) return system;
@@ -270,7 +271,7 @@ export function useWorkspace(catalog: Catalog) {
 
   return {
     systems, setSystems, active, activeId, setActiveId, dirty, setDirty, loading, updateActive, save,
-    createSystem, importSystem, duplicateSystem, deleteActive, addHero, updateHero, updateChampionLoadout, deleteHero, duplicateHero,
+    createSystem, importSystem, duplicateSystem, deleteSystem, addHero, updateHero, updateChampionLoadout, deleteHero, duplicateHero,
     toggleChampion, addGroup, moveGroup, updateGroup, deleteGroup, addTask, duplicateTask, deleteTask, moveTask,
     dropUnit, removeUnit, setTaskResult, updateTask, replaceActive, units,
   };

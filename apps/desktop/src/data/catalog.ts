@@ -312,7 +312,7 @@ export function makeHero(catalog: Catalog, classId = catalog.classes[0]?.id ?? "
 export function makeDefaultSystem(catalog: Catalog): LineupSystem {
   const now = new Date().toISOString();
   return {
-    id: crypto.randomUUID(), name: "默认体系", description: "我的离线英雄搭配方案", localPublic: true, localTag: "本地",
+    id: crypto.randomUUID(), name: "默认体系", description: "", localPublic: true, localTag: "本地",
     heroes: [], championIds: catalog.champions.map((champion) => champion.id), championLoadouts: {},
     equipmentOwnedCounts: { hero: {}, champion: {} }, taskGroups: [],
     createdAt: now, updatedAt: now, schemaVersion: 1, gameDataVersion: catalog.gameDataVersion,

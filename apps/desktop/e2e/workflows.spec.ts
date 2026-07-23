@@ -28,7 +28,7 @@ test.describe("浏览器预览中的主要离线工作流", () => {
     await page.getByRole("button", { name: "创建", exact: true }).click();
     await expect(page.locator(".online-system-card.active > strong")).toHaveText("E2E 离线体系");
     await page.getByRole("button", { name: /保存当前体系/ }).click();
-    await expect(page.getByRole("button", { name: "当前体系已保存" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "保存当前体系" })).not.toHaveAttribute("data-dirty");
 
     await page.reload();
     await expect(page.locator(".online-system-card.active > strong")).toHaveText("E2E 离线体系");
@@ -38,7 +38,7 @@ test.describe("浏览器预览中的主要离线工作流", () => {
     await page.getByRole("button", { name: /保存当前体系/ }).click();
 
     page.once("dialog", (dialog) => dialog.accept());
-    await page.getByRole("button", { name: "删除当前" }).click();
+    await page.getByRole("button", { name: "删除体系 E2E 离线体系（副本）" }).click();
     await expect(page.locator(".online-system-card.active > strong")).toHaveText("E2E 离线体系");
     await assertOffline(remoteRequests);
   });
@@ -118,10 +118,13 @@ test.describe("浏览器预览中的主要离线工作流", () => {
     await task.dispatchEvent("drop", { dataTransfer: transfer });
     await expect(task.getByText(secondHero.name, { exact: true })).toBeVisible();
     await expect(task.getByTitle(`移除 ${secondHero.name}`)).toBeVisible();
+    await expect(task.locator(".task-member-element-badge").first()).toHaveAttribute("alt", "light");
     await task.getByRole("button", { name: "添加成员" }).click();
     const memberPicker = page.getByRole("dialog", { name: "选择成员添加到任务" });
+    await expect(memberPicker.locator(".picker-member-element-badge").first()).toHaveAttribute("alt", "light");
     await memberPicker.getByRole("button", { name: /阿尔贡/ }).click();
     await expect(task.getByText("阿尔贡", { exact: true })).toBeVisible();
+    await expect(task.locator(".task-member-element-badge")).toHaveCount(2);
 
     await task.getByRole("button", { name: "测试冒险" }).click();
     await expect(task.getByText(/模拟中 \d+%/)).toBeVisible();
