@@ -273,22 +273,35 @@ function SimulationMemberConfig({ unit, catalog, onCopy }: { unit: PartyUnit; ca
     { label: "使魔", config: champion?.familiarEquipment, item: catalog.items.find((item) => item.id === champion?.familiarEquipment?.itemId || item.id === champion?.familiar) },
     { label: "光环之歌", config: champion?.auraSongEquipment, item: catalog.items.find((item) => item.id === champion?.auraSongEquipment?.itemId || item.id === champion?.aurasong) },
   ];
-  return <article className="simulation-config-card">
-    <header>
-      <button className="simulation-config-avatar" title="复制线上兼容配置码" onClick={onCopy}><UnitAvatar unit={unit} /></button>
-      <div><strong>{unit.name}</strong><small>{hero?.className ?? `勇士 · ${catalogChampion?.name ?? unit.name}`}</small></div>
-    </header>
-    <div className="simulation-config-skills">
+  return <article className={`simulation-config-card ${hero ? "hero" : "champion"}`}>
+    <div className="simulation-config-top">
+      <header>
+        <button className="simulation-config-avatar" title="复制线上兼容配置码" onClick={onCopy}><UnitAvatar unit={unit} /></button>
+        <strong>{unit.name}</strong>
+      </header>
+      {hero ? <div className="simulation-config-skills">
       {hero ? <><div><SkillArt skill={innateSkill} innate level={innateSkill?.tier ?? 1} /><small>自带技能</small><b>{innateSkill?.name ?? "无"}</b></div>{Array.from({ length: 4 }, (_, index) => {
         const skill = selectedSkills?.[index];
         return <div key={index}><SkillArt skill={skill} level={skill?.tier ?? 1} /><small>技能 {index + 1}</small><b>{skill?.name ?? "未配置"}</b></div>;
       })}</> : <div><SkillArt skill={teamSkill} innate level={teamSkill?.tier ?? champion?.rank ?? 1} /><small>团队技能</small><b>{teamSkill?.name ?? "未配置"}</b></div>}
+      </div> : <div className="simulation-champion-overview">
+        <dl>
+          <div><dt>勇士等级:</dt><dd>{unit.level}</dd></div>
+          <div><dt>勇士阶数:</dt><dd>{champion?.rank ?? 1}</dd></div>
+          <div><dt>种子数量:</dt><dd>{champion?.seed ?? 0}</dd></div>
+          <div><dt>收藏卡牌:</dt><dd>{unit.cardLevel}</dd></div>
+        </dl>
+        <div className="simulation-team-skill">
+          <span>{teamSkill?.spritePath ? <AssetImage path={teamSkill.spritePath} alt={teamSkill.name} /> : "✦"}</span>
+          <div><small>勇士之魂</small><strong>{teamSkill?.name ?? "未配置"}</strong><p>{teamSkill?.effects.join("，")}</p></div>
+        </div>
+      </div>}
     </div>
-    <dl className="simulation-config-meta">
-      <div><dt>等级</dt><dd>{unit.level}</dd></div>
-      <div><dt>{hero ? "种子" : "Rank"}</dt><dd>{hero?.seed ?? champion?.rank ?? 1}</dd></div>
-      <div><dt>卡片等级</dt><dd>{unit.cardLevel}</dd></div>
-    </dl>
+    {hero && <dl className="simulation-config-meta">
+      <div><dt>英雄等级:</dt><dd>{unit.level}</dd></div>
+      <div><dt>种子数量:</dt><dd>{hero.seed}</dd></div>
+      <div><dt>收藏卡牌:</dt><dd>{unit.cardLevel}</dd></div>
+    </dl>}
     <div className="simulation-config-stats">
       <span>♥ 生命 <b>{unit.stats.health.toLocaleString()}</b></span>
       <span>⚔ 攻击 <b>{unit.stats.attack.toLocaleString()}</b></span>
@@ -780,7 +793,10 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
   const [detailImage, setDetailImage] = useState<string | null>(null);
   const [preparingDetailImage, setPreparingDetailImage] = useState(false);
   const members = task.memberIds.map((id) => units.find((unit) => unit.id === id)).filter(Boolean) as PartyUnit[];
-  const memberCandidates = units.filter((unit) => !task.memberIds.includes(unit.id) && (!onlyUnassigned || !assignedUnitIds.includes(unit.id)));
+  const hasChampion = members.some((unit) => unit.kind === "champion");
+  const memberCandidates = units.filter((unit) => !task.memberIds.includes(unit.id)
+    && !(hasChampion && unit.kind === "champion")
+    && (!onlyUnassigned || !assignedUnitIds.includes(unit.id)));
   const boosterLevel = task.config.boosterLevel ?? (task.config.booster ? 1 : 0);
   const boosterNames = ["无", "威力强化品", "超级威力强化品", "特级威力强化品"];
   const eliteKinds = [["none", "无"], ["agile", "敏捷"], ["huge", "巨大"], ["dire", "凶残"], ["wealthy", "富有"], ["epic", "传奇"]] as const;
@@ -890,7 +906,9 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
     if (!id) return;
     if (task.memberIds.includes(id)) { setMessage("同一成员不能在这个任务中重复上阵"); return; }
     if (task.memberIds.length >= task.maxMembers) { setMessage(`该任务最多上阵 ${task.maxMembers} 人`); return; }
-    if (!units.some((unit) => unit.id === id)) { setMessage("拖入的成员不在当前体系阵容中"); return; }
+    const candidate = units.find((unit) => unit.id === id);
+    if (!candidate) { setMessage("拖入的成员不在当前体系阵容中"); return; }
+    if (candidate.kind === "champion" && hasChampion) { setMessage("每个冒险任务最多上阵 1 名勇士"); return; }
     setMessage(""); onDrop(id);
   }}>
     <header className="online-quest-header">
@@ -920,7 +938,7 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
     </div> : null}
     <div className="online-result-row">{task.result && <><span className="online-success-icon" aria-label="成功率">☺</span><strong>成功率: {task.result.successRate.toFixed(3)}%</strong><button onClick={() => setDetails(true)}>查看详情</button></>}<button className="online-test-button" onClick={() => void run()} disabled={!members.length}>测试冒险</button></div>
     {task.result?.stale && <small className="stale-result">数据版本已变化，请重新测试</small>}
-    {task.result && details && <div className="modal-backdrop simulation-detail-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setDetails(false); }}><section className="modal simulation-detail-modal" role="dialog" aria-modal="true" aria-labelledby={`simulation-detail-${task.id}`}><header className="modal-header"><h2 id={`simulation-detail-${task.id}`}>冒险模拟详情</h2><div className="modal-header-actions"><button aria-label="复制图片" className="zys-button blue" disabled={!detailImage || preparingDetailImage} onClick={() => void copyResult()}>{preparingDetailImage ? "准备中..." : "复制图片"}</button><button aria-label="下载图片" className="zys-button green" disabled={!detailImage || preparingDetailImage} onClick={() => void exportResult()}>{preparingDetailImage ? "准备中..." : "下载图片"}</button><button className="zys-button red" onClick={() => setDetails(false)}>关闭</button></div></header><div ref={detailSurfaceRef} className="simulation-export-surface"><div className="simulation-quest-banner"><div className="simulation-quest-title"><span className="quest-switcher-art">{currentQuestMapSprite ? <AssetImage path={currentQuestMapSprite} alt={task.map} /> : "◈"}</span><div><strong>{task.map}</strong>{currentQuest ? <QuestDifficultyArt quest={currentQuest} compact /> : <small>{task.difficulty}</small>}</div></div><dl><div><dt>冒险强化道具</dt><dd>{boosterLevel ? boosterNames[boosterLevel] : "无"}</dd></div><div><dt>精英怪</dt><dd>{eliteKinds.find(([value]) => value === eliteKind)?.[1]}</dd></div><div><dt>元素屏障</dt><dd>{selectedElementLabel}</dd></div></dl></div><div className="simulation-summary"><div><span>尝试次数</span><strong>{(task.result.iterations ?? 10000).toLocaleString()}</strong></div><div><span>成功率</span><strong>{task.result.successRate.toFixed(2)}%</strong></div><div><span>平均回合数</span><strong>{task.result.averageTurns}</strong></div><div><span>最小回合数</span><strong>{task.result.minTurns}</strong></div><div><span>最大回合数</span><strong>{task.result.maxTurns}</strong></div></div><div className="simulation-member-summary">{members.map((unit) => { const memberResult = task.result?.memberResults?.find((entry) => entry.id === unit.id); return <article key={unit.id}><UnitAvatar unit={unit} small /><strong>{unit.name}</strong><span>存活率 {(memberResult?.survivalRate ?? task.result!.survivalRate).toFixed(1)}%</span><span>伤害 {Math.round(memberResult?.averageDamage ?? task.result!.averageDamage).toLocaleString()}</span><span>剩余生命 {Math.round(memberResult?.averageRemainingHealth ?? task.result!.averageRemainingHealth).toLocaleString()}</span></article>; })}</div><div className="simulation-config-hint">✦ 点击职业图标导出配置码，在英雄体系搭配平台导入使用 ✦</div><div className="simulation-members">{members.map((unit) => <SimulationMemberConfig key={unit.id} unit={unit} catalog={catalog} onCopy={() => void copyMemberConfig(unit)} />)}</div><footer className="simulation-detail-footer">模拟器 {task.result.simulatorVersion} · 数据 {task.result.gameDataVersion}</footer></div></section></div>}
+    {task.result && details && <div className="modal-backdrop simulation-detail-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setDetails(false); }}><section className="modal simulation-detail-modal" role="dialog" aria-modal="true" aria-labelledby={`simulation-detail-${task.id}`}><header className="modal-header"><h2 id={`simulation-detail-${task.id}`}>冒险模拟详情</h2><div className="modal-header-actions"><button aria-label="复制图片" className="zys-button blue" disabled={!detailImage || preparingDetailImage} onClick={() => void copyResult()}>{preparingDetailImage ? "准备中..." : "复制图片"}</button><button aria-label="下载图片" className="zys-button green" disabled={!detailImage || preparingDetailImage} onClick={() => void exportResult()}>{preparingDetailImage ? "准备中..." : "下载图片"}</button><button className="zys-button red" onClick={() => setDetails(false)}>关闭</button></div></header><div ref={detailSurfaceRef} className="simulation-export-surface"><div className="simulation-quest-banner"><div className="simulation-quest-title"><span className="quest-switcher-art">{currentQuestMapSprite ? <AssetImage path={currentQuestMapSprite} alt={task.map} /> : "◈"}</span><div><strong>{task.map}</strong>{currentQuest ? <QuestDifficultyArt quest={currentQuest} compact /> : <small>{task.difficulty}</small>}</div></div><dl><div><dt>冒险强化道具</dt><dd>{boosterLevel ? boosterNames[boosterLevel] : "无"}</dd></div><div><dt>精英怪</dt><dd>{eliteKinds.find(([value]) => value === eliteKind)?.[1]}</dd></div><div><dt>元素屏障</dt><dd>{selectedElementLabel}</dd></div></dl></div><div className="simulation-summary"><div><span>尝试次数</span><strong>{(task.result.iterations ?? 10000).toLocaleString()}</strong></div><div><span>成功率</span><strong>☹ {task.result.successRate.toFixed(2)}%</strong></div><div><span>平均回合数</span><strong>{task.result.averageTurns.toFixed(2)}</strong></div><div><span>最小回合数</span><strong>{task.result.minTurns}</strong></div><div><span>最大回合数</span><strong>{task.result.maxTurns}</strong></div></div><div className="simulation-member-summary">{members.map((unit) => { const memberResult = task.result?.memberResults?.find((entry) => entry.id === unit.id); const damage = memberResult?.averageDamage ?? task.result!.averageDamage; const remainingHealth = memberResult?.averageRemainingHealth ?? task.result!.averageRemainingHealth; const totalDamage = task.result!.memberResults?.reduce((sum, entry) => sum + entry.averageDamage, 0) ?? task.result!.averageDamage; return <article key={unit.id}><UnitAvatar unit={unit} small /><strong>{unit.name}</strong><span className="survival">☹ {(memberResult?.survivalRate ?? task.result!.survivalRate).toFixed(2)}%</span><span className="damage">⚔ {Math.round(damage).toLocaleString()} <em>({(damage / Math.max(1, totalDamage) * 100).toFixed(1)}%)</em></span><span className="remaining-health">♥ {Math.round(remainingHealth).toLocaleString()} <em>({(remainingHealth / Math.max(1, unit.stats.health) * 100).toFixed(1)}%)</em></span></article>; })}</div><div className="simulation-config-hint">✦ 点击职业图标导出配置码，在英雄体系搭配平台导入使用 ✦</div><div className={`simulation-members count-${members.length}`}>{members.map((unit) => <SimulationMemberConfig key={unit.id} unit={unit} catalog={catalog} onCopy={() => void copyMemberConfig(unit)} />)}</div><footer className="simulation-detail-footer">模拟器 {task.result.simulatorVersion} · 数据 {task.result.gameDataVersion}</footer></div></section></div>}
   </article>;
 }
 

@@ -404,6 +404,24 @@ test("uses the online modal member catalog and global unassigned filter", async 
   expect(within(dialog).queryByRole("button", { name: /骑士1/ })).not.toBeInTheDocument();
 });
 
+test("allows only one champion per task while keeping heroes available", async () => {
+  const systems = JSON.parse(localStorage.getItem("zys.hero-lineup.systems.v1")!) as ReturnType<typeof makeDefaultSystem>[];
+  systems[0]!.heroes.push({ ...structuredClone(systems[0]!.heroes[0]!), id: crypto.randomUUID(), name: "骑士2" });
+  localStorage.setItem("zys.hero-lineup.systems.v1", JSON.stringify(systems));
+  const user = userEvent.setup();
+  render(<App />);
+  await appReady();
+  await user.click(screen.getByRole("button", { name: /冒险任务/ }));
+  const task = document.querySelector<HTMLElement>(".task-card")!;
+  await user.click(within(task).getByRole("button", { name: "添加成员" }));
+  let dialog = screen.getByRole("dialog", { name: "选择成员添加到任务" });
+  await user.click(within(dialog).getByRole("button", { name: /阿尔贡/ }));
+  await user.click(within(task).getByRole("button", { name: "添加成员" }));
+  dialog = screen.getByRole("dialog", { name: "选择成员添加到任务" });
+  expect(within(dialog).queryByText("阿尔贡")).not.toBeInTheDocument();
+  expect(within(dialog).getByRole("button", { name: /骑士2/ })).toBeInTheDocument();
+});
+
 test("mirrors the online map, booster and elite selection flows", async () => {
   const user = userEvent.setup();
   render(<App />);
@@ -508,10 +526,17 @@ test("treats an ordinary Rust cancellation error as a recoverable UI state", asy
 });
 
 test("shows the online-style full member configuration in simulation details", async () => {
+  const systems = JSON.parse(localStorage.getItem("zys.hero-lineup.systems.v1")!) as ReturnType<typeof makeDefaultSystem>[];
+  systems[0]!.taskGroups[0]!.tasks[0]!.memberIds.push("argon");
+  localStorage.setItem("zys.hero-lineup.systems.v1", JSON.stringify(systems));
   const user = userEvent.setup();
   vi.spyOn(desktopBridge, "simulate").mockResolvedValueOnce({
     iterations: 10000, successRate: 100, averageTurns: 1, minTurns: 1, maxTurns: 1,
     survivalRate: 100, averageDamage: 9251, averageRemainingHealth: 764,
+    memberResults: [
+      { id: systems[0]!.heroes[0]!.id, survivalRate: 100, averageDamage: 5100, averageRemainingHealth: 420 },
+      { id: "argon", survivalRate: 98, averageDamage: 4151, averageRemainingHealth: 344 },
+    ],
     simulatorVersion: "test-simulator", gameDataVersion: previewCatalog.gameDataVersion, completedAt: new Date().toISOString(),
   });
   render(<App />);
@@ -522,11 +547,14 @@ test("shows the online-style full member configuration in simulation details", a
   const dialog = screen.getByRole("dialog", { name: "冒险模拟详情" });
   expect(dialog).toHaveTextContent("自带技能");
   expect(dialog).toHaveTextContent("技能 4");
-  expect(dialog).toHaveTextContent("卡片等级");
+  expect(dialog).toHaveTextContent("收藏卡牌");
+  expect(dialog).toHaveTextContent("勇士之魂");
   expect(dialog).toHaveTextContent("点击职业图标导出配置码");
   expect(screen.getByRole("button", { name: "复制图片" })).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "下载图片" })).toBeInTheDocument();
-  expect(dialog.querySelectorAll(".simulation-config-equipment > div")).toHaveLength(6);
+  expect(dialog.querySelectorAll(".simulation-member-summary article")).toHaveLength(2);
+  expect(dialog.querySelectorAll(".simulation-config-card")).toHaveLength(2);
+  expect(dialog.querySelectorAll(".simulation-config-equipment > div")).toHaveLength(8);
 });
 
 test("saves, applies and deletes a local equipment template", async () => {

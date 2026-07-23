@@ -434,6 +434,36 @@ pub fn validate_lineup(lineup: &LineupSystem) -> Result<(), InterchangeError> {
                 task.id
             )));
         }
+        if task.champion_ids.len() > 1 {
+            return Err(InterchangeError::Validation(format!(
+                "task {} may contain at most one champion",
+                task.id
+            )));
+        }
+        if task.hero_ids.len() + task.champion_ids.len() > task.max_members as usize {
+            return Err(InterchangeError::Validation(format!(
+                "task {} exceeds its maximum party size",
+                task.id
+            )));
+        }
+        if task
+            .hero_ids
+            .iter()
+            .collect::<std::collections::BTreeSet<_>>()
+            .len()
+            != task.hero_ids.len()
+            || task
+                .champion_ids
+                .iter()
+                .collect::<std::collections::BTreeSet<_>>()
+                .len()
+                != task.champion_ids.len()
+        {
+            return Err(InterchangeError::Validation(format!(
+                "task {} contains duplicate members",
+                task.id
+            )));
+        }
         if let Some(missing) = task.hero_ids.iter().find(|id| !heroes.contains_key(id)) {
             return Err(InterchangeError::Validation(format!(
                 "task {} references missing hero {missing}",
@@ -1066,6 +1096,51 @@ mod tests {
         assert!(matches!(
             validate_lineup(&system),
             Err(InterchangeError::Validation(_))
+        ));
+    }
+
+    #[test]
+    fn rejects_more_than_one_champion_in_an_adventure_task() {
+        let mut system = LineupSystem::new("bad party");
+        let champion = |id: &str| ChampionBuild {
+            id: id.into(),
+            loadout_present: false,
+            name: id.into(),
+            class_id: None,
+            sprite_path: None,
+            element: String::new(),
+            level: 1,
+            rank: 1,
+            seed: 0,
+            card_level: 0,
+            titan: false,
+            familiar_id: String::new(),
+            aura_song_id: String::new(),
+            stats: UnitStats::default(),
+            familiar: None,
+            aura_song: None,
+            card_levels: BTreeMap::new(),
+        };
+        system.champions = vec![champion("argon"), champion("lilu")];
+        system.adventure_tasks.push(AdventureTask {
+            id: Uuid::new_v4(),
+            quest_id: "forest01".into(),
+            name: "Forest".into(),
+            map: "Forest".into(),
+            group_id: None,
+            hero_ids: vec![],
+            champion_ids: vec!["argon".into(), "lilu".into()],
+            difficulty: 1,
+            max_members: 4,
+            barrier: BTreeMap::new(),
+            config: SimulationConfig::default(),
+            result: None,
+            modifiers: vec![],
+            simulation: None,
+        });
+        assert!(matches!(
+            validate_lineup(&system),
+            Err(InterchangeError::Validation(message)) if message.contains("at most one champion")
         ));
     }
 }

@@ -116,6 +116,10 @@ test.describe("浏览器预览中的主要离线工作流", () => {
     await task.dispatchEvent("drop", { dataTransfer: transfer });
     await expect(task.getByText(secondHero.name, { exact: true })).toBeVisible();
     await expect(task.getByTitle(`移除 ${secondHero.name}`)).toBeVisible();
+    await task.getByRole("button", { name: "添加成员" }).click();
+    const memberPicker = page.getByRole("dialog", { name: "选择成员添加到任务" });
+    await memberPicker.getByRole("button", { name: /阿尔贡/ }).click();
+    await expect(task.getByText("阿尔贡", { exact: true })).toBeVisible();
 
     await task.getByRole("button", { name: "测试冒险" }).click();
     await expect(task.getByText(/模拟中 \d+%/)).toBeVisible();
@@ -126,6 +130,9 @@ test.describe("浏览器预览中的主要离线工作流", () => {
     await expect(task.getByText("成功率: 87.400%")).toBeVisible();
     await task.getByRole("button", { name: "查看详情" }).click();
     await expect(task.getByText("browser-preview")).toBeVisible();
+    await expect(page.locator(".simulation-member-summary article")).toHaveCount(2);
+    await expect(page.locator(".simulation-config-card")).toHaveCount(2);
+    await expect(page.locator(".simulation-members")).toHaveCSS("grid-template-columns", /.+ .+/);
     await expect(page.getByRole("button", { name: "复制图片" })).toBeEnabled();
     await expect(page.getByRole("button", { name: "下载图片" })).toBeEnabled();
     await page.screenshot({ path: "../../reference/screenshots/local-simulation-detail-1440x900.png", fullPage: false });

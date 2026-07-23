@@ -178,19 +178,28 @@ export function normalizeHeroEquipmentSlots(hero: Hero): Hero {
  */
 export function normalizeQuestPresentation(system: LineupSystem, catalog: Catalog): LineupSystem {
   const byId = new Map(catalog.quests.map((quest) => [quest.id, quest]));
+  const championIds = new Set(catalog.champions.map((champion) => champion.id));
   return {
     ...system,
     taskGroups: system.taskGroups.map((group) => ({
       ...group,
       tasks: group.tasks.map((task) => {
         const quest = task.questId ? byId.get(task.questId) : undefined;
+        let championSeen = false;
+        const memberIds = task.memberIds.filter((id) => {
+          if (!championIds.has(id)) return true;
+          if (championSeen) return false;
+          championSeen = true;
+          return true;
+        });
         return quest ? {
           ...task,
+          memberIds,
           name: quest.name,
           map: quest.mapName,
           difficulty: quest.difficulty,
           maxMembers: quest.maxMembers,
-        } : task;
+        } : { ...task, memberIds };
       }),
     })),
   };

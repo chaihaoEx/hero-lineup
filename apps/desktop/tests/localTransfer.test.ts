@@ -26,6 +26,13 @@ describe("local clipboard and PNG transfer", () => {
     expect(() => decodeClipboard(encodeClipboard("system", system), "system")).toThrow("不能重复上阵成员");
   });
 
+  it("rejects a task containing more than one champion", () => {
+    const system = filledSystem();
+    system.championIds = ["argon", "other-champion"];
+    system.taskGroups[0]!.tasks[0]!.memberIds = ["argon", "other-champion"];
+    expect(() => decodeClipboard(encodeClipboard("system", system), "system")).toThrow("每个任务最多上阵 1 名勇士");
+  });
+
   it("encodes lineup and simulation downloads as image/png files", async () => {
     const context = {
       fillStyle: "", font: "", fillRect: vi.fn(), fillText: vi.fn(), beginPath: vi.fn(), roundRect: vi.fn(), fill: vi.fn(),

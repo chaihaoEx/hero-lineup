@@ -22,8 +22,11 @@ export function useWorkspace(catalog: Catalog) {
     void desktopBridge.listSystems().then((loaded) => {
       const migrated = loaded.some((system) => system.heroes.some((hero) => hero.equipment.map((entry) => entry.slot).join(",") === "武器,头部,身体,手部,脚部,饰品"));
       const completeChampionIds = catalog.champions.map((champion) => champion.id);
+      const completeChampionIdSet = new Set(completeChampionIds);
       const championRosterMigrated = loaded.some((system) => completeChampionIds.some((id) => !system.championIds.includes(id)));
       const emptyGroupMigrated = loaded.some((system) => system.taskGroups.some((group) => group.tasks.length === 0));
+      const multipleChampionMigrated = loaded.some((system) => system.taskGroups.some((group) => group.tasks.some((task) =>
+        task.memberIds.filter((id) => completeChampionIdSet.has(id)).length > 1)));
       const initial = (loaded.length ? loaded : [makeDefaultSystem(catalog)]).map((system) => normalizeQuestPresentation({
         ...system,
         localPublic: system.localPublic ?? true,
@@ -33,7 +36,7 @@ export function useWorkspace(catalog: Catalog) {
       }, catalog));
       setSystems(initial);
       setActiveId(initial[0]!.id);
-      setDirty(!loaded.length || migrated || championRosterMigrated || emptyGroupMigrated);
+      setDirty(!loaded.length || migrated || championRosterMigrated || emptyGroupMigrated || multipleChampionMigrated);
       setLoading(false);
     });
   }, [catalog]);
@@ -227,9 +230,11 @@ export function useWorkspace(catalog: Catalog) {
 
   const dropUnit = useCallback((groupId: string, taskId: string, unitId: string) => updateActive((system) => {
     const task = system.taskGroups.find((entry) => entry.id === groupId)?.tasks.find((entry) => entry.id === taskId);
-    if (task && !task.memberIds.includes(unitId) && task.memberIds.length < task.maxMembers) task.memberIds.push(unitId);
+    const championIds = new Set(catalog.champions.map((champion) => champion.id));
+    const addingSecondChampion = championIds.has(unitId) && task?.memberIds.some((id) => championIds.has(id));
+    if (task && !addingSecondChampion && !task.memberIds.includes(unitId) && task.memberIds.length < task.maxMembers) task.memberIds.push(unitId);
     return system;
-  }), [updateActive]);
+  }), [catalog, updateActive]);
 
   const removeUnit = useCallback((groupId: string, taskId: string, unitId: string) => updateActive((system) => {
     const task = system.taskGroups.find((entry) => entry.id === groupId)?.tasks.find((entry) => entry.id === taskId);

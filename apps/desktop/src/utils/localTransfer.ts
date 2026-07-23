@@ -128,6 +128,12 @@ export function validateSystem(value: unknown): LineupSystem {
     string(group.name, "任务分组.name");
     if (!Array.isArray(group.tasks)) throw new Error("任务分组.tasks必须是数组");
     group.tasks.forEach(validateTask);
+    for (const taskValue of group.tasks) {
+      const task = taskValue as { memberIds: string[] };
+      if (task.memberIds.filter((id) => (system.championIds as string[]).includes(id)).length > 1) {
+        throw new Error("每个任务最多上阵 1 名勇士");
+      }
+    }
   }
   return structuredClone(value as LineupSystem);
 }
