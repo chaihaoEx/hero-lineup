@@ -7,7 +7,7 @@
 | 交付物 | 大小 | SHA-256 / 校验 |
 | --- | ---: | --- |
 | `target/release/bundle/macos/英雄体系搭配.app` | 39 MB | ad-hoc 签名；`codesign --verify --deep --strict` 通过 |
-| `target/release/bundle/dmg/英雄体系搭配_0.1.0_aarch64.dmg` | 25,318,234 字节 | `bf64fa6a755f1b38e033d6d56a3cb806da4c26f38079b135329a7cec54352520`；最终任务条件、泰坦词条与旧结果失效逻辑修正后重建，`hdiutil verify` 通过 |
+| `target/release/bundle/dmg/英雄体系搭配_0.1.0_aarch64.dmg` | 25,590,050 字节 | `e9fc5a84046fad04a763d22afad58bc032e1c86ffeec59525c4f1bb16eafbe1f`；泰坦 AOE、职业定向词条、限时回避/暴击与禁用元素阵容联动修正后重建，`hdiutil verify` 通过 |
 | `dist/hero-data.zysdata` | 16 MB | `f0cb92dcaa528e56026c11d2d08267f69f4452676acf0492dd1953cbe39f4753`；`hero-data verify` 通过 |
 | `content/manifest.json` | 2,292 条目 | `3538fdd4eaebbca76c1238fb0871027f9b26eca42ccd7d216f19c1a1ad52e8b0` |
 
@@ -25,7 +25,7 @@ npm run verify:content
 npm run verify:offline
 ```
 
-结果：TypeScript strict/typecheck、ESLint、`cargo fmt --check`、workspace all-target `cargo clippy -D warnings` 均通过；前端 33/33、Rust 47/47、Playwright 18/18 通过。内容清单与离线静态审计通过。E2E 覆盖体系双页签创建/口令导入、本地收藏复制、CRUD/重载、英雄与勇士配装、技能、冒险强化/精英/屏障、成员与任务拖放、1,000/10,000 模拟、IPC 合同、1440/1280/1024/窄窗口/Retina，以及请求层零远程连接。
+结果：TypeScript strict/typecheck、ESLint、`cargo fmt --check`、workspace all-target `cargo clippy -D warnings` 均通过；前端 61/61、Rust 55/55、Playwright 25/25 通过。内容清单与离线静态审计通过。E2E 覆盖体系双页签创建/口令导入、本地收藏复制、CRUD/重载、英雄与勇士配装、技能、冒险强化/精英/屏障、成员与任务拖放、10,000 次模拟、IPC 合同、1440/1280/1024/窄窗口/Retina，以及请求层零远程连接。
 
 ## 原生冒烟
 

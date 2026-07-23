@@ -263,6 +263,13 @@ pub enum CombatRule {
     Threat { fighter_id: String, weight: f64 },
     /// Flat healing at the end of a living fighter's round.
     Regeneration { fighter_id: String, health: f64 },
+    /// Class-targeted Titan modifiers such as Ambusher reduce evasion only
+    /// during their configured opening rounds.
+    TimedFighterEvasion {
+        fighter_id: String,
+        duration: u32,
+        delta: f64,
+    },
     /// Once per battle, the protector takes a lethal hit for another fighter.
     LordIntercept { protector_id: String },
     /// Ninja/Sensei are represented by data, not class-name branches. `None`
@@ -726,6 +733,16 @@ pub fn monster_round_damage_multiplier(per_round: f64, round: u32, timed_damage_
     (1.0 + per_round * f64::from(round.saturating_sub(1))) * (1.0 + timed_damage_delta)
 }
 
+/// Online timed critical modifiers are based on the monster's original
+/// critical chance, then added to the permanently modified chance.
+pub fn monster_round_critical_chance(
+    base_critical_chance: f64,
+    permanent_critical_chance: f64,
+    timed_critical_delta: f64,
+) -> f64 {
+    (permanent_critical_chance + base_critical_chance * timed_critical_delta).clamp(0.0, 1.0)
+}
+
 /// Cumulative target boundaries used by the online reverse scan. Dead entries
 /// are zero, and the last living entry has the smallest positive boundary.
 pub fn threat_target_boundaries(weights: &[f64], living: &[bool]) -> Vec<f64> {
@@ -772,6 +789,7 @@ struct AdvancedRules {
     area: Option<(f64, f64)>,
     threat: BTreeMap<String, f64>,
     regeneration: BTreeMap<String, f64>,
+    timed_fighter_evasion: BTreeMap<String, Vec<(u32, f64)>>,
     protector: Option<String>,
     focus: BTreeMap<String, (f64, f64, Option<u32>)>,
     berserker: BTreeMap<String, ([f64; 3], f64, f64)>,
@@ -801,6 +819,15 @@ impl AdvancedRules {
                 CombatRule::Regeneration { fighter_id, health } => {
                     parsed.regeneration.insert(fighter_id.clone(), *health);
                 }
+                CombatRule::TimedFighterEvasion {
+                    fighter_id,
+                    duration,
+                    delta,
+                } => parsed
+                    .timed_fighter_evasion
+                    .entry(fighter_id.clone())
+                    .or_default()
+                    .push((*duration, *delta)),
                 CombatRule::LordIntercept { protector_id } => {
                     parsed.protector = Some(protector_id.clone())
                 }
@@ -840,6 +867,7 @@ pub fn simulate_advanced<F: FnMut(u32, u32)>(
     mut progress: F,
 ) -> Result<SimulationResult, SimulationError> {
     let mut battle = request.battle.clone();
+    let base_enemy_critical_chance = battle.enemy.critical_chance;
     apply_booster(&mut battle.party, &request.quest_rules.booster);
     let environment = request
         .quest_rules
@@ -857,6 +885,7 @@ pub fn simulate_advanced<F: FnMut(u32, u32)>(
         &mut progress,
         barrier.damage_multiplier,
         &rules,
+        base_enemy_critical_chance,
     )
 }
 
@@ -866,6 +895,7 @@ fn simulate_advanced_internal<F: FnMut(u32, u32)>(
     progress: &mut F,
     party_damage_multiplier: f64,
     rules: &AdvancedRules,
+    base_enemy_critical_chance: f64,
 ) -> Result<SimulationResult, SimulationError> {
     if request.iterations == 0 {
         return Err(SimulationError::NoIterations);
@@ -886,8 +916,13 @@ fn simulate_advanced_internal<F: FnMut(u32, u32)>(
         if cancel.is_cancelled() {
             return Err(SimulationError::Cancelled);
         }
-        let (win, rounds, state) =
-            run_once_advanced(request, &mut rng, party_damage_multiplier, rules);
+        let (win, rounds, state) = run_once_advanced(
+            request,
+            &mut rng,
+            party_damage_multiplier,
+            rules,
+            base_enemy_critical_chance,
+        );
         wins += u32::from(win);
         total_rounds += u64::from(rounds);
         min_rounds = min_rounds.min(rounds);
@@ -928,6 +963,7 @@ fn run_once_advanced(
     rng: &mut ChaCha8Rng,
     party_damage_multiplier: f64,
     rules: &AdvancedRules,
+    base_enemy_critical_chance: f64,
 ) -> (bool, u32, Vec<(f64, f64)>) {
     let mut enemy_hp = request.enemy.health as f64;
     let maximum_hp: Vec<f64> = request
@@ -1021,8 +1057,19 @@ fn run_once_advanced(
                 .filter(|_| focus_lost_round[target].is_none())
                 .map(|(_, evasion, _)| *evasion)
                 .unwrap_or(0.0);
+            let timed_evasion = rules
+                .timed_fighter_evasion
+                .get(&member.id)
+                .map(|entries| {
+                    entries
+                        .iter()
+                        .filter_map(|(duration, delta)| (round <= *duration).then_some(*delta))
+                        .sum::<f64>()
+                })
+                .unwrap_or(0.0);
             if rng.gen::<f64>()
-                < (member.stats.evasion + berserker_evasion + focus_evasion).clamp(0.0, 0.75)
+                < (member.stats.evasion + berserker_evasion + focus_evasion + timed_evasion)
+                    .clamp(0.0, 0.75)
             {
                 continue;
             }
@@ -1051,7 +1098,11 @@ fn run_once_advanced(
                 let ratio = rules.area.map(|(_, ratio)| ratio).unwrap_or(1.0);
                 (normal * ratio).ceil()
             } else if rng.gen::<f64>()
-                < (request.enemy.critical_chance * (1.0 + timed_critical)).clamp(0.0, 1.0)
+                < monster_round_critical_chance(
+                    base_enemy_critical_chance,
+                    request.enemy.critical_chance,
+                    timed_critical,
+                )
             {
                 (critical * round_multiplier).round()
             } else {
@@ -1499,6 +1550,8 @@ mod tests {
     fn timed_damage_and_threat_boundaries_match_bundle_helpers() {
         assert_eq!(monster_round_damage_multiplier(0.1, 1, 0.25), 1.25);
         assert_eq!(monster_round_damage_multiplier(0.1, 3, 0.25), 1.5);
+        assert_eq!(monster_round_critical_chance(0.1, 0.2, 0.5), 0.25);
+        assert_eq!(monster_round_critical_chance(0.8, 0.9, 0.5), 1.0);
         assert_eq!(
             threat_target_boundaries(&[1.0, 2.0, 3.0], &[true, true, true]),
             vec![1.0, 5.0 / 6.0, 0.5]
@@ -1567,6 +1620,11 @@ mod tests {
                 CombatRule::Regeneration {
                     fighter_id: "focused".into(),
                     health: 2.0,
+                },
+                CombatRule::TimedFighterEvasion {
+                    fighter_id: "focused".into(),
+                    duration: 3,
+                    delta: -1.0,
                 },
                 CombatRule::LordIntercept {
                     protector_id: "protector".into(),

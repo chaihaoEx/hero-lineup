@@ -276,6 +276,84 @@ fn numeric(value: &Value, key: &str) -> f64 {
         .unwrap_or_default()
 }
 
+fn merged_area_attack(
+    base_chance: f64,
+    base_damage: f64,
+    modified_attack: f64,
+    chance_delta: f64,
+    damage_delta: f64,
+) -> Option<(f64, f64)> {
+    if base_chance <= 0.0 || base_damage <= 0.0 || modified_attack <= 0.0 {
+        return None;
+    }
+    Some((
+        base_chance * (1.0 + chance_delta),
+        base_damage * (1.0 + damage_delta) / modified_attack,
+    ))
+}
+
+fn unit_class_type(unit: &Value, classes: &Value, champions: &Value) -> Option<String> {
+    let class_id = unit
+        .get("classId")
+        .or_else(|| unit.get("class"))
+        .and_then(Value::as_str)
+        .or_else(|| {
+            let id = unit.get("id").and_then(Value::as_str)?;
+            champions
+                .get(id)
+                .or_else(|| champions.get(id.to_lowercase()))
+                .and_then(|champion| champion.get("class"))
+                .and_then(Value::as_str)
+        })?;
+    classes
+        .get(class_id)
+        .and_then(|class| class.get("type"))
+        .and_then(Value::as_str)
+        .map(str::to_owned)
+        .or_else(|| {
+            matches!(class_id, "fighter" | "rogue" | "spellcaster").then(|| class_id.to_owned())
+        })
+}
+
+fn modifier_applies_to_class(modifier: &Value, class_type: Option<&str>) -> bool {
+    let Some(classes) = modifier.get("classes").and_then(Value::as_str) else {
+        return true;
+    };
+    if classes.trim().is_empty() {
+        return true;
+    }
+    let Some(class_type) = class_type else {
+        return false;
+    };
+    classes
+        .split(',')
+        .any(|entry| entry.trim().eq_ignore_ascii_case(class_type))
+}
+
+fn booster_bonus_for_level(level: u8) -> BoosterBonus {
+    match level {
+        1 => BoosterBonus {
+            attack: 0.20,
+            defense: 0.20,
+            critical_chance: 0.10,
+            critical_damage: 0.0,
+        },
+        2 => BoosterBonus {
+            attack: 0.40,
+            defense: 0.40,
+            critical_chance: 0.15,
+            critical_damage: 0.0,
+        },
+        3 => BoosterBonus {
+            attack: 0.80,
+            defense: 0.80,
+            critical_chance: 0.30,
+            critical_damage: 0.50,
+        },
+        _ => BoosterBonus::default(),
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 struct CatalogTranscendStats {
     multiplier: f64,
@@ -1822,6 +1900,14 @@ async fn start_simulation(
         .pointer("/config/eliteKind")
         .and_then(Value::as_str)
         .unwrap_or(if elite { "epic" } else { "none" });
+    let elite_rule = match elite_kind {
+        "agile" => EliteKind::Agile,
+        "huge" => EliteKind::Huge,
+        "dire" => EliteKind::Dire,
+        "wealthy" => EliteKind::Wealthy,
+        "epic" => EliteKind::Epic,
+        _ => EliteKind::None,
+    };
     let titan_tower = request
         .task
         .pointer("/config/titanTower")
@@ -1849,6 +1935,8 @@ async fn start_simulation(
         .map_err(|_| "活动内容路径锁已损坏")?
         .clone();
     let quests = read_json(&content_root.join("TextAsset/quests.json"))?;
+    let classes = read_json(&content_root.join("TextAsset/classes.json"))?;
+    let champions = read_json(&content_root.join("TextAsset/heroes.json"))?;
     let quest_modifiers_document = read_json(&content_root.join("TextAsset/qmodifiers.json"))?;
     let quest_modifiers = quest_modifiers_document
         .get("qmodifiers")
@@ -1885,12 +1973,15 @@ async fn start_simulation(
                     defense: number("defense")?.max(0.0).round() as u64,
                     evasion: normalize_rate(number("evasion")?),
                     critical_chance: normalize_rate(number("crit")?),
-                    critical_damage: 2.0,
+                    critical_damage: stats
+                        .get("criticalDamage")
+                        .and_then(Value::as_f64)
+                        .unwrap_or(2.0),
                 },
             })
         })
         .collect::<Result<Vec<_>, String>>()?;
-    let core_request = CoreSimulationRequest {
+    let mut core_request = CoreSimulationRequest {
         seed,
         iterations: iterations as u32,
         party,
@@ -1910,18 +2001,16 @@ async fn start_simulation(
             } else {
                 0
             },
-            evasion: if elite { 0.12 } else { 0.06 },
+            evasion: 0.0,
             critical_chance: if quest_critical > 0.0 {
                 quest_critical
-            } else if elite {
-                0.2
             } else {
                 0.1
             },
             critical_damage: if quest_critical_damage > 0.0 {
                 quest_critical_damage
             } else {
-                1.75
+                1.5
             },
             max_rounds: if titan_tower { 25 } else { 20 },
         },
@@ -1993,8 +2082,12 @@ async fn start_simulation(
         .map(|values| values.iter().filter_map(Value::as_str).collect::<Vec<_>>())
         .unwrap_or_default();
     let mut tower_environment = EnvironmentModifier::default();
-    for modifier_id in selected_tower_modifiers {
-        let Some(modifier) = quest_modifiers.get(modifier_id) else {
+    let elite_modifier = quest_modifiers.get(elite_kind);
+    let mut area_chance_delta =
+        elite_modifier.map_or(0.0, |modifier| numeric(modifier, "mAoeOdds"));
+    let mut area_damage_delta = elite_modifier.map_or(0.0, |modifier| numeric(modifier, "mAoe"));
+    for modifier_id in &selected_tower_modifiers {
+        let Some(modifier) = quest_modifiers.get(*modifier_id) else {
             continue;
         };
         let duration = numeric(modifier, "duration").max(0.0) as u32;
@@ -2013,9 +2106,79 @@ async fn start_simulation(
         tower_environment.monster_health += numeric(modifier, "mHp");
         tower_environment.monster_evasion += numeric(modifier, "mEva");
         tower_environment.monster_critical_damage += numeric(modifier, "mCritMult");
+        area_chance_delta += numeric(modifier, "mAoeOdds");
+        area_damage_delta += numeric(modifier, "mAoe");
         let per_round = numeric(modifier, "mDmgPerRound");
         if per_round != 0.0 {
             combat_rules.push(CombatRule::MonsterDamagePerRound { delta: per_round });
+        }
+    }
+    let booster_bonus = booster_bonus_for_level(booster_level);
+    for (index, unit) in request.units.iter().enumerate() {
+        let class_type = unit_class_type(unit, &classes, &champions);
+        let mut attack_delta = 0.0;
+        let mut health_delta = 0.0;
+        let mut evasion_delta = 0.0;
+        let mut critical_delta = 0.0;
+        let mut critical_damage_delta = 0.0;
+        let mut threat_delta = 0.0;
+        let mut regeneration = 0.0;
+        for modifier_id in &selected_tower_modifiers {
+            let Some(modifier) = quest_modifiers.get(*modifier_id) else {
+                continue;
+            };
+            if !modifier_applies_to_class(modifier, class_type.as_deref()) {
+                continue;
+            }
+            attack_delta += numeric(modifier, "atk");
+            health_delta += numeric(modifier, "hp");
+            critical_delta += numeric(modifier, "critical");
+            critical_damage_delta += numeric(modifier, "critMult");
+            regeneration += numeric(modifier, "regen");
+            threat_delta += numeric(modifier, "aggro");
+            let modifier_evasion = numeric(modifier, "evasion");
+            let duration = numeric(modifier, "duration").max(0.0) as u32;
+            if modifier_evasion != 0.0 && duration > 0 {
+                combat_rules.push(CombatRule::TimedFighterEvasion {
+                    fighter_id: core_request.party[index].id.clone(),
+                    duration,
+                    delta: modifier_evasion,
+                });
+            } else {
+                evasion_delta += modifier_evasion;
+            }
+        }
+        let fighter = &mut core_request.party[index];
+        if attack_delta != 0.0 {
+            let pre_booster_multiplier =
+                (1.0 + attack_delta + booster_bonus.attack) / (1.0 + booster_bonus.attack);
+            fighter.stats.attack =
+                ((fighter.stats.attack as f64) * pre_booster_multiplier.max(0.0)).round() as u64;
+        }
+        if health_delta != 0.0 {
+            fighter.stats.health =
+                ((fighter.stats.health as f64) * (1.0 + health_delta).max(0.0)).round() as u64;
+        }
+        fighter.stats.evasion = (fighter.stats.evasion + evasion_delta).clamp(0.0, 0.75);
+        fighter.stats.critical_chance =
+            (fighter.stats.critical_chance + critical_delta).clamp(0.0, 1.0);
+        fighter.stats.critical_damage =
+            (fighter.stats.critical_damage + critical_damage_delta).max(0.0);
+        if regeneration > 0.0 {
+            combat_rules.push(CombatRule::Regeneration {
+                fighter_id: fighter.id.clone(),
+                health: regeneration,
+            });
+        }
+        let base_threat = unit
+            .get("stats")
+            .map(|stats| numeric(stats, "aggro"))
+            .unwrap_or_default();
+        if base_threat > 0.0 {
+            combat_rules.push(CombatRule::Threat {
+                fighter_id: fighter.id.clone(),
+                weight: base_threat * (1.0 + threat_delta.max(0.0)),
+            });
         }
     }
     if defense_threshold > 0 {
@@ -2023,14 +2186,24 @@ async fn start_simulation(
             threshold: defense_threshold,
         });
     }
-    if area_damage > 0.0 && area_chance > 0.0 && quest_attack > 0.0 {
+    let base_enemy_attack = if quest_attack > 0.0 {
+        quest_attack
+    } else {
+        720.0 * enemy_factor
+    };
+    let modified_enemy_attack = (base_enemy_attack
+        * (1.0 + tower_environment.monster_attack + elite_rule.modifier().monster_attack))
+        .round();
+    if let Some((chance, damage_ratio)) = merged_area_attack(
+        area_chance,
+        area_damage,
+        modified_enemy_attack,
+        area_chance_delta,
+        area_damage_delta,
+    ) {
         combat_rules.push(CombatRule::AreaAttack {
-            chance: if area_chance > 1.0 {
-                area_chance / 100.0
-            } else {
-                area_chance
-            },
-            damage_ratio: area_damage / quest_attack,
+            chance: if chance > 1.0 { chance / 100.0 } else { chance },
+            damage_ratio,
         });
     }
     let rule_request = AdvancedSimulationRequest {
@@ -2048,35 +2221,8 @@ async fn start_simulation(
                 rudo_multiplier: 1.0,
                 fighters,
             },
-            booster: match booster_level {
-                1 => BoosterBonus {
-                    attack: 0.20,
-                    defense: 0.20,
-                    critical_chance: 0.10,
-                    critical_damage: 0.0,
-                },
-                2 => BoosterBonus {
-                    attack: 0.40,
-                    defense: 0.40,
-                    critical_chance: 0.15,
-                    critical_damage: 0.0,
-                },
-                3 => BoosterBonus {
-                    attack: 0.80,
-                    defense: 0.80,
-                    critical_chance: 0.30,
-                    critical_damage: 0.50,
-                },
-                _ => BoosterBonus::default(),
-            },
-            elite: match elite_kind {
-                "agile" => EliteKind::Agile,
-                "huge" => EliteKind::Huge,
-                "dire" => EliteKind::Dire,
-                "wealthy" => EliteKind::Wealthy,
-                "epic" => EliteKind::Epic,
-                _ => EliteKind::None,
-            },
+            booster: booster_bonus,
+            elite: elite_rule,
             environment: tower_environment,
             titan_floor: titan_tower.then(|| TitanFloorCorrection {
                 floor: request
@@ -2226,6 +2372,51 @@ pub fn run() {
 mod tests {
     use super::*;
     use std::path::PathBuf;
+
+    #[test]
+    fn elite_and_tower_area_modifiers_match_online_merge_formula() {
+        let huge = merged_area_attack(0.25, 280.0, 410.0, 2.0, 0.0).unwrap();
+        assert_eq!(huge.0, 0.75);
+        assert!((huge.1 - (280.0 / 410.0)).abs() < f64::EPSILON);
+
+        let epic = merged_area_attack(0.25, 280.0, 513.0, 0.0, 0.25).unwrap();
+        assert_eq!(epic.0, 0.25);
+        assert!((epic.1 - (350.0 / 513.0)).abs() < f64::EPSILON);
+
+        assert_eq!(merged_area_attack(0.0, 280.0, 410.0, 2.0, 0.0), None);
+    }
+
+    #[test]
+    fn class_targeted_tower_modifiers_use_online_class_matching_and_boosters() {
+        let classes = json!({
+            "soldier": {"type": "fighter"},
+            "thief": {"type": "rogue"}
+        });
+        let champions = json!({"argon": {"class": "soldier"}});
+        assert_eq!(
+            unit_class_type(
+                &json!({"id": "hero-1", "classId": "thief"}),
+                &classes,
+                &champions
+            )
+            .as_deref(),
+            Some("rogue")
+        );
+        assert_eq!(
+            unit_class_type(&json!({"id": "argon"}), &classes, &champions).as_deref(),
+            Some("fighter")
+        );
+        assert!(modifier_applies_to_class(
+            &json!({"classes": "fighter,spellcaster"}),
+            Some("fighter")
+        ));
+        assert!(!modifier_applies_to_class(
+            &json!({"classes": "fighter,spellcaster"}),
+            Some("rogue")
+        ));
+        assert_eq!(booster_bonus_for_level(3).attack, 0.8);
+        assert_eq!(booster_bonus_for_level(3).critical_damage, 0.5);
+    }
 
     #[test]
     fn production_content_builds_complete_catalog() {

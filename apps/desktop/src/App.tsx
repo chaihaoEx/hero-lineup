@@ -821,9 +821,6 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
   const [preparingDetailImage, setPreparingDetailImage] = useState(false);
   const members = task.memberIds.map((id) => units.find((unit) => unit.id === id)).filter(Boolean) as PartyUnit[];
   const hasChampion = members.some((unit) => unit.kind === "champion");
-  const memberCandidates = units.filter((unit) => !task.memberIds.includes(unit.id)
-    && !(hasChampion && unit.kind === "champion")
-    && (showAllMembers || !assignedUnitIds.includes(unit.id)));
   const boosterLevel = task.config.boosterLevel ?? (task.config.booster ? 1 : 0);
   const boosterNames = ["无", "威力强化品", "超级威力强化品", "特级威力强化品"];
   const xpBoosterNames = ["无", "经验强化品", "超级经验强化品", "特级经验强化品"];
@@ -857,6 +854,14 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
     && (!isTitanTomb || modifier.minTowerFloor <= 0 || tombFloor >= modifier.minTowerFloor)
     && (!isTitanTomb || modifier.maxTowerFloor <= 0 || tombFloor <= modifier.maxTowerFloor));
   const selectedTowerModifiers = task.config.towerModifiers ?? [];
+  const excludedElement = selectedTowerModifiers.includes("ignoreelement")
+    ? task.config.towerModifierElements?.ignoreelement
+    : undefined;
+  const unitIsExcluded = (unit: PartyUnit) => Boolean(excludedElement && elementToken[unit.element] === excludedElement);
+  const memberCandidates = units.filter((unit) => !task.memberIds.includes(unit.id)
+    && !(hasChampion && unit.kind === "champion")
+    && !unitIsExcluded(unit)
+    && (showAllMembers || !assignedUnitIds.includes(unit.id)));
   const barrierOptions = [...new Set([
     ...(currentQuest?.barrierElements ?? (currentQuest?.barrierElement ? [currentQuest.barrierElement] : [])),
     ...elements.filter((element) => (task.barrier[element] ?? 0) > 0),
@@ -869,7 +874,28 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
     .filter((unit) => unit.element === element)
     .reduce((sum, unit) => sum + (unit.stats.element ?? 0), 0))));
   const updateTaskConfig = (config: AdventureTask["config"]) => {
-    const nextTask = { ...task, config };
+    const nextConfig = {
+      ...config,
+      towerModifiers: [...(config.towerModifiers ?? [])],
+      towerModifierElements: { ...(config.towerModifierElements ?? {}) },
+    };
+    const nextExcludedElement = nextConfig.towerModifiers.includes("ignoreelement")
+      ? nextConfig.towerModifierElements.ignoreelement
+      : undefined;
+    if (nextExcludedElement && nextConfig.selectedElement !== "force" && nextConfig.selectedElement === nextExcludedElement) {
+      nextConfig.towerModifiers = nextConfig.towerModifiers.filter((id) => id !== "ignoreelement");
+      delete nextConfig.towerModifierElements.ignoreelement;
+    }
+    const activeExcludedElement = nextConfig.towerModifiers.includes("ignoreelement")
+      ? nextConfig.towerModifierElements.ignoreelement
+      : undefined;
+    const memberIds = activeExcludedElement
+      ? task.memberIds.filter((id) => {
+        const unit = units.find((entry) => entry.id === id);
+        return !unit || elementToken[unit.element] !== activeExcludedElement;
+      })
+      : task.memberIds;
+    const nextTask = { ...task, memberIds, config: nextConfig };
     delete nextTask.result;
     onChange?.(nextTask);
   };
@@ -989,6 +1015,7 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
     if (task.memberIds.length >= task.maxMembers) { setMessage(`该任务最多上阵 ${task.maxMembers} 人`); return; }
     const candidate = units.find((unit) => unit.id === id);
     if (!candidate) { setMessage("拖入的成员不在当前体系阵容中"); return; }
+    if (unitIsExcluded(candidate)) { setMessage(candidate.kind === "champion" ? "该勇士被词条禁用，无法上场！" : "该英雄被词条禁用，无法上场！"); return; }
     if (candidate.kind === "champion" && hasChampion) { setMessage("每个冒险任务最多上阵 1 名勇士"); return; }
     setMessage(""); onDrop(id);
   }}>

@@ -563,6 +563,47 @@ test("shows the online Titan modifier count and enforces one entry per family", 
   expect(screen.getByRole("heading", { name: "选择词条 2/2" })).toBeInTheDocument();
 });
 
+test("removes and blocks members whose element is disabled by a Titan modifier", async () => {
+  const towerCatalog = structuredClone(previewCatalog);
+  const titanQuest = towerCatalog.quests.find((quest) => quest.category === "泰坦塔")!;
+  titanQuest.towerModifierLimit = 2;
+  towerCatalog.questModifiers = [
+    { id: "ignoreelement", family: "ignoreelement", name: "元素禁令", description: "禁用一个元素", minTowerTier: 0, maxTowerTier: 0, minTowerFloor: 0, maxTowerFloor: 0 },
+  ];
+  vi.spyOn(desktopBridge, "loadCatalog").mockResolvedValue(towerCatalog);
+  const systems = JSON.parse(localStorage.getItem("zys.hero-lineup.systems.v1")!) as ReturnType<typeof makeDefaultSystem>[];
+  const fireHero = systems[0]!.heroes[0]!;
+  fireHero.name = "火焰骑士";
+  fireHero.element = "火";
+  const waterHero = { ...structuredClone(fireHero), id: crypto.randomUUID(), name: "潮汐骑士", element: "水" as const };
+  systems[0]!.heroes.push(waterHero);
+  const taskState = systems[0]!.taskGroups[0]!.tasks[0]!;
+  Object.assign(taskState, {
+    questId: titanQuest.id,
+    name: titanQuest.name,
+    map: titanQuest.mapName,
+    difficulty: titanQuest.difficulty,
+    maxMembers: titanQuest.maxMembers,
+    memberIds: [fireHero.id],
+    config: { ...taskState.config, titanTower: true, towerModifiers: [], towerModifierElements: {} },
+  });
+  localStorage.setItem("zys.hero-lineup.systems.v1", JSON.stringify(systems));
+
+  const user = userEvent.setup();
+  render(<App />);
+  await appReady();
+  const task = document.querySelector<HTMLElement>(".task-card")!;
+  expect(within(task).getByTitle("移除 火焰骑士")).toBeInTheDocument();
+  await user.click(within(task).getByRole("button", { name: "词条：0/2" }));
+  await user.click(within(screen.getByRole("dialog", { name: "选择词条 0/2" })).getByRole("button", { name: /元素禁令/ }));
+  expect(within(task).queryByTitle("移除 火焰骑士")).not.toBeInTheDocument();
+
+  await user.click(within(task).getByRole("button", { name: "添加成员" }));
+  const memberPicker = screen.getByRole("dialog", { name: "选择成员添加到任务" });
+  expect(within(memberPicker).queryByRole("button", { name: /火焰骑士/ })).not.toBeInTheDocument();
+  expect(within(memberPicker).getByRole("button", { name: /潮汐骑士/ })).toBeInTheDocument();
+});
+
 test("reveals XP boosters and the three online XP toggles only for an XP-to-attack artifact", async () => {
   const xpCatalog = structuredClone(previewCatalog);
   xpCatalog.items.push({ id: "magehat", name: "学者帽", itemType: "hh", typeName: "帽子", tier: 15, skill: "a_artifactmagehat" });
