@@ -120,6 +120,20 @@ export interface SimulationConfig {
   tombFloor?: number | undefined;
 }
 
+export interface SimulationAttemptResult {
+  iterations: number;
+  successRate: number;
+  averageTurns: number;
+  minTurns: number;
+  maxTurns: number;
+  memberResults: Array<{
+    id: string;
+    survivalRate: number;
+    averageDamage: number;
+    averageRemainingHealth: number;
+  }>;
+}
+
 export interface SimulationResult {
   iterations?: number;
   successRate: number;
@@ -129,12 +143,11 @@ export interface SimulationResult {
   survivalRate: number;
   averageDamage: number;
   averageRemainingHealth: number;
-  memberResults?: Array<{
-    id: string;
-    survivalRate: number;
-    averageDamage: number;
-    averageRemainingHealth: number;
-  }>;
+  memberResults?: SimulationAttemptResult["memberResults"];
+  firstAttempt?: SimulationAttemptResult | undefined;
+  secondAttempt?: SimulationAttemptResult | undefined;
+  hasSecondAttempt?: boolean | undefined;
+  overallMemberResults?: Array<{ id: string; survivalRate: number }> | undefined;
   simulatorVersion: string;
   gameDataVersion: string;
   completedAt: string;

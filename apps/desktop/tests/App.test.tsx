@@ -519,6 +519,53 @@ test("invalidates an old simulation result when a task option changes", async ()
   expect(screen.queryByRole("button", { name: "查看详情" })).not.toBeInTheDocument();
 });
 
+test("shows online-style overall, first-attempt and conditional second-attempt results", async () => {
+  const systems = JSON.parse(localStorage.getItem("zys.hero-lineup.systems.v1")!) as ReturnType<typeof makeDefaultSystem>[];
+  const heroId = systems[0]!.heroes[0]!.id;
+  vi.spyOn(desktopBridge, "simulate").mockResolvedValue({
+    iterations: 10000,
+    successRate: 84.375,
+    averageTurns: 8.25,
+    minTurns: 5,
+    maxTurns: 12,
+    survivalRate: 81,
+    averageDamage: 4200,
+    averageRemainingHealth: 160,
+    firstAttempt: {
+      iterations: 10000,
+      successRate: 75,
+      averageTurns: 8.25,
+      minTurns: 5,
+      maxTurns: 12,
+      memberResults: [{ id: heroId, survivalRate: 70, averageDamage: 4200, averageRemainingHealth: 160 }],
+    },
+    secondAttempt: {
+      iterations: 2500,
+      successRate: 37.5,
+      averageTurns: 7.5,
+      minTurns: 4,
+      maxTurns: 11,
+      memberResults: [{ id: heroId, survivalRate: 45, averageDamage: 4700, averageRemainingHealth: 190 }],
+    },
+    hasSecondAttempt: true,
+    overallMemberResults: [{ id: heroId, survivalRate: 81 }],
+    simulatorVersion: "test-retry",
+    gameDataVersion: previewCatalog.gameDataVersion,
+    completedAt: new Date().toISOString(),
+  });
+  const user = userEvent.setup();
+  render(<App />);
+  await appReady();
+  await user.click(screen.getByRole("button", { name: "测试冒险" }));
+  await user.click(await screen.findByRole("button", { name: "查看详情" }));
+  const dialog = screen.getByRole("dialog", { name: "冒险模拟详情" });
+  expect(within(dialog).getByText("总体成功率")).toBeInTheDocument();
+  expect(dialog.querySelector(".simulation-overall-summary > strong")).toHaveTextContent("84.375%");
+  expect(within(dialog).getByRole("heading", { name: "第一次尝试" })).toBeInTheDocument();
+  expect(within(dialog).getByRole("heading", { name: "第二次尝试" })).toBeInTheDocument();
+  expect(within(dialog).getByText("2,500")).toBeInTheDocument();
+});
+
 test("uses the online two-stage Titan Tower floor and variant flow", async () => {
   const user = userEvent.setup();
   render(<App />);

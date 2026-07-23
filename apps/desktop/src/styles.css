@@ -351,6 +351,17 @@ body { background: #f3f5fa; }
 .simulation-detail-modal .simulation-member-summary .survival { color:#22232a; font-weight:700; }
 .simulation-detail-modal .simulation-member-summary .damage { color:#252731; }
 .simulation-detail-modal .simulation-member-summary .remaining-health { color:#252731; }
+.simulation-attempt-panel > h3 { margin:18px 48px 8px; color:#313585; font-size:16px; text-align:center; }
+.simulation-overall-summary { margin:10px 48px 18px; padding:16px 18px; border-bottom:1px solid #dfe2ea; text-align:center; }
+.simulation-overall-summary > small,.simulation-overall-summary > strong { display:block; }
+.simulation-overall-summary > small { color:#747b89; font-size:11px; }
+.simulation-overall-summary > strong { margin-top:5px; font-size:24px; }
+.simulation-overall-summary > h3 { margin:16px 0 9px; color:#313585; font-size:14px; }
+.simulation-overall-summary > div { display:flex; flex-wrap:wrap; justify-content:center; gap:18px; }
+.simulation-overall-summary article { display:grid; grid-template-columns:34px auto; align-items:center; column-gap:7px; text-align:left; }
+.simulation-overall-summary .unit-avatar { grid-row:1/3; width:34px; height:34px; }
+.simulation-overall-summary article span { font-size:9px; }
+.simulation-overall-summary article b { color:#292c36; font-size:11px; }
 .simulation-config-hint { margin:10px 48px 0; padding:8px 12px; color:#5e55a6; font-size:10px; text-align:center; border:1px solid #e6e0fa; border-radius:5px; background:#faf8ff; }
 .simulation-detail-modal .simulation-members { max-height:none; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:14px; padding:8px 48px 22px; overflow:visible; }
 .simulation-detail-modal .simulation-members.count-1 { grid-template-columns:1fr; }
@@ -432,7 +443,7 @@ body { background: #f3f5fa; }
   .simulation-detail-backdrop { padding:16px; }
   .simulation-detail-modal { width:calc(100vw - 32px); max-height:calc(100vh - 32px); }
   .simulation-detail-modal .simulation-members { grid-template-columns:1fr; padding-left:20px; padding-right:20px; }
-  .simulation-detail-modal .simulation-quest-banner,.simulation-detail-modal .simulation-summary,.simulation-detail-modal .simulation-member-summary,.simulation-config-hint { margin-left:20px; margin-right:20px; }
+  .simulation-detail-modal .simulation-quest-banner,.simulation-detail-modal .simulation-summary,.simulation-detail-modal .simulation-member-summary,.simulation-overall-summary,.simulation-attempt-panel > h3,.simulation-config-hint { margin-left:20px; margin-right:20px; }
 }
 
 /* The online editor is a compact two-column workbench: identity/parameters and

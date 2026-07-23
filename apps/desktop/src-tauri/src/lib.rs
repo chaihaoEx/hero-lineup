@@ -7,10 +7,11 @@ use hero_domain::{
     LineupSystem, Template, Versions,
 };
 use hero_simulator::{
-    simulate_advanced, AdvancedSimulationRequest, BarrierMode, BattleRules, BoosterBonus,
-    CalculatedStats, CancellationToken, CombatRule, Combatant, Element, ElementBarrier,
-    ElementContribution, EliteKind, EnvironmentModifier, QuestEnemy,
-    SimulationRequest as CoreSimulationRequest, TitanFloorCorrection,
+    simulate_advanced, simulate_advanced_with_retry, AdvancedSimulationRequest, BarrierMode,
+    BattleRules, BoosterBonus, CalculatedStats, CancellationToken, CombatRule, Combatant, Element,
+    ElementBarrier, ElementContribution, EliteKind, EnvironmentModifier, QuestEnemy,
+    SimulationRequest as CoreSimulationRequest, SimulationResult as CoreSimulationResult,
+    TitanFloorCorrection,
 };
 use hero_storage::Storage;
 use serde::{Deserialize, Serialize};
@@ -352,6 +353,40 @@ fn booster_bonus_for_level(level: u8) -> BoosterBonus {
         },
         _ => BoosterBonus::default(),
     }
+}
+
+fn combine_boosters(left: &BoosterBonus, right: &BoosterBonus) -> BoosterBonus {
+    BoosterBonus {
+        attack: left.attack + right.attack,
+        defense: left.defense + right.defense,
+        critical_chance: left.critical_chance + right.critical_chance,
+        critical_damage: left.critical_damage + right.critical_damage,
+    }
+}
+
+fn is_hero_class(unit: &Value, class_id: &str) -> bool {
+    unit.get("kind").and_then(Value::as_str) == Some("hero")
+        && unit
+            .get("classId")
+            .or_else(|| unit.get("class"))
+            .and_then(Value::as_str)
+            .is_some_and(|value| value.eq_ignore_ascii_case(class_id))
+}
+
+fn attempt_result_json(result: &CoreSimulationResult) -> Value {
+    json!({
+        "iterations": result.iterations,
+        "successRate": result.success_rate * 100.0,
+        "averageTurns": result.average_rounds,
+        "minTurns": result.minimum_rounds,
+        "maxTurns": result.maximum_rounds,
+        "memberResults": result.members.iter().map(|member| json!({
+            "id": member.id,
+            "survivalRate": member.survival_rate * 100.0,
+            "averageDamage": member.average_damage,
+            "averageRemainingHealth": member.average_remaining_health
+        })).collect::<Vec<_>>()
+    })
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -2251,6 +2286,26 @@ async fn start_simulation(
         },
         combat_rules,
     };
+    let has_timekeeper = request
+        .units
+        .iter()
+        .any(|unit| is_hero_class(unit, "timekeeper"));
+    let has_chronomancer = request
+        .units
+        .iter()
+        .any(|unit| is_hero_class(unit, "chronomancer"));
+    let retry_request = (has_timekeeper || has_chronomancer).then(|| {
+        let mut retry = rule_request.clone();
+        if has_timekeeper {
+            let minimum_booster = booster_bonus_for_level(1);
+            retry.quest_rules.booster = if booster_level == 0 {
+                minimum_booster
+            } else {
+                combine_boosters(&retry.quest_rules.booster, &minimum_booster)
+            };
+        }
+        retry
+    });
     let cancellation = CancellationToken::default();
     state
         .simulation_tokens
@@ -2266,27 +2321,86 @@ async fn start_simulation(
         .unwrap_or("offline-preview-1")
         .to_owned();
     let result = tauri::async_runtime::spawn_blocking(move || -> Result<Value, String> {
-        let result = simulate_advanced(&rule_request, &cancellation, |completed, total| {
+        let emit_progress = |completed, total| {
             let _ = app.emit(&format!("simulation-progress:{task_for_job}"), SimulationProgress { task_id: task_for_job.clone(), completed: u64::from(completed), total: u64::from(total), phase: "running" });
-        }).map_err(|error| error.to_string())?;
+        };
+        let result = if let Some(retry_request) = retry_request {
+            let attempts = simulate_advanced_with_retry(
+                &rule_request,
+                &retry_request,
+                &cancellation,
+                emit_progress,
+            )
+            .map_err(|error| error.to_string())?;
+            let first = &attempts.first_attempt;
+            let member_count = attempts.overall_members.len().max(1) as f64;
+            let overall_survival = attempts
+                .overall_members
+                .iter()
+                .map(|member| member.survival_rate)
+                .sum::<f64>()
+                / member_count;
+            json!({
+                "successRate": attempts.success_rate * 100.0,
+                "averageTurns": first.average_rounds,
+                "minTurns": first.minimum_rounds,
+                "maxTurns": first.maximum_rounds,
+                "survivalRate": overall_survival * 100.0,
+                "averageDamage": first.members.iter().map(|member| member.average_damage).sum::<f64>(),
+                "averageRemainingHealth": first.members.iter().map(|member| member.average_remaining_health).sum::<f64>(),
+                "memberResults": first.members.iter().map(|member| {
+                    let overall = attempts.overall_members.iter().find(|entry| entry.id == member.id);
+                    json!({
+                        "id": member.id,
+                        "survivalRate": overall.map_or(member.survival_rate, |entry| entry.survival_rate) * 100.0,
+                        "averageDamage": member.average_damage,
+                        "averageRemainingHealth": member.average_remaining_health
+                    })
+                }).collect::<Vec<_>>(),
+                "firstAttempt": attempt_result_json(first),
+                "secondAttempt": attempts.second_attempt.as_ref().map(attempt_result_json),
+                "hasSecondAttempt": attempts.has_second_attempt,
+                "overallMemberResults": attempts.overall_members.iter().map(|member| json!({
+                    "id": member.id,
+                    "survivalRate": member.survival_rate * 100.0
+                })).collect::<Vec<_>>(),
+                "seed": first.seed,
+                "iterations": first.iterations,
+                "simulatorVersion": SIMULATOR_VERSION,
+                "gameDataVersion": game_data_version,
+                "completedAt": Utc::now().to_rfc3339(),
+                "stale": false
+            })
+        } else {
+            let attempt = simulate_advanced(&rule_request, &cancellation, emit_progress)
+                .map_err(|error| error.to_string())?;
+            let member_count = attempt.members.len().max(1) as f64;
+            json!({
+                "successRate": attempt.success_rate * 100.0,
+                "averageTurns": attempt.average_rounds,
+                "minTurns": attempt.minimum_rounds,
+                "maxTurns": attempt.maximum_rounds,
+                "survivalRate": attempt.members.iter().map(|member| member.survival_rate).sum::<f64>() / member_count * 100.0,
+                "averageDamage": attempt.members.iter().map(|member| member.average_damage).sum::<f64>(),
+                "averageRemainingHealth": attempt.members.iter().map(|member| member.average_remaining_health).sum::<f64>(),
+                "memberResults": attempt.members.iter().map(|member| json!({
+                    "id": member.id,
+                    "survivalRate": member.survival_rate * 100.0,
+                    "averageDamage": member.average_damage,
+                    "averageRemainingHealth": member.average_remaining_health
+                })).collect::<Vec<_>>(),
+                "firstAttempt": attempt_result_json(&attempt),
+                "hasSecondAttempt": false,
+                "seed": attempt.seed,
+                "iterations": attempt.iterations,
+                "simulatorVersion": SIMULATOR_VERSION,
+                "gameDataVersion": game_data_version,
+                "completedAt": Utc::now().to_rfc3339(),
+                "stale": false
+            })
+        };
         tokens.lock().map_err(|_| "模拟状态锁已损坏")?.remove(&task_for_job);
-        let member_count = result.members.len().max(1) as f64;
-        Ok(json!({
-            "successRate": result.success_rate * 100.0, "averageTurns": result.average_rounds,
-            "minTurns": result.minimum_rounds, "maxTurns": result.maximum_rounds,
-            "survivalRate": result.members.iter().map(|member| member.survival_rate).sum::<f64>() / member_count * 100.0,
-            "averageDamage": result.members.iter().map(|member| member.average_damage).sum::<f64>(),
-            "averageRemainingHealth": result.members.iter().map(|member| member.average_remaining_health).sum::<f64>(),
-            "memberResults": result.members.iter().map(|member| json!({
-                "id": member.id,
-                "survivalRate": member.survival_rate * 100.0,
-                "averageDamage": member.average_damage,
-                "averageRemainingHealth": member.average_remaining_health
-            })).collect::<Vec<_>>(),
-            "seed": result.seed, "iterations": result.iterations,
-            "simulatorVersion": SIMULATOR_VERSION, "gameDataVersion": game_data_version,
-            "completedAt": Utc::now().to_rfc3339(), "stale": false
-        }))
+        Ok(result)
     }).await.map_err(|error| error.to_string())??;
     if let Some(system_id) = request.system_id.and_then(|id| id.parse().ok()) {
         let task_uuid = task_id.parse().map_err(|_| "任务 id 不是 UUID")?;
@@ -2416,6 +2530,20 @@ mod tests {
         ));
         assert_eq!(booster_bonus_for_level(3).attack, 0.8);
         assert_eq!(booster_bonus_for_level(3).critical_damage, 0.5);
+        let timekeeper_retry =
+            combine_boosters(&booster_bonus_for_level(3), &booster_bonus_for_level(1));
+        assert_eq!(timekeeper_retry.attack, 1.0);
+        assert_eq!(timekeeper_retry.defense, 1.0);
+        assert_eq!(timekeeper_retry.critical_chance, 0.4);
+        assert_eq!(timekeeper_retry.critical_damage, 0.5);
+        assert!(is_hero_class(
+            &json!({"kind": "hero", "classId": "timekeeper"}),
+            "timekeeper"
+        ));
+        assert!(!is_hero_class(
+            &json!({"kind": "champion", "classId": "timekeeper"}),
+            "timekeeper"
+        ));
     }
 
     #[test]

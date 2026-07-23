@@ -7,9 +7,9 @@
 | 差异 | 当前离线行为 | 线上证据/行为 | 影响 |
 |---|---|---|---|
 | 随机数 | ChaCha8 + 用户可记录的固定 seed | `Math.random`，无固定 seed | 离线结果可复现，但逐次序列不可能与线上相同 |
-| 战斗模型覆盖 | 高级 API 已覆盖 tdef、timed/per-round、AOE、威胁、普通回复、Lord、Ninja/Sensei 专注和 Berserker 阶段；桌面入口已按 questId 装配任务基础属性、tdef 和 AOE | bundle 还包含存活概率、Timekeeper、Chronomancer、Hemma、Rudo 攻击时效、连续暴击、首回合职业、神器等组合分支 | 已不再使用固定演示怪物，但仍不得标注“与线上完全一致” |
+| 战斗模型覆盖 | 高级 API 已覆盖 tdef、timed/per-round、AOE、威胁、普通回复、Lord、Ninja/Sensei 专注、Berserker 阶段以及 Timekeeper/Chronomancer 条件重试；桌面入口已按 questId 装配任务基础属性、tdef 和 AOE | bundle 还包含存活概率、Hemma、Rudo 攻击时效、连续暴击、首回合职业、神器等组合分支 | 已不再使用固定演示怪物，但仍不得标注“与线上完全一致” |
 | 元素屏障生命周期 | 开战前解析为整场固定伤害倍率 | 线上同样先解析屏障倍率，但完整回合代码可能与更多技能状态交互 | 局部公式已证实，组合效果尚未完全覆盖 |
-| Booster 数值解析 | 已实现无、威力、超级威力、特级威力四档；精确映射攻防 +20/40/80%、暴击 +10/15/30%，特级额外暴伤 +50% | 线上按 `si_atk1..3` 从 qmodifiers 取值；Timekeeper 重试还可能补足一级 Booster | 单次任务等级与数值已一致；Timekeeper 第二次尝试仍有差异 |
+| Booster 数值解析 | 已实现无、威力、超级威力、特级威力四档；精确映射攻防 +20/40/80%、暴击 +10/15/30%，特级额外暴伤 +50%；Timekeeper 在无 Booster 时以一级重试，已有 Booster 时再叠加一级 | 线上按 `si_atk1..3` 从 qmodifiers 取值；Timekeeper 使用 `booster===0?1:booster` 与 `addMinBooster` | 已确认的四档与 Timekeeper 重试叠加一致 |
 | Wealthy 奖励 | 战斗无修正，不计算奖励 | 线上数据调整 loot、key 和物品等级 | 战斗判断不受影响，奖励估算缺失 |
 | 环境持续时间 | 高级 API 支持 `TimedMonsterModifier` 与 `MonsterDamagePerRound`；基础 API 仍把环境作为永久修正 | bundle 从 qmodifier 自动解析 duration、`mDmgPerRound` | 桌面装配层尚未自动生成高级规则时仍有偏差 |
 | 泰坦塔词条 | 已实现本地目录、名称/说明/图标、层/阶筛选、任务上限、family 互斥、随机、墓穴楼层与祝福灯笼；怪物 HP/攻击/回避/暴击/暴伤、持续攻击/暴击、每回合伤害、AOE，以及按职业生效的攻击、生命、永久/限时回避、暴击、暴伤、威胁和正回复进入模拟；禁用元素会即时清退并阻止成员再次上阵 | 线上还逐条处理按职业防御修正、`healdrain` 等特殊回复/吸取字段及其组合分支 | UI、阵容禁用和列出的主要怪物/职业修正已对齐；防御与特殊回复字段仍有偏差 |
@@ -17,7 +17,6 @@
 | Lord 的幸存概率交互 | 已实现每场一次同额挡刀；未实现 protector 挡刀后再次触发幸存概率 | 线上 Lord 自身被挡刀伤害击杀后仍执行一次幸存概率判定 | 没有幸存词条时等价；有幸存词条时偏差 |
 | Ninja/Sensei 数值装配 | 通用 `OpeningFocus` 由调用方提供数值及恢复回合 | 线上按职业 innate + `min(skillLevel,4)` 从 skills JSON 读取 | 状态机已证实，桌面层尚需完成数据映射 |
 | Berserker/Jarl 数值装配 | 通用 `BerserkerStages` 由调用方提供阈值与每阶段加成 | 线上从 `dmgBuf/atkBuf/evaBuf` 解析 | 状态和边界已覆盖，桌面层尚需完成数据映射 |
-| Timekeeper/Chronomancer | 未实现失败后的第二次任务 | `sp` 检测队伍职业；失败时 Chronomancer 原配置重试，Timekeeper 以 `addMinBooster` 重试 | 这是跨单次战斗的重试/聚合语义，需先确认第二次结果如何计入所有统计字段 |
 | Hemma | 未实现吸血、固定回血与累计攻击增益 | bundle 选择 HP 百分比最高且超过阈值的其他英雄，扣最大 HP 比例、Hemma 固定回血并累加攻击；盗贼帽使扣血为 0 | 与英雄/勇士范围、神器免疫、Sensei 失效联动复杂，现阶段不猜测缺失边界 |
 | Rudo | 已有屏障倍率；未实现限时全队暴击加成 | bundle 按 `rudoleader{level}` 提供 `critical/barrierPowerMult/duration`，到期清零暴击加成 | 数值可提取，但需要调用方可靠区分勇士数据和技能等级后再接入 |
 | 数值舍入 | 属性乘数后 `round`；屏障 Rudo 后 `floor` | 线上不同路径混用 `round/floor` | 已证实路径保持一致，未覆盖路径不保证一致 |

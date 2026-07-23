@@ -15,7 +15,7 @@ import {
 } from "./data/equipmentNeeds";
 import { desktopBridge } from "./platform/bridge";
 import { useWorkspace } from "./state/useWorkspace";
-import type { AdventureTask, BuildTemplate, CalculatedSheet, Champion, ChampionEquipmentConfig, ChampionLoadout, ElementType, Hero, LineupSystem, PartyUnit, Quality, SimulationProgress, TaskGroup, UnitStats } from "./types/domain";
+import type { AdventureTask, BuildTemplate, CalculatedSheet, Champion, ChampionEquipmentConfig, ChampionLoadout, ElementType, Hero, LineupSystem, PartyUnit, Quality, SimulationAttemptResult, SimulationProgress, TaskGroup, UnitStats } from "./types/domain";
 import {
   captureElementPng, copyPng, decodeClipboard, downloadPng, encodeClipboard, exportLineupPng, readClipboard, writeClipboard,
 } from "./utils/localTransfer";
@@ -340,6 +340,37 @@ function SimulationMemberConfig({ unit, catalog, onCopy }: { unit: PartyUnit; ca
       <small>{item ? `T${item.tier} · ${qualityDisplay[config?.quality ?? "普通"]}` : "未装备"}</small>
     </div>)}</div>
   </article>;
+}
+
+function SimulationAttemptPanel({ attempt, title, showTitle, units }: {
+  attempt: SimulationAttemptResult;
+  title: string;
+  showTitle: boolean;
+  units: PartyUnit[];
+}) {
+  const totalDamage = attempt.memberResults.reduce((sum, entry) => sum + entry.averageDamage, 0);
+  return <section className="simulation-attempt-panel">
+    {showTitle && <h3>{title}</h3>}
+    <div className="simulation-summary">
+      <div><span>尝试次数</span><strong>{attempt.iterations.toLocaleString()}</strong></div>
+      <div><span>成功率</span><strong>☹ {attempt.successRate.toFixed(2)}%</strong></div>
+      <div><span>平均回合数</span><strong>{attempt.averageTurns.toFixed(2)}</strong></div>
+      <div><span>最小回合数</span><strong>{attempt.minTurns}</strong></div>
+      <div><span>最大回合数</span><strong>{attempt.maxTurns}</strong></div>
+    </div>
+    <div className="simulation-member-summary">{units.map((unit) => {
+      const memberResult = attempt.memberResults.find((entry) => entry.id === unit.id);
+      const damage = memberResult?.averageDamage ?? 0;
+      const remainingHealth = memberResult?.averageRemainingHealth ?? 0;
+      return <article key={unit.id}>
+        <UnitAvatar unit={unit} small />
+        <strong>{unit.name}</strong>
+        <span className="survival">☹ {(memberResult?.survivalRate ?? 0).toFixed(2)}%</span>
+        <span className="damage">⚔ {Math.round(damage).toLocaleString()} <em>({(damage / Math.max(1, totalDamage) * 100).toFixed(1)}%)</em></span>
+        <span className="remaining-health">♥ {Math.round(remainingHealth).toLocaleString()} <em>({(remainingHealth / Math.max(1, unit.stats.health) * 100).toFixed(1)}%)</em></span>
+      </article>;
+    })}</div>
+  </section>;
 }
 
 function HeroCard({ hero, allElements, onEdit, onCopy, onDelete }: {
@@ -995,6 +1026,21 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
       setMessage(`${unit.name} 的线上兼容配置码已复制`);
     } catch (error) { setMessage(error instanceof Error ? error.message : "配置码复制失败"); }
   };
+  const firstAttempt: SimulationAttemptResult | undefined = task.result
+    ? task.result.firstAttempt ?? {
+      iterations: task.result.iterations ?? 10000,
+      successRate: task.result.successRate,
+      averageTurns: task.result.averageTurns,
+      minTurns: task.result.minTurns,
+      maxTurns: task.result.maxTurns,
+      memberResults: task.result.memberResults ?? members.map((unit) => ({
+        id: unit.id,
+        survivalRate: task.result!.survivalRate,
+        averageDamage: task.result!.averageDamage,
+        averageRemainingHealth: task.result!.averageRemainingHealth,
+      })),
+    }
+    : undefined;
 
   return <article className="task-card" data-task-name={task.name} draggable onDragStart={(event) => {
     event.dataTransfer.setData("application/x-zys-task", JSON.stringify({ groupId, taskId: task.id }));
@@ -1071,7 +1117,39 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
     </div> : null}
     <div className="online-result-row">{task.result && <><span className="online-success-icon" aria-label="成功率">☺</span><strong>成功率: {task.result.successRate.toFixed(3)}%</strong><button onClick={() => setDetails(true)}>查看详情</button></>}<button className="online-test-button" onClick={() => void run()} disabled={!members.length}>测试冒险</button></div>
     {task.result?.stale && <small className="stale-result">数据版本已变化，请重新测试</small>}
-    {task.result && details && <div className="modal-backdrop simulation-detail-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setDetails(false); }}><section className="modal simulation-detail-modal" role="dialog" aria-modal="true" aria-labelledby={`simulation-detail-${task.id}`}><header className="modal-header"><h2 id={`simulation-detail-${task.id}`}>冒险模拟详情</h2><div className="modal-header-actions"><button aria-label="复制图片" className="zys-button blue simulation-copy-image" disabled={!detailImage || preparingDetailImage} onClick={() => void copyResult()}>{preparingDetailImage ? "准备中..." : "复制图片"}</button><button aria-label="下载图片" className="zys-button green" disabled={!detailImage || preparingDetailImage} onClick={() => exportResult()}>{preparingDetailImage ? "准备中..." : "下载图片"}</button><button className="zys-button red" onClick={() => setDetails(false)}>关闭</button></div></header><div ref={detailSurfaceRef} className="simulation-export-surface">{preparingDetailImage && <div className="simulation-export-watermark">传奇智游社 cq-zys.cn</div>}<div className="simulation-quest-banner"><div className="simulation-quest-title"><span className="quest-switcher-art">{currentQuestMapSprite ? <AssetImage path={currentQuestMapSprite} alt={task.map} /> : "◈"}</span><div><strong>{task.map}{isTitanTomb ? `第${tombFloor}层` : ""}</strong>{currentQuest ? <QuestDifficultyArt quest={currentQuest} compact /> : <small>{task.difficulty}</small>}</div></div><dl><div><dt>冒险强化道具</dt><dd>{activeBoosterName}</dd></div>{hasXpToAttackArtifact && <div><dt>经验加成</dt><dd>{[supportsStandardModifiers && task.config.adventureMasteryXp !== false ? "冒险精通" : "", task.config.guildXpBoost !== false ? "公会强化" : "", task.config.eventXpBoost === true ? "经验小活动" : ""].filter(Boolean).join("、") || "无"}</dd></div>}{supportsElite && <div><dt>精英怪</dt><dd>{eliteKinds.find(([value]) => value === eliteKind)?.[1]}</dd></div>}{supportsTowerModifiers && <div><dt>词条</dt><dd>{selectedTowerModifiers.length ? selectedTowerModifiers.map((id) => catalog.questModifiers.find((entry) => entry.id === id)?.name ?? id).join("、") : "无"}</dd></div>}{supportsStandardModifiers && <div><dt>元素屏障</dt><dd>{selectedElementLabel}</dd></div>}</dl></div><div className="simulation-summary"><div><span>尝试次数</span><strong>{(task.result.iterations ?? 10000).toLocaleString()}</strong></div><div><span>成功率</span><strong>☹ {task.result.successRate.toFixed(2)}%</strong></div><div><span>平均回合数</span><strong>{task.result.averageTurns.toFixed(2)}</strong></div><div><span>最小回合数</span><strong>{task.result.minTurns}</strong></div><div><span>最大回合数</span><strong>{task.result.maxTurns}</strong></div></div><div className="simulation-member-summary">{members.map((unit) => { const memberResult = task.result?.memberResults?.find((entry) => entry.id === unit.id); const damage = memberResult?.averageDamage ?? task.result!.averageDamage; const remainingHealth = memberResult?.averageRemainingHealth ?? task.result!.averageRemainingHealth; const totalDamage = task.result!.memberResults?.reduce((sum, entry) => sum + entry.averageDamage, 0) ?? task.result!.averageDamage; return <article key={unit.id}><UnitAvatar unit={unit} small /><strong>{unit.name}</strong><span className="survival">☹ {(memberResult?.survivalRate ?? task.result!.survivalRate).toFixed(2)}%</span><span className="damage">⚔ {Math.round(damage).toLocaleString()} <em>({(damage / Math.max(1, totalDamage) * 100).toFixed(1)}%)</em></span><span className="remaining-health">♥ {Math.round(remainingHealth).toLocaleString()} <em>({(remainingHealth / Math.max(1, unit.stats.health) * 100).toFixed(1)}%)</em></span></article>; })}</div><div className="simulation-config-hint">✦ 点击职业图标导出配置码，在英雄体系搭配平台导入使用 ✦</div><div className={`simulation-members count-${members.length}`}>{members.map((unit) => <SimulationMemberConfig key={unit.id} unit={unit} catalog={catalog} onCopy={() => void copyMemberConfig(unit)} />)}</div><footer className="simulation-detail-footer">模拟器 {task.result.simulatorVersion} · 数据 {task.result.gameDataVersion}</footer></div></section></div>}
+    {task.result && details && firstAttempt && <div className="modal-backdrop simulation-detail-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setDetails(false); }}>
+      <section className="modal simulation-detail-modal" role="dialog" aria-modal="true" aria-labelledby={`simulation-detail-${task.id}`}>
+        <header className="modal-header">
+          <h2 id={`simulation-detail-${task.id}`}>冒险模拟详情</h2>
+          <div className="modal-header-actions">
+            <button aria-label="复制图片" className="zys-button blue simulation-copy-image" disabled={!detailImage || preparingDetailImage} onClick={() => void copyResult()}>{preparingDetailImage ? "准备中..." : "复制图片"}</button>
+            <button aria-label="下载图片" className="zys-button green" disabled={!detailImage || preparingDetailImage} onClick={() => exportResult()}>{preparingDetailImage ? "准备中..." : "下载图片"}</button>
+            <button className="zys-button red" onClick={() => setDetails(false)}>关闭</button>
+          </div>
+        </header>
+        <div ref={detailSurfaceRef} className="simulation-export-surface">
+          {preparingDetailImage && <div className="simulation-export-watermark">传奇智游社 cq-zys.cn</div>}
+          <div className="simulation-quest-banner">
+            <div className="simulation-quest-title"><span className="quest-switcher-art">{currentQuestMapSprite ? <AssetImage path={currentQuestMapSprite} alt={task.map} /> : "◈"}</span><div><strong>{task.map}{isTitanTomb ? `第${tombFloor}层` : ""}</strong>{currentQuest ? <QuestDifficultyArt quest={currentQuest} compact /> : <small>{task.difficulty}</small>}</div></div>
+            <dl><div><dt>冒险强化道具</dt><dd>{activeBoosterName}</dd></div>{hasXpToAttackArtifact && <div><dt>经验加成</dt><dd>{[supportsStandardModifiers && task.config.adventureMasteryXp !== false ? "冒险精通" : "", task.config.guildXpBoost !== false ? "公会强化" : "", task.config.eventXpBoost === true ? "经验小活动" : ""].filter(Boolean).join("、") || "无"}</dd></div>}{supportsElite && <div><dt>精英怪</dt><dd>{eliteKinds.find(([value]) => value === eliteKind)?.[1]}</dd></div>}{supportsTowerModifiers && <div><dt>词条</dt><dd>{selectedTowerModifiers.length ? selectedTowerModifiers.map((id) => catalog.questModifiers.find((entry) => entry.id === id)?.name ?? id).join("、") : "无"}</dd></div>}{supportsStandardModifiers && <div><dt>元素屏障</dt><dd>{selectedElementLabel}</dd></div>}</dl>
+          </div>
+          {task.result.hasSecondAttempt && <div className="simulation-overall-summary">
+            <small>总体成功率</small>
+            <strong>☹ {task.result.successRate.toFixed(3)}%</strong>
+            <h3>总体存活率</h3>
+            <div>{members.map((unit) => {
+              const overall = task.result?.overallMemberResults?.find((entry) => entry.id === unit.id);
+              return <article key={unit.id}><UnitAvatar unit={unit} small /><span>{unit.name}</span><b>{(overall?.survivalRate ?? 0).toFixed(3)}%</b></article>;
+            })}</div>
+          </div>}
+          <SimulationAttemptPanel attempt={firstAttempt} title="第一次尝试" showTitle={task.result.hasSecondAttempt === true} units={members} />
+          {task.result.hasSecondAttempt && task.result.secondAttempt && <SimulationAttemptPanel attempt={task.result.secondAttempt} title="第二次尝试" showTitle units={members} />}
+          <div className="simulation-config-hint">✦ 点击职业图标导出配置码，在英雄体系搭配平台导入使用 ✦</div>
+          <div className={`simulation-members count-${members.length}`}>{members.map((unit) => <SimulationMemberConfig key={unit.id} unit={unit} catalog={catalog} onCopy={() => void copyMemberConfig(unit)} />)}</div>
+          <footer className="simulation-detail-footer">模拟器 {task.result.simulatorVersion} · 数据 {task.result.gameDataVersion}</footer>
+        </div>
+      </section>
+    </div>}
   </article>;
 }
 

@@ -15,6 +15,8 @@
 | 规则 | Rust 实现 | 线上证据 | 置信度 | 测试 |
 |---|---|---|---|---|
 | 默认模拟 10,000 次 | 调用端默认值；核心接受显式 `iterations` | `HeroLineup-DP_2OddU.js` 的 `sp` 固定 `w=1e4` | A | 既有进度/确定性测试；fixture 显式 4096 以缩短 CI |
+| 成功场回合聚合 | 平均、最小、最大回合只统计成功尝试；无成功场时均为 0 | `sp` 先 `filter(success)` 再提取 `rounds`，空数组回退 0 | A | 高级黄金 fixture 锁定成功场专用聚合 |
+| Timekeeper / Chronomancer 重试 | 第一次失败才调用第二场；Chronomancer 原配置，Timekeeper 无 Booster 时使用一级、已有 Booster 时叠加一级；第二次统计分母为失败场数，总体成功/存活以原 10,000 场为分母 | `sp` 的 `d/f`、`BA`、`v/E` 聚合分支 | A | `advanced_rules_are_seeded_and_do_not_change_legacy_api` 覆盖失败数、第二次次数、总体成功与存活边界；桌面命令层断言 Booster 叠加 |
 | 固定元素屏障 | 同元素值全额、`all` 元素半值；总值低于屏障 HP 时伤害 ×0.2 | bundle `zB`：匹配元素累加、`all * .5`、`MA>fA?.2:1` | A | `fixed_and_random_element_barriers_match_bundle_rules` |
 | 随机元素屏障 | 分别汇总六元素，取最高值与 `barrierPower` 比较；未破盾伤害 ×0.2 | bundle `zB` 的 `HA==="rand"` 分支 | A | 同上 |
 | 强制破盾 | `force` 直接视为已破，伤害倍率 1 | bundle `selectedElement==="force"` 分支 | A | 由 `resolve_element_barrier` 的无条件分支覆盖 |

@@ -572,6 +572,23 @@ pub struct SimulationResult {
     pub members: Vec<MemberResult>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct OverallMemberResult {
+    pub id: String,
+    pub survival_rate: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct MultiAttemptSimulationResult {
+    pub success_rate: f64,
+    pub first_attempt: SimulationResult,
+    pub second_attempt: Option<SimulationResult>,
+    pub has_second_attempt: bool,
+    pub overall_members: Vec<OverallMemberResult>,
+}
+
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum SimulationError {
     #[error("simulation was cancelled")]
@@ -859,13 +876,91 @@ impl AdvancedRules {
     }
 }
 
-/// Runs the evidence-backed round model while leaving `simulate` and
-/// `simulate_with_rules` byte-for-byte compatible for existing callers.
-pub fn simulate_advanced<F: FnMut(u32, u32)>(
-    request: &AdvancedSimulationRequest,
-    cancel: &CancellationToken,
-    mut progress: F,
-) -> Result<SimulationResult, SimulationError> {
+#[derive(Debug)]
+struct AttemptAccumulator {
+    attempts: u32,
+    wins: u32,
+    successful_rounds: u64,
+    minimum_successful_rounds: u32,
+    maximum_successful_rounds: u32,
+    survived: Vec<u32>,
+    damages: Vec<f64>,
+    remaining: Vec<f64>,
+}
+
+impl AttemptAccumulator {
+    fn new(member_count: usize) -> Self {
+        Self {
+            attempts: 0,
+            wins: 0,
+            successful_rounds: 0,
+            minimum_successful_rounds: u32::MAX,
+            maximum_successful_rounds: 0,
+            survived: vec![0; member_count],
+            damages: vec![0.0; member_count],
+            remaining: vec![0.0; member_count],
+        }
+    }
+
+    fn record(&mut self, win: bool, rounds: u32, state: &[(f64, f64)]) {
+        self.attempts += 1;
+        if win {
+            self.wins += 1;
+            self.successful_rounds += u64::from(rounds);
+            self.minimum_successful_rounds = self.minimum_successful_rounds.min(rounds);
+            self.maximum_successful_rounds = self.maximum_successful_rounds.max(rounds);
+        }
+        for (index, (hp, damage)) in state.iter().copied().enumerate() {
+            self.survived[index] += u32::from(hp > 0.0);
+            self.remaining[index] += hp.max(0.0);
+            self.damages[index] += damage;
+        }
+    }
+
+    fn finish(self, seed: u64, party: &[Combatant]) -> SimulationResult {
+        let count = f64::from(self.attempts);
+        let successful_count = f64::from(self.wins);
+        SimulationResult {
+            seed,
+            iterations: self.attempts,
+            success_rate: f64::from(self.wins) / count,
+            average_rounds: if self.wins > 0 {
+                self.successful_rounds as f64 / successful_count
+            } else {
+                0.0
+            },
+            minimum_rounds: if self.wins > 0 {
+                self.minimum_successful_rounds
+            } else {
+                0
+            },
+            maximum_rounds: if self.wins > 0 {
+                self.maximum_successful_rounds
+            } else {
+                0
+            },
+            members: party
+                .iter()
+                .enumerate()
+                .map(|(index, member)| MemberResult {
+                    id: member.id.clone(),
+                    survival_rate: f64::from(self.survived[index]) / count,
+                    average_damage: self.damages[index] / count,
+                    average_remaining_health: self.remaining[index] / count,
+                })
+                .collect(),
+        }
+    }
+}
+
+struct PreparedAdvancedSimulation {
+    battle: SimulationRequest,
+    party_damage_multiplier: f64,
+    rules: AdvancedRules,
+    base_enemy_critical_chance: f64,
+}
+
+fn prepare_advanced(request: &AdvancedSimulationRequest) -> PreparedAdvancedSimulation {
     let mut battle = request.battle.clone();
     let base_enemy_critical_chance = battle.enemy.critical_chance;
     apply_booster(&mut battle.party, &request.quest_rules.booster);
@@ -878,15 +973,116 @@ pub fn simulate_advanced<F: FnMut(u32, u32)>(
         apply_titan_floor(&mut battle.enemy, titan.bonuses());
     }
     let barrier = resolve_element_barrier(&request.quest_rules.elements);
-    let rules = AdvancedRules::from_rules(&request.combat_rules);
+    PreparedAdvancedSimulation {
+        battle,
+        party_damage_multiplier: barrier.damage_multiplier,
+        rules: AdvancedRules::from_rules(&request.combat_rules),
+        base_enemy_critical_chance,
+    }
+}
+
+/// Runs the evidence-backed round model while leaving `simulate` and
+/// `simulate_with_rules` byte-for-byte compatible for existing callers.
+pub fn simulate_advanced<F: FnMut(u32, u32)>(
+    request: &AdvancedSimulationRequest,
+    cancel: &CancellationToken,
+    mut progress: F,
+) -> Result<SimulationResult, SimulationError> {
+    let prepared = prepare_advanced(request);
     simulate_advanced_internal(
-        &battle,
+        &prepared.battle,
         cancel,
         &mut progress,
-        barrier.damage_multiplier,
-        &rules,
-        base_enemy_critical_chance,
+        prepared.party_damage_multiplier,
+        &prepared.rules,
+        prepared.base_enemy_critical_chance,
     )
+}
+
+/// Executes the online Timekeeper/Chronomancer flow: every failed first
+/// attempt is immediately retried with the supplied second-attempt rules.
+pub fn simulate_advanced_with_retry<F: FnMut(u32, u32)>(
+    first_request: &AdvancedSimulationRequest,
+    second_request: &AdvancedSimulationRequest,
+    cancel: &CancellationToken,
+    mut progress: F,
+) -> Result<MultiAttemptSimulationResult, SimulationError> {
+    if first_request.battle.iterations == 0 {
+        return Err(SimulationError::NoIterations);
+    }
+    if first_request.battle.party.is_empty() {
+        return Err(SimulationError::EmptyParty);
+    }
+    let first = prepare_advanced(first_request);
+    let second = prepare_advanced(second_request);
+    let mut rng = ChaCha8Rng::seed_from_u64(first.battle.seed);
+    let mut first_results = AttemptAccumulator::new(first.battle.party.len());
+    let mut second_results = AttemptAccumulator::new(second.battle.party.len());
+    let mut overall_wins = 0_u32;
+    let mut overall_survived = vec![0_u32; first.battle.party.len()];
+    let report_every = (first.battle.iterations / 100).max(1);
+
+    for iteration in 0..first.battle.iterations {
+        if cancel.is_cancelled() {
+            return Err(SimulationError::Cancelled);
+        }
+        let (first_win, first_rounds, first_state) = run_once_advanced(
+            &first.battle,
+            &mut rng,
+            first.party_damage_multiplier,
+            &first.rules,
+            first.base_enemy_critical_chance,
+        );
+        first_results.record(first_win, first_rounds, &first_state);
+
+        let overall_win = if first_win {
+            for (index, (hp, _)) in first_state.iter().enumerate() {
+                overall_survived[index] += u32::from(*hp > 0.0);
+            }
+            true
+        } else {
+            let (second_win, second_rounds, second_state) = run_once_advanced(
+                &second.battle,
+                &mut rng,
+                second.party_damage_multiplier,
+                &second.rules,
+                second.base_enemy_critical_chance,
+            );
+            second_results.record(second_win, second_rounds, &second_state);
+            if second_win {
+                for (index, (hp, _)) in second_state.iter().enumerate() {
+                    overall_survived[index] += u32::from(*hp > 0.0);
+                }
+            }
+            second_win
+        };
+        if overall_win {
+            overall_wins += 1;
+        }
+        if (iteration + 1) % report_every == 0 || iteration + 1 == first.battle.iterations {
+            progress(iteration + 1, first.battle.iterations);
+        }
+    }
+
+    let attempts = first.battle.iterations;
+    let second_attempt = (second_results.attempts > 0)
+        .then(|| second_results.finish(first.battle.seed, &second.battle.party));
+    Ok(MultiAttemptSimulationResult {
+        success_rate: f64::from(overall_wins) / f64::from(attempts),
+        first_attempt: first_results.finish(first.battle.seed, &first.battle.party),
+        has_second_attempt: second_attempt.is_some(),
+        second_attempt,
+        overall_members: first
+            .battle
+            .party
+            .iter()
+            .enumerate()
+            .map(|(index, member)| OverallMemberResult {
+                id: member.id.clone(),
+                survival_rate: f64::from(overall_survived[index]) / f64::from(attempts),
+            })
+            .collect(),
+    })
 }
 
 fn simulate_advanced_internal<F: FnMut(u32, u32)>(
@@ -904,13 +1100,7 @@ fn simulate_advanced_internal<F: FnMut(u32, u32)>(
         return Err(SimulationError::EmptyParty);
     }
     let mut rng = ChaCha8Rng::seed_from_u64(request.seed);
-    let mut wins = 0_u32;
-    let mut total_rounds = 0_u64;
-    let mut min_rounds = u32::MAX;
-    let mut max_rounds = 0;
-    let mut survived = vec![0_u32; request.party.len()];
-    let mut damages = vec![0_f64; request.party.len()];
-    let mut remaining = vec![0_f64; request.party.len()];
+    let mut results = AttemptAccumulator::new(request.party.len());
     let report_every = (request.iterations / 100).max(1);
     for iteration in 0..request.iterations {
         if cancel.is_cancelled() {
@@ -923,39 +1113,12 @@ fn simulate_advanced_internal<F: FnMut(u32, u32)>(
             rules,
             base_enemy_critical_chance,
         );
-        wins += u32::from(win);
-        total_rounds += u64::from(rounds);
-        min_rounds = min_rounds.min(rounds);
-        max_rounds = max_rounds.max(rounds);
-        for (index, (hp, damage)) in state.into_iter().enumerate() {
-            survived[index] += u32::from(hp > 0.0);
-            remaining[index] += hp.max(0.0);
-            damages[index] += damage;
-        }
+        results.record(win, rounds, &state);
         if (iteration + 1) % report_every == 0 || iteration + 1 == request.iterations {
             progress(iteration + 1, request.iterations);
         }
     }
-    let count = f64::from(request.iterations);
-    Ok(SimulationResult {
-        seed: request.seed,
-        iterations: request.iterations,
-        success_rate: f64::from(wins) / count,
-        average_rounds: total_rounds as f64 / count,
-        minimum_rounds: min_rounds,
-        maximum_rounds: max_rounds,
-        members: request
-            .party
-            .iter()
-            .enumerate()
-            .map(|(index, member)| MemberResult {
-                id: member.id.clone(),
-                survival_rate: f64::from(survived[index]) / count,
-                average_damage: damages[index] / count,
-                average_remaining_health: remaining[index] / count,
-            })
-            .collect(),
-    })
+    Ok(results.finish(request.seed, &request.party))
 }
 
 fn run_once_advanced(
@@ -1647,6 +1810,28 @@ mod tests {
         let second = simulate_advanced(&request, &CancellationToken::default(), |_, _| {}).unwrap();
         assert_eq!(first, second);
         assert_eq!(first.iterations, 128);
+
+        let mut retry_request = request.clone();
+        retry_request.quest_rules.booster.attack = 0.8;
+        let retried = simulate_advanced_with_retry(
+            &request,
+            &retry_request,
+            &CancellationToken::default(),
+            |_, _| {},
+        )
+        .unwrap();
+        let failed_first_attempts =
+            retried.first_attempt.iterations - (retried.first_attempt.success_rate * 128.0) as u32;
+        assert!(retried.has_second_attempt);
+        assert_eq!(
+            retried.second_attempt.as_ref().unwrap().iterations,
+            failed_first_attempts
+        );
+        assert!(retried.success_rate >= retried.first_attempt.success_rate);
+        assert!(retried
+            .overall_members
+            .iter()
+            .all(|member| (0.0..=1.0).contains(&member.survival_rate)));
     }
 
     #[derive(Deserialize)]

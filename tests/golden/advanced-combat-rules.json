@@ -3,7 +3,7 @@
     "kind": "archived-bundle-formulas",
     "bundle": "reference/online-snapshots/2026-07-22/assets/HeroLineup-DP_2OddU.js",
     "helpers": "reference/online-snapshots/2026-07-22/assets/utils-B4Bv7ofN.js",
-    "note": "The formulas and state transitions are reconstructed from the archived bundle; the fixed seed and aggregate output are offline regression evidence, not an online random-sequence match."
+    "note": "The formulas, state transitions, and successful-attempt-only round aggregation are reconstructed from the archived bundle; the fixed seed and aggregate output are offline regression evidence, not an online random-sequence match."
   },
   "request": {
     "battle": {
@@ -39,9 +39,9 @@
     "seed": 73022,
     "iterations": 512,
     "successRate": 0.982421875,
-    "averageRounds": 8.083984375,
+    "averageRounds": 8.059642147117296,
     "minimumRounds": 6,
-    "maximumRounds": 13,
+    "maximumRounds": 12,
     "members": [
       { "id": "protector", "survivalRate": 0.955078125, "averageDamage": 295.4085937499998, "averageRemainingHealth": 66.751953125 },
       { "id": "focused", "survivalRate": 0.9609375, "averageDamage": 454.8906250000001, "averageRemainingHealth": 61.294921875 }
