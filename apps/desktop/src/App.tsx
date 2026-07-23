@@ -4,7 +4,7 @@ import {
   GripVertical, HardDrive, PackageOpen, PauseCircle, Plus, ShieldCheck,
   Sparkles, Sword, Trash2, Upload, Users, X,
 } from "lucide-react";
-import { applyEquipmentFieldToAll, catalogChampions, elements, itemsForSlot, makeHero, normalizeHeroEquipmentSlots, skillsForClass, type Catalog, type CatalogItem, type CatalogQuest, type CatalogSkill, type EquipmentApplyField } from "./data/catalog";
+import { applyEquipmentFieldToAll, catalogChampions, elements, itemsForSlot, makeHero, normalizeHeroEquipmentSlots, skillsForSlot, type Catalog, type CatalogItem, type CatalogQuest, type CatalogSkill, type EquipmentApplyField } from "./data/catalog";
 import { previewEquipmentStats, type EquipmentPreviewConfig } from "./data/equipmentPreview";
 import { encodeOnlineChampionConfig, importOnlineChampionConfig } from "./data/championConfig";
 import { decodeOnlineHeroTemplate, encodeOnlineHeroConfig, heroTemplateSnapshotDate, importOnlineHeroConfig, makeHeroFromOnlineTemplate, templatesForClass } from "./data/heroCreationTemplates";
@@ -227,7 +227,6 @@ function EquipmentModal({ hero, catalog, templates, onClose, onPrevious, onNext,
   const heroTemplates = templates.filter((template) => template.build.kind === "hero" && (!template.classId || template.classId === hero.classId));
   const heroClass = catalog.classes.find((entry) => entry.id === draft.classId);
   const innateSkill = catalog.skills.find((skill) => skill.family === heroClass?.innateSkillFamily && skill.tier === 1);
-  const selectableSkills = skillsForClass(catalog, draft.classId);
   const currentSkill = (family: string | undefined) => {
     if (!family) return undefined;
     const elementValue = sheet?.stats.elementValue ?? 0;
@@ -332,29 +331,27 @@ function EquipmentModal({ hero, catalog, templates, onClose, onPrevious, onNext,
             </button>;
           })}
         </div>
-        <div className="innate-effect"><div>{(currentInnateSkill?.effects.length ? currentInnateSkill.effects : ["职业自带技能随职业自动配置"]).map((effect) => <strong key={effect}>{effect}</strong>)}{heroClass?.allElements && <strong>可以使用任意元素，但只能对元素屏障造成50%伤害。</strong>}</div></div>
+        <div className="innate-effect"><div>{(currentInnateSkill?.innateEffects?.length ? currentInnateSkill.innateEffects : currentInnateSkill?.effects.length ? currentInnateSkill.effects : ["无效果"]).map((effect) => <strong key={effect}>{effect}</strong>)}</div></div>
       </section>
       {skillPickerIndex !== null && <div className="nested-picker-backdrop skill-picker-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setSkillPickerIndex(null); }}>
         <section className="skill-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="skill-picker-title">
-          <header><h3 id="skill-picker-title">选择技能</h3><div>{draft.skills[skillPickerIndex] && <button className="clear-skill-button" onClick={() => { const skills = [...draft.skills]; skills[skillPickerIndex] = ""; setDraft({ ...draft, skills }); setSkillPickerIndex(null); }}>清空技能</button>}<button className="zys-button red" onClick={() => setSkillPickerIndex(null)}>关闭</button></div></header>
+          <header><h3 id="skill-picker-title">选择技能</h3><div><button className="zys-button red" onClick={() => setSkillPickerIndex(null)}>关闭</button></div></header>
           <div className="skill-picker-grid">
-            {selectableSkills.map((skill) => {
+            {skillsForSlot(catalog, draft.classId, draft.skills, skillPickerIndex).map((skill) => {
+              const resolvedSkill = currentSkill(skill.family) ?? skill;
               const maxSkill = catalog.skills.filter((candidate) => candidate.family === skill.family).sort((left, right) => right.tier - left.tier)[0] ?? skill;
-              const selectedElsewhere = draft.skills.some((id, index) => index !== skillPickerIndex && catalog.skills.find((candidate) => candidate.id === id)?.family === skill.family);
-              const selectedHere = catalog.skills.find((candidate) => candidate.id === draft.skills[skillPickerIndex])?.family === skill.family;
-              return <button key={skill.family} aria-label={`选择技能 ${skill.name}`} disabled={selectedElsewhere} className={`skill-catalog-card rarity-${skill.rarity} ${selectedHere ? "selected" : ""}`} onClick={() => {
+              return <button key={skill.family} aria-label={`选择技能 ${skill.name}`} className={`skill-catalog-card rarity-${skill.rarity}`} onClick={() => {
                 const skills = [...draft.skills];
                 while (skills.length <= skillPickerIndex) skills.push("");
                 skills[skillPickerIndex] = skill.id;
                 setDraft({ ...draft, skills });
                 setSkillPickerIndex(null);
               }}>
-                <SkillArt skill={skill} />
+                <SkillArt skill={skill} level={resolvedSkill.tier} />
                 <strong>{skill.name}</strong>
-                <div>{skill.effects.slice(0, 3).map((effect) => <span key={effect}>• {effect}</span>)}</div>
-                <small>满级技能效果</small>
-                <div className="max-effects">{maxSkill.effects.slice(0, 3).map((effect) => <span key={effect}>• {effect}</span>)}</div>
-                {selectedElsewhere && <em>已在其他槽位</em>}
+                <div>{resolvedSkill.effects.slice(0, 2).map((effect) => <span key={effect}>• {effect}</span>)}</div>
+                {resolvedSkill.tier < 4 && <><small>满级技能效果</small>
+                <div className="max-effects">{maxSkill.effects.slice(0, 2).map((effect) => <span key={effect}>• {effect}</span>)}</div></>}
               </button>;
             })}
           </div>

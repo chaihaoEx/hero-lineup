@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyEquipmentFieldToAll, heroSlotNames, itemsForSlot, makeHero, normalizeHeroEquipmentSlots, previewCatalog, skillsForClass, type Catalog } from "../src/data/catalog";
+import { applyEquipmentFieldToAll, heroSlotNames, itemsForSlot, makeHero, normalizeHeroEquipmentSlots, previewCatalog, skillsForClass, skillsForSlot, type Catalog } from "../src/data/catalog";
 import { previewEquipmentStats } from "../src/data/equipmentPreview";
 
 describe("local catalog projections", () => {
@@ -41,6 +41,17 @@ describe("local catalog projections", () => {
     expect(previewCatalog.classes[0]?.skillUnlockLevels).toEqual([5, 10, 23, 0]);
     expect(previewCatalog.classes[0]?.maxSkillLevel).toBe(3);
     expect(skillsForClass(previewCatalog, "knight").map((skill) => skill.id)).toEqual(["p_cleave1"]);
+  });
+
+  it("hides both families and categories already used by another skill slot", () => {
+    const cleave = previewCatalog.skills.find((skill) => skill.id === "p_cleave1")!;
+    const catalog: Catalog = { ...previewCatalog, skills: [
+      { ...cleave, category: "attack", sourceOrder: 1 },
+      { ...cleave, id: "other-attack", family: "p_other", name: "另一个攻击技能", category: "attack", sourceOrder: 2 },
+      { ...cleave, id: "safe-defense", family: "p_safe", name: "防御技能", category: "defense", sourceOrder: 3 },
+    ] };
+    expect(skillsForSlot(catalog, "knight", ["p_cleave1", ""], 0).map((skill) => skill.id)).toEqual(["safe-defense", "other-attack", "p_cleave1"]);
+    expect(skillsForSlot(catalog, "knight", ["p_cleave1", ""], 1).map((skill) => skill.id)).toEqual(["safe-defense"]);
   });
 
   it("previews quality, Star Forge and Transcend with the archived web formula", () => {

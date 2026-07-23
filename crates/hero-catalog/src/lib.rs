@@ -198,8 +198,13 @@ impl Catalog {
             .sum();
         let innate = text(class, "innate")
             .and_then(|family| self.skill_for_family(family, element_value, class));
-        let selected_skills =
-            self.resolve_skills(&build.skill_ids, element_value, class, &mut issues);
+        let selected_skills = self.resolve_skills(
+            &build.skill_ids,
+            build.level,
+            element_value,
+            class,
+            &mut issues,
+        );
 
         let mut base = level_core(class, build.level);
         apply_hero_seeds(&mut base, build.seed, &build.seed_points);
@@ -505,13 +510,31 @@ impl Catalog {
     fn resolve_skills<'a>(
         &'a self,
         ids: &[String],
+        hero_level: u16,
         element_value: u32,
         class: &Value,
         issues: &mut Vec<CalculationIssue>,
     ) -> Vec<&'a Value> {
         let mut out = Vec::new();
         let mut families = BTreeSet::new();
-        for id in ids {
+        let mut categories = BTreeSet::new();
+        let class_id = text(class, "uid").unwrap_or_default();
+        let class_type = text(class, "type").unwrap_or(class_id);
+        let innate = text(class, "innate").unwrap_or_default();
+        for (index, id) in ids.iter().enumerate() {
+            if id.is_empty() {
+                continue;
+            }
+            let unlock_level = number(class, &format!("skl{}Lv", index + 1)) as u16;
+            if index >= 4 || unlock_level == 0 || hero_level < unlock_level {
+                issues.push(issue_warning(
+                    "skill_slot_locked",
+                    "技能所在槽位尚未解锁",
+                    Some(id),
+                    None,
+                ));
+                continue;
+            }
             let Some(skill) = self.skills.get(id) else {
                 issues.push(issue_warning(
                     "missing_skill",
@@ -522,7 +545,23 @@ impl Catalog {
                 continue;
             };
             let family = text(skill, "family").unwrap_or(id);
-            if !families.insert(family.to_owned()) {
+            let allowed = text(skill, "classes").is_some_and(|classes| {
+                classes == "*"
+                    || classes
+                        .split(',')
+                        .map(str::trim)
+                        .any(|value| value == class_id || value == class_type)
+            });
+            if family == innate || !allowed {
+                issues.push(issue_warning(
+                    "skill_not_allowed",
+                    "该职业不能选择此技能",
+                    Some(id),
+                    None,
+                ));
+                continue;
+            }
+            if families.contains(family) {
                 issues.push(issue_warning(
                     "duplicate_skill_family",
                     "同一技能族只应用一次",
@@ -531,6 +570,19 @@ impl Catalog {
                 ));
                 continue;
             }
+            if let Some(category) = text(skill, "category") {
+                if categories.contains(category) {
+                    issues.push(issue_warning(
+                        "duplicate_skill_category",
+                        "同一技能类别只应用一次",
+                        Some(id),
+                        None,
+                    ));
+                    continue;
+                }
+                categories.insert(category.to_owned());
+            }
+            families.insert(family.to_owned());
             out.push(
                 self.skill_for_family(family, element_value, class)
                     .unwrap_or(skill),
@@ -1338,6 +1390,107 @@ mod tests {
         let combined = catalog.item_stats(item, &sword);
         assert_eq!(combined.atk, 2109.0);
         assert_eq!(combined.def, 154.0);
+    }
+
+    #[test]
+    fn soldier_skill_element_boundaries_and_class_cap_match_online_sample() {
+        let catalog = catalog();
+        let soldier = catalog.classes.get("soldier").unwrap();
+        let mercenary = catalog.classes.get("mercenary").unwrap();
+        let resolved_id = |family: &str, elements: u32, class: &Value| {
+            catalog
+                .skill_for_family(family, elements, class)
+                .and_then(|skill| text(skill, "uid"))
+                .map(str::to_owned)
+        };
+
+        assert_eq!(
+            resolved_id("s_warmaster", 69, soldier).as_deref(),
+            Some("s_warmaster1")
+        );
+        assert_eq!(
+            resolved_id("s_warmaster", 70, soldier).as_deref(),
+            Some("s_warmaster2")
+        );
+        assert_eq!(
+            resolved_id("s_warmaster", 104, soldier).as_deref(),
+            Some("s_warmaster2")
+        );
+        assert_eq!(
+            resolved_id("s_warmaster", 105, soldier).as_deref(),
+            Some("s_warmaster3")
+        );
+        assert_eq!(
+            resolved_id("s_warmaster", 210, soldier).as_deref(),
+            Some("s_warmaster3")
+        );
+        assert_eq!(
+            resolved_id("s_warmaster", 170, mercenary).as_deref(),
+            Some("s_warmaster4")
+        );
+        assert_eq!(
+            resolved_id("c_soldier", 70, soldier).as_deref(),
+            Some("c_soldier3")
+        );
+    }
+
+    #[test]
+    fn skill_resolution_rejects_locked_disallowed_duplicate_family_and_category() {
+        let mut catalog = catalog();
+        let mut first = catalog.skills.get("p_cleave1").unwrap().clone();
+        first["uid"] = Value::String("fixture_a1".to_owned());
+        first["family"] = Value::String("fixture_a".to_owned());
+        first["category"] = Value::String("fixture_category".to_owned());
+        first["classes"] = Value::String("fighter".to_owned());
+        let mut second = first.clone();
+        second["uid"] = Value::String("fixture_b1".to_owned());
+        second["family"] = Value::String("fixture_b".to_owned());
+        catalog.skills.insert("fixture_a1".to_owned(), first);
+        catalog.skills.insert("fixture_b1".to_owned(), second);
+
+        let class = catalog.classes.get("knight").unwrap();
+        let mut issues = Vec::new();
+        let selected = catalog.resolve_skills(
+            &["fixture_a1".to_owned(), "fixture_b1".to_owned()],
+            40,
+            0,
+            class,
+            &mut issues,
+        );
+        assert_eq!(selected.len(), 1);
+        assert!(issues
+            .iter()
+            .any(|issue| issue.code == "duplicate_skill_category"));
+
+        let mut locked_issues = Vec::new();
+        let locked =
+            catalog.resolve_skills(&["fixture_a1".to_owned()], 1, 0, class, &mut locked_issues);
+        assert!(locked.is_empty());
+        assert!(locked_issues
+            .iter()
+            .any(|issue| issue.code == "skill_slot_locked"));
+
+        let mut disallowed = catalog.skills.get("p_cleave1").unwrap().clone();
+        disallowed["uid"] = Value::String("fixture_mage1".to_owned());
+        disallowed["family"] = Value::String("fixture_mage".to_owned());
+        disallowed["classes"] = Value::String("spellcaster".to_owned());
+        catalog
+            .skills
+            .insert("fixture_mage1".to_owned(), disallowed);
+        let class = catalog.classes.get("knight").unwrap();
+        let mut disallowed_issues = Vec::new();
+        assert!(catalog
+            .resolve_skills(
+                &["fixture_mage1".to_owned()],
+                40,
+                0,
+                class,
+                &mut disallowed_issues,
+            )
+            .is_empty());
+        assert!(disallowed_issues
+            .iter()
+            .any(|issue| issue.code == "skill_not_allowed"));
     }
 
     #[test]

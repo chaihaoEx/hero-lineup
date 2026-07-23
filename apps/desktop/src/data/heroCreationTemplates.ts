@@ -90,12 +90,22 @@ function applyConfig(catalog: Catalog, config: OnlineHeroConfig, hero: Hero): He
       transcendence: source?.transcendence ?? (source?.transcended ? 1 : 0),
     };
   });
+  const heroClass = catalog.classes.find((entry) => entry.id === hero.classId);
   const selectableFamilies = new Set(skillsForClass(catalog, hero.classId).map((skill) => skill.family));
-  const skillSlots = catalog.classes.find((entry) => entry.id === hero.classId)?.skillSlots ?? 4;
-  const skills = (config.skills ?? []).filter((id) => {
-    const skill = catalog.skills.find((entry) => entry.id === id);
-    return Boolean(skill && selectableFamilies.has(skill.family));
-  }).slice(0, skillSlots);
+  const skillSlots = heroClass?.skillSlots ?? 4;
+  const usedFamilies = new Set<string>();
+  const usedCategories = new Set<string>();
+  const skills = Array.from({ length: skillSlots }, (_, index) => {
+    const id = config.skills?.[index];
+    const skill = id ? catalog.skills.find((entry) => entry.id === id) : undefined;
+    const category = skill?.category;
+    const unlockLevel = heroClass?.skillUnlockLevels[index] ?? 0;
+    if (!skill || !selectableFamilies.has(skill.family) || unlockLevel === 0 || config.level < unlockLevel
+      || usedFamilies.has(skill.family) || Boolean(category && usedCategories.has(category))) return "";
+    usedFamilies.add(skill.family);
+    if (category) usedCategories.add(category);
+    return skill.id;
+  });
   return {
     ...hero,
     level: Math.max(1, Math.min(50, config.level || hero.level)),

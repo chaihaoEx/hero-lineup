@@ -110,6 +110,7 @@ export interface CatalogSkill {
   id: string;
   name: string;
   family: string;
+  category?: string;
   tier: number;
   classes: string[];
   rarity: number;
@@ -119,6 +120,8 @@ export interface CatalogSkill {
   sourceOrder?: number;
   spritePath?: string;
   effects: string[];
+  /** Numeric plus class-mechanic text shown under the fixed innate skill. */
+  innateEffects?: string[];
 }
 
 export interface Catalog {
@@ -175,8 +178,8 @@ export const previewCatalog: Catalog = {
     { id: "behemoth", name: "比蒙精魂", itemType: "z", typeName: "精萃附魔", tier: 14, attack: 164, defense: 109, health: 33, skill: "i_behemoth" },
   ],
   skills: [
-    { id: "c_knight1", name: "堡垒", family: "c_knight", tier: 1, classes: [], rarity: 0, elements: 0, rank: 0, effects: ["重甲防御 +40%"] },
-    { id: "c_knight4", name: "无私英雄", family: "c_knight", tier: 4, classes: [], rarity: 0, elements: 150, rank: 0, effects: ["重甲防御 +75%"] },
+    { id: "c_knight1", name: "堡垒", family: "c_knight", tier: 1, classes: [], rarity: 0, elements: 0, rank: 0, effects: ["重甲防御 +40%"], innateEffects: ["+40% 防御"] },
+    { id: "c_knight4", name: "无私英雄", family: "c_knight", tier: 4, classes: [], rarity: 0, elements: 150, rank: 0, effects: ["重甲防御 +75%"], innateEffects: ["+75% 防御"] },
     { id: "p_cleave1", name: "裂痕", family: "p_cleave", tier: 1, classes: ["fighter"], rarity: 0, elements: 0, rank: 16, effects: ["攻击 +30%", "生命 +10"] },
     { id: "p_cleave4", name: "狱火风暴", family: "p_cleave", tier: 4, classes: ["fighter"], rarity: 0, elements: 150, rank: 18, effects: ["攻击 +80%", "生命 +75"] },
   ],
@@ -205,6 +208,14 @@ export function skillsForClass(catalog: Catalog, classId: string): CatalogSkill[
     && skill.family !== heroClass.innateSkillFamily
     && (skill.classes.includes("*") || skill.classes.includes(heroClass.id) || skill.classes.includes(heroClass.type)))
     .sort((left, right) => right.rarity - left.rarity || (right.sourceOrder ?? right.rank) - (left.sourceOrder ?? left.rank));
+}
+
+/** Online hides skills whose family or non-empty category is already used by another slot. */
+export function skillsForSlot(catalog: Catalog, classId: string, selectedIds: string[], slotIndex: number): CatalogSkill[] {
+  const used = selectedIds.flatMap((id, index) => index === slotIndex ? [] : catalog.skills.filter((skill) => skill.id === id));
+  const usedFamilies = new Set(used.map((skill) => skill.family));
+  const usedCategories = new Set(used.flatMap((skill) => skill.category ? [skill.category] : []));
+  return skillsForClass(catalog, classId).filter((skill) => !usedFamilies.has(skill.family) && (!skill.category || !usedCategories.has(skill.category)));
 }
 
 export function makeHero(catalog: Catalog, classId = catalog.classes[0]?.id ?? "knight", index = 1): Hero {

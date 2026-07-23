@@ -203,6 +203,24 @@ test("uses online hero skill unlock levels and discrete selectors", async () => 
   expect([...cardOptions.querySelectorAll('[role="option"]')].map((option) => option.textContent)).toEqual(["0", "1", "2", "3"]);
 });
 
+test("matches online skill replacement by hiding families used in other slots", async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  await appReady();
+  await user.click(screen.getByRole("button", { name: "配装" }));
+  await user.click(screen.getAllByRole("button", { name: "技能 未选择" })[0]!);
+  await user.click(screen.getByRole("button", { name: "选择技能 裂痕" }));
+
+  await user.click(screen.getAllByRole("button", { name: "技能 未选择" })[0]!);
+  expect(screen.queryByRole("button", { name: "选择技能 裂痕" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "清空技能" })).not.toBeInTheDocument();
+  await user.click(screen.getAllByRole("button", { name: "关闭" }).at(-1)!);
+
+  await user.click(screen.getByRole("button", { name: "技能 裂痕" }));
+  expect(screen.getByRole("button", { name: "选择技能 裂痕" })).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "清空技能" })).not.toBeInTheDocument();
+});
+
 test("shows champion soul, full rank range, team skill and full equipment controls", async () => {
   const user = userEvent.setup();
   render(<App />);

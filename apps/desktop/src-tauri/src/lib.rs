@@ -14,7 +14,7 @@ use hero_simulator::{
 };
 use hero_storage::Storage;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::{json, Map, Value};
 use std::{
     collections::HashMap,
     fs,
@@ -148,6 +148,7 @@ struct CatalogSkill {
     id: String,
     name: String,
     family: String,
+    category: Option<String>,
     tier: u64,
     classes: Vec<String>,
     rarity: u64,
@@ -156,6 +157,7 @@ struct CatalogSkill {
     source_order: u64,
     sprite_path: Option<String>,
     effects: Vec<String>,
+    innate_effects: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -355,6 +357,8 @@ fn skill_effects(value: &Value) -> Vec<String> {
         ("evasion", "回避"),
         ("critical", "暴击率"),
         ("critMult", "暴击伤害"),
+        ("aggro", "威胁度"),
+        ("regen", "回复"),
         ("xp", "经验"),
     ] {
         let amount = numeric(value, key);
@@ -376,7 +380,186 @@ fn skill_effects(value: &Value) -> Vec<String> {
         ));
     }
     if effects.is_empty() {
-        effects.push("职业专属效果".to_owned());
+        effects.push("无效果".to_owned());
+    }
+    effects
+}
+
+fn formatted_percent(value: f64, decimals: usize) -> String {
+    format!("{:.decimals$}%", value * 100.0)
+}
+
+fn dominant_item_stat(item_types: &str, items: &Map<String, Value>) -> &'static str {
+    let first_type = item_types.split(',').next().unwrap_or_default().trim();
+    for item in items.values() {
+        if item.get("type").and_then(Value::as_str) != Some(first_type)
+            || numeric(item, "tier") != 15.0
+            || numeric(item, "unlock") <= 0.0
+        {
+            continue;
+        }
+        if numeric(item, "atk") > 0.0 {
+            return "攻击";
+        }
+        if numeric(item, "def") > 0.0 {
+            return "防御";
+        }
+        if numeric(item, "hp") > 0.0 {
+            return "生命";
+        }
+    }
+    "防御"
+}
+
+/// Text shown below the fixed class skill. This mirrors the archived web
+/// bundle's separate `tr` (numeric effects) + `sr` (class mechanics) path;
+/// ordinary skill cards intentionally keep using `skill_effects` above.
+fn innate_effects(value: &Value, items: &Map<String, Value>) -> Vec<String> {
+    let mut effects = Vec::new();
+    for (key, label) in [
+        ("atk", "攻击"),
+        ("def", "防御"),
+        ("hp", "生命"),
+        ("evasion", "回避"),
+        ("critical", "暴击率"),
+        ("critMult", "暴击伤害"),
+    ] {
+        let amount = numeric(value, key);
+        if amount != 0.0 {
+            effects.push(format!(
+                "{label} {}{}%",
+                if amount > 0.0 { "+" } else { "" },
+                compact_number(amount * 100.0)
+            ));
+        }
+    }
+    for (key, label) in [("atkAbs", "攻击"), ("defAbs", "防御"), ("hpAbs", "生命")] {
+        let amount = numeric(value, key);
+        if amount != 0.0 {
+            effects.push(format!(
+                "{label} {}{}",
+                if amount > 0.0 { "+" } else { "" },
+                compact_number(amount)
+            ));
+        }
+    }
+    let aggro = numeric(value, "aggro");
+    if aggro != 0.0 {
+        effects.push(format!(
+            "威胁度 {}{}",
+            if aggro > 0.0 { "+" } else { "" },
+            compact_number(aggro)
+        ));
+    }
+    let regen = numeric(value, "regen");
+    if regen != 0.0 {
+        effects.push(format!(
+            "回复 {}{}",
+            if regen > 0.0 { "+" } else { "" },
+            compact_number(regen)
+        ));
+    }
+    let xp = numeric(value, "xp");
+    if xp != 0.0 {
+        effects.push(format!(
+            "经验 {}{}%",
+            if xp > 0.0 { "+" } else { "" },
+            compact_number(xp * 100.0)
+        ));
+    }
+    let heal_multiplier = numeric(value, "healMult");
+    if heal_multiplier != 0.0 {
+        effects.push(format!(
+            "休息时间 -{}%",
+            compact_number((1.0 - heal_multiplier) * 100.0)
+        ));
+    }
+    let item = numeric(value, "item");
+    if item != 0.0 {
+        let item_types = value
+            .get("itemTypes")
+            .and_then(Value::as_str)
+            .unwrap_or_default();
+        let affect_secondary = value
+            .get("affectSecStat")
+            .and_then(Value::as_bool)
+            .unwrap_or(false);
+        if affect_secondary {
+            effects.push(format!("+{}% 装备攻防血属性", compact_number(item * 100.0)));
+        } else {
+            effects.push(format!(
+                "+{}% {}",
+                compact_number(item * 100.0),
+                dominant_item_stat(item_types, items)
+            ));
+        }
+    }
+
+    let family = value
+        .get("family")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
+    match family {
+        "c_soldier" => effects.push("学习技能比其他职业还快。".to_owned()),
+        "c_mercenary" => {
+            effects.push("学习技能比其他职业还快。".to_owned());
+            effects.push("从勇士技能获得的效果+25%。".to_owned());
+        }
+        "c_chieftain" => effects.push("总威胁的40%增加至攻击力加成系数。".to_owned()),
+        "c_lord" => effects.push("为队友抵挡一次强力攻击，每场战斗中可触发一次。".to_owned()),
+        "c_swordmaster" => effects.push("武士的第一次攻击必定暴击，且无视元素屏障。".to_owned()),
+        "c_daimyo" => effects.push("在第一回合必定回避和暴击，且此攻击无视元素屏障。".to_owned()),
+        "c_berserker" => {
+            let thresholds = value
+                .get("dmgBuf")
+                .and_then(Value::as_str)
+                .unwrap_or_default()
+                .split(',')
+                .map(|entry| entry.parse::<f64>().unwrap_or_default())
+                .collect::<Vec<_>>();
+            let hp1 = thresholds.first().copied().unwrap_or_default();
+            let hp2 = thresholds.get(1).copied().unwrap_or_default();
+            let hp3 = thresholds.get(2).copied().unwrap_or_default();
+            effects.push(format!(
+                "生命降至{}以下时，+{}攻击，+{}回避。生命为{}以下时，效果变为两倍；生命为{}以下时，效果变为三倍。",
+                formatted_percent(hp1, 0), formatted_percent(numeric(value, "atkBuf"), 0),
+                formatted_percent(numeric(value, "evaBuf"), 1), formatted_percent(hp2, 0), formatted_percent(hp3, 0)
+            ));
+        }
+        "c_darkknight" => effects.push("瞬间打败生命低于10%的怪物，并获得永久加成。".to_owned()),
+        "c_trickster" => effects.push("波洛尼亚的获取几率+3%，获取物品上限+2。".to_owned()),
+        "c_mastermonk" => effects.push("可能习得非常强大的专属技能。".to_owned()),
+        "c_conquistador" => effects.push("每次连续暴击增加25%暴击伤害，堆叠最多4层。".to_owned()),
+        "c_pathfinder" => effects.push("+3%回避上限".to_owned()),
+        "c_ninja" | "c_sensei" => {
+            effects.push(format!(
+                "+{}回避与{}暴击率，直至受到损伤",
+                formatted_percent(numeric(value, "evaBuf"), 0),
+                formatted_percent(numeric(value, "critBuf"), 0)
+            ));
+            if family == "c_sensei" {
+                effects.push("在2会合后重获加成".to_owned());
+            }
+        }
+        "c_dancer" => effects.push("闪避攻击后，注定会打出暴击。".to_owned()),
+        "c_velite" => effects.push("装备护盾的防御也计入攻击。".to_owned()),
+        "c_cleric" | "c_bishop" => effects.push("在一次冒险中承受一次致命打击".to_owned()),
+        "c_sorcerer" => effects.push("有机会学习到强力专属技能".to_owned()),
+        "c_redmage" | "c_spellknight" => {
+            effects.push("可以使用任意元素，但只能对元素屏障造成50%伤害。".to_owned());
+            if family == "c_spellknight" {
+                effects.push("从自带元素的装备上获得+50%攻防血属性加成".to_owned());
+            }
+        }
+        "c_geomancer" => effects.push("任意每点元素加1%攻击力".to_owned()),
+        "c_chronomancer" => effects.push("小队被打败时，可以立即再尝试一次冒险。".to_owned()),
+        "c_timekeeper" => effects.push(
+            "如果小队落败了，允许立即尝试进行第二次任务并获得初级威力强化品加成。".to_owned(),
+        ),
+        _ => {}
+    }
+    if effects.is_empty() {
+        effects.push("无效果".to_owned());
     }
     effects
 }
@@ -742,7 +925,8 @@ fn load_catalog_from_content_dir(content_dir: &Path) -> Result<Catalog, String> 
     });
 
     let type_dict = object_at(&type_dict_value, "items_type_dict")?;
-    let mut items = object_at(&items_value, "items")?
+    let raw_items = object_at(&items_value, "items")?;
+    let mut items = raw_items
         .iter()
         .enumerate()
         .filter_map(|(source_order, (id, value))| {
@@ -823,6 +1007,10 @@ fn load_catalog_from_content_dir(content_dir: &Path) -> Result<Catalog, String> 
                 .and_then(Value::as_str)
                 .unwrap_or(id)
                 .to_owned(),
+            category: value
+                .get("category")
+                .and_then(Value::as_str)
+                .map(str::to_owned),
             tier: value
                 .get("tier")
                 .and_then(Value::as_u64)
@@ -854,6 +1042,7 @@ fn load_catalog_from_content_dir(content_dir: &Path) -> Result<Catalog, String> 
                 value.get("family").and_then(Value::as_str).unwrap_or(id),
             ),
             effects: skill_effects(value),
+            innate_effects: innate_effects(value, raw_items),
         })
         .collect::<Vec<_>>();
     skills.sort_by(|left, right| {
@@ -1750,6 +1939,62 @@ mod tests {
                 class.max_skill_level
             );
         }
+        let innate = |id: &str| {
+            catalog
+                .skills
+                .iter()
+                .find(|skill| skill.id == id)
+                .unwrap_or_else(|| panic!("缺少技能 {id}"))
+                .innate_effects
+                .clone()
+        };
+        assert_eq!(
+            innate("c_soldier1"),
+            vec!["学习技能比其他职业还快。".to_owned()]
+        );
+        assert_eq!(
+            innate("c_redmage1"),
+            [
+                "+10% 装备攻防血属性",
+                "可以使用任意元素，但只能对元素屏障造成50%伤害。"
+            ]
+            .map(str::to_owned)
+            .to_vec()
+        );
+        assert_eq!(
+            innate("c_spellknight1"),
+            [
+                "+10% 装备攻防血属性",
+                "可以使用任意元素，但只能对元素屏障造成50%伤害。",
+                "从自带元素的装备上获得+50%攻防血属性加成",
+            ]
+            .map(str::to_owned)
+            .to_vec()
+        );
+        assert_eq!(
+            innate("c_berserker1"),
+            ["生命降至75%以下时，+20%攻击，+10.0%回避。生命为50%以下时，效果变为两倍；生命为25%以下时，效果变为三倍。"]
+                .map(str::to_owned)
+                .to_vec()
+        );
+        assert_eq!(
+            innate("c_chieftain1"),
+            ["威胁度 +30", "总威胁的40%增加至攻击力加成系数。"]
+                .map(str::to_owned)
+                .to_vec()
+        );
+        assert!(catalog.classes.iter().all(|class| {
+            let family = class.innate_skill_family.as_deref().unwrap_or_default();
+            catalog.skills.iter().any(|skill| {
+                skill.family == family
+                    && skill.tier == 1
+                    && !skill.innate_effects.is_empty()
+                    && skill
+                        .innate_effects
+                        .iter()
+                        .all(|effect| effect != "职业专属效果" && effect != "无效果")
+            })
+        }));
         assert_eq!(
             catalog
                 .classes

@@ -45,3 +45,19 @@ test("round-trips an online-compatible configuration code without changing the h
   expect(imported.id).toBe("local-stable-id");
   expect(imported.name).toBe("导入前");
 });
+
+test("normalizes locked and duplicate-category skills like the online importer", () => {
+  const baseCatalog = catalogForTemplate();
+  const catalog = { ...baseCatalog, skills: baseCatalog.skills.map((skill, index) => ({
+    ...skill, ...(index < 2 ? { category: "shared-category" } : {}),
+  })) };
+  const source = makeHeroFromOnlineTemplate(catalog, templatesForClass("spellknight")[0]!, 1);
+  source.level = 40;
+  source.skills = [catalog.skills[0]!.id, catalog.skills[1]!.id];
+  const deduplicated = importOnlineHeroConfig(catalog, encodeOnlineHeroConfig(source), source);
+  expect(deduplicated.skills.slice(0, 2)).toEqual([catalog.skills[0]!.id, ""]);
+
+  source.level = 1;
+  const locked = importOnlineHeroConfig(catalog, encodeOnlineHeroConfig(source), source);
+  expect(locked.skills.every((skill) => skill === "")).toBe(true);
+});
