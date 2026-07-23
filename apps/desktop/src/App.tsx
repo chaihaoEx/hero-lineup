@@ -21,6 +21,14 @@ const quality: Quality[] = ["普通", "优质", "高级", "史诗", "传说"];
 const qualityDisplay: Record<Quality, string> = { 普通: "普通", 优质: "高级", 高级: "无暇", 史诗: "史诗", 传说: "传奇" };
 const elementCode: Record<string, Hero["element"]> = { fire: "火", water: "水", earth: "土", air: "风", light: "光", dark: "暗" };
 const elementToken: Record<ElementType, "fire" | "water" | "earth" | "air" | "light" | "dark"> = { 火: "fire", 水: "water", 土: "earth", 风: "air", 光: "light", 暗: "dark" };
+const elementBadge: Record<ElementType, { label: string; path: string }> = {
+  火: { label: "fire", path: "Sprite/icon_global_elemental_fire.png" },
+  水: { label: "water", path: "Sprite/icon_global_elemental_water.png" },
+  土: { label: "earth", path: "Sprite/icon_global_elemental_earth.png" },
+  风: { label: "air", path: "Sprite/icon_global_elemental_air.png" },
+  光: { label: "light", path: "Sprite/icon_global_elemental_light.png" },
+  暗: { label: "dark", path: "Sprite/icon_global_elemental_dark.png" },
+};
 const equipmentTierByLevel = [1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 10, 10, 11, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16];
 type EquipmentPreviewContextValue = EquipmentPreviewConfig & { catalog: Catalog; element?: string | undefined; spirit?: string | undefined };
 const EquipmentPreviewContext = createContext<EquipmentPreviewContextValue | undefined>(undefined);
@@ -210,9 +218,18 @@ function ClassPickerModal({ catalog, heroIndex, onChoose, onClose }: { catalog: 
   return <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
     <section className="modal class-picker-modal" role="dialog" aria-modal="true" aria-labelledby="class-picker-title">
       <header className="modal-header"><div className="class-picker-heading">{selectedClass && <button className="template-back-button" onClick={() => { setSelectedClassId(null); setTemplateError(""); }}>← 返回</button>}<h2 id="class-picker-title">{selectedClass ? `选择创建模板 — ${selectedClass.name}` : "选择英雄职业"}</h2></div><button className="zys-button red" onClick={onClose}>关闭</button></header>
-      {!selectedClass && <div className="class-picker-grid">{catalog.classes.map((entry) => <button key={entry.id} onClick={() => setSelectedClassId(entry.id)}>
-        <span className={`class-picker-art element-${entry.element}`}><AssetImage path={entry.spritePath} alt={entry.name} /></span><strong>{entry.name}</strong><small>{entry.allElements ? "全" : entry.element}</small>
-      </button>)}</div>}
+      {!selectedClass && <div className="class-picker-grid">{catalog.classes.map((entry) => {
+        const badge = entry.allElements
+          ? { label: "all", path: "Sprite/icon_global_elemental_all.png" }
+          : elementBadge[entry.element];
+        return <button key={entry.id} onClick={() => setSelectedClassId(entry.id)}>
+          <span className="class-picker-art">
+            <AssetImage path={entry.spritePath} alt={entry.name} className="class-picker-class-icon" />
+            <AssetImage path={badge.path} alt={badge.label} className="class-picker-element-badge" />
+          </span>
+          <strong>{entry.name}</strong>
+        </button>;
+      })}</div>}
       {selectedClass && <div className="creation-template-stage">
         <button className="creation-template-card" onClick={() => chooseTemplate()}>
           <span className={`creation-template-class element-${selectedClass.element}`}><AssetImage path={selectedClass.spritePath} alt={selectedClass.name} /><small>{selectedClass.name}</small></span>

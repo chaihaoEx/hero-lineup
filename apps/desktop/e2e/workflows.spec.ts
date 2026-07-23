@@ -2,6 +2,23 @@ import { expect, test } from "@playwright/test";
 import { assertOffline, openPreview } from "./helpers";
 
 test.describe("浏览器预览中的主要离线工作流", () => {
+  test("职业选择使用线上同款职业图标与独立元素徽章", async ({ page }) => {
+    const remoteRequests = await openPreview(page);
+
+    await page.getByRole("button", { name: "添加英雄" }).click();
+    const dialog = page.getByRole("dialog", { name: "选择英雄职业" });
+    await expect(dialog).toBeVisible();
+    const cards = dialog.locator(".class-picker-grid button");
+    // 浏览器预览使用单职业最小目录；完整原生目录的 42 职业由 Rust 目录测试覆盖。
+    await expect(cards).toHaveCount(1);
+    await expect(cards.first().locator("strong")).toHaveText("骑士");
+    await expect(cards.first().locator(".class-picker-art > *")).toHaveCount(2);
+    await expect(cards.first().locator(".class-picker-element-badge")).toHaveAttribute("alt", "light");
+    await expect(cards.first().locator("small")).toHaveCount(0);
+    await expect(cards.first().locator(".class-picker-element-badge")).toHaveJSProperty("complete", true);
+    await assertOffline(remoteRequests);
+  });
+
   test("体系新建、保存、重载、复制与删除", async ({ page }) => {
     const remoteRequests = await openPreview(page);
 
