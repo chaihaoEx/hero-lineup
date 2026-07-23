@@ -58,6 +58,18 @@ test("creates a system through the same two-tab dialog flow as online", async ()
   expect(document.querySelector(".online-system-card.active p")).toHaveTextContent("私有");
 });
 
+test("explains why an online six-character system code cannot resolve offline", async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  await appReady();
+  await user.click(screen.getByRole("button", { name: "新增体系" }));
+  await user.click(screen.getByRole("button", { name: "口令导入" }));
+  await user.type(screen.getByLabelText("粘贴体系配置码"), "9UP4N1");
+  await user.click(within(screen.getByRole("dialog", { name: "新增体系" })).getByRole("button", { name: "导入体系" }));
+  expect(screen.getByRole("alert")).toHaveTextContent("只是一条服务器索引");
+  expect(screen.getByRole("alert")).toHaveTextContent("完整离线口令");
+});
+
 test("uses a public system from the offline collection as an editable private copy", async () => {
   const user = userEvent.setup();
   render(<App />);
@@ -434,7 +446,11 @@ test("copies and validates clipboard system and hero configurations", async () =
   render(<App />);
   await appReady();
   await user.click(screen.getByRole("button", { name: "复制配置" }));
+  const exportDialog = screen.getByRole("dialog", { name: "导出口令" });
+  expect(exportDialog).toBeInTheDocument();
+  await user.click(within(exportDialog).getByRole("button", { name: "复制口令" }));
   await waitFor(() => expect(clipboardText).toContain("zys-clipboard"));
+  await user.click(within(exportDialog).getByRole("button", { name: "关闭" }));
   const systemEnvelope = JSON.parse(clipboardText) as { format: string; kind: string; payload: { name: string } };
   expect(systemEnvelope).toMatchObject({ format: "zys-clipboard", kind: "system" });
   systemEnvelope.payload.name = "剪贴板导入体系";

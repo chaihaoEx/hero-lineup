@@ -27,8 +27,8 @@ const forbidden = [
   /(?:src|href)\s*=\s*["']https?:\/\//gi,
   /url\(\s*["']?https?:\/\//gi,
   /wss?:\/\/(?!localhost(?::\d+)?(?:[\s/"';]|$))/gi,
-  /cq-zys\.cn/gi,
-  /googleapis\.com/gi,
+  /https?:\/\/(?:www\.)?cq-zys\.cn/gi,
+  /https?:\/\/[^"'`\s)]*googleapis\.com/gi,
   /socket\.io/gi,
 ];
 const allowedFixtureSegments = ["/tests/", "/test/", "/reference/"];

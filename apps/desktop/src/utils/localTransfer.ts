@@ -9,6 +9,7 @@ import type {
   PartyUnit,
   SimulationResult,
 } from "../types/domain";
+import { toPng } from "html-to-image";
 
 export type ClipboardKind = "system" | "hero" | "champion-loadout";
 
@@ -173,6 +174,54 @@ export async function readClipboard(): Promise<string | null> {
 function safeFilename(value: string): string {
   const withoutControlCharacters = [...value].map((character) => character.charCodeAt(0) < 32 ? "-" : character).join("");
   return withoutControlCharacters.replace(/[\\/:*?"<>|]/g, "-").trim() || "英雄体系";
+}
+
+async function waitForImages(root: HTMLElement): Promise<void> {
+  const images = [...root.querySelectorAll("img")];
+  await Promise.all(images.map((image) => {
+    if (image.complete && image.naturalWidth > 0) return Promise.resolve();
+    return new Promise<void>((resolve) => {
+      const finish = () => resolve();
+      image.addEventListener("load", finish, { once: true });
+      image.addEventListener("error", finish, { once: true });
+      window.setTimeout(finish, 3000);
+    });
+  }));
+}
+
+export async function captureElementPng(root: HTMLElement): Promise<string> {
+  if ("fonts" in document) await document.fonts.ready;
+  await waitForImages(root);
+  await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+  return toPng(root, {
+    backgroundColor: "#ffffff",
+    cacheBust: true,
+    pixelRatio: 2,
+    width: root.scrollWidth,
+    height: root.scrollHeight,
+    style: {
+      maxHeight: "none",
+      overflow: "visible",
+    },
+  });
+}
+
+export function downloadPng(dataUrl: string, filename: string): void {
+  const link = document.createElement("a");
+  link.href = dataUrl;
+  link.download = `${safeFilename(filename)}.png`;
+  link.style.display = "none";
+  document.body.append(link);
+  link.click();
+  link.remove();
+}
+
+export async function copyPng(dataUrl: string): Promise<void> {
+  if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
+    throw new Error("当前系统不支持复制 PNG 到剪贴板");
+  }
+  const blob = await (await fetch(dataUrl)).blob();
+  await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
 }
 
 function canvas(width: number, height: number): [HTMLCanvasElement, CanvasRenderingContext2D] {

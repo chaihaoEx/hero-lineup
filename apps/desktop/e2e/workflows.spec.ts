@@ -50,6 +50,12 @@ test.describe("浏览器预览中的主要离线工作流", () => {
     await page.getByRole("button", { name: "选择技能 裂痕" }).click();
     await expect(page.getByRole("button", { name: "技能 裂痕" })).toBeVisible();
     await expect(page.getByText("修改已实时同步到当前体系")).toBeVisible();
+    await page.getByRole("button", { name: "导出图片" }).click();
+    const heroImagePreview = page.getByRole("dialog", { name: "英雄配装图片预览" });
+    await expect(heroImagePreview).toBeVisible();
+    await expect(heroImagePreview.locator("img")).toHaveAttribute("src", /^data:image\/png/);
+    await page.screenshot({ path: "../../reference/screenshots/local-hero-image-preview-1440x900.png", fullPage: false });
+    await heroImagePreview.getByRole("button", { name: "关闭" }).click();
     await page.getByRole("button", { name: "关闭", exact: true }).click();
     await expect(page.locator(".unit-card").filter({ hasText: "E2E 骑士" })).toContainText("E2E 骑士");
     await expect(page.getByTitle("学徒短剑")).toBeVisible();
@@ -103,6 +109,9 @@ test.describe("浏览器预览中的主要离线工作流", () => {
     await expect(task.getByText("成功率: 87.400%")).toBeVisible();
     await task.getByRole("button", { name: "查看详情" }).click();
     await expect(task.getByText("browser-preview")).toBeVisible();
+    await expect(page.getByRole("button", { name: "复制图片" })).toBeEnabled();
+    await expect(page.getByRole("button", { name: "下载图片" })).toBeEnabled();
+    await page.screenshot({ path: "../../reference/screenshots/local-simulation-detail-1440x900.png", fullPage: false });
     await assertOffline(remoteRequests);
   });
 

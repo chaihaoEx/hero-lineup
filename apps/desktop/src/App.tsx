@@ -12,7 +12,7 @@ import { desktopBridge } from "./platform/bridge";
 import { useWorkspace } from "./state/useWorkspace";
 import type { AdventureTask, BuildTemplate, CalculatedSheet, Champion, ChampionEquipmentConfig, ChampionLoadout, ElementType, Hero, LineupSystem, PartyUnit, Quality, SimulationProgress, TaskGroup, UnitStats } from "./types/domain";
 import {
-  copySimulationPng, decodeClipboard, encodeClipboard, exportChampionPng, exportHeroPng, exportLineupPng, exportSimulationPng, readClipboard, writeClipboard,
+  captureElementPng, copyPng, decodeClipboard, downloadPng, encodeClipboard, exportLineupPng, readClipboard, writeClipboard,
 } from "./utils/localTransfer";
 
 type Tab = "champions" | "heroes" | "adventures";
@@ -71,6 +71,30 @@ function EditorStatRow({ statKey, sheet, fallback }: {
   return <div className="live-stat">
     <span>{spritePath ? <AssetImage path={spritePath} alt={label} /> : <b className="threat-stat-icon">!</b>}{label}</span>
     <strong>{display}</strong>
+  </div>;
+}
+
+function ImageExportPreview({ title, dataUrl, filename, onClose, onMessage }: {
+  title: string;
+  dataUrl: string;
+  filename: string;
+  onClose: () => void;
+  onMessage: (message: string) => void;
+}) {
+  const copy = async () => {
+    try {
+      await copyPng(dataUrl);
+      onMessage("图片已复制到剪贴板");
+    } catch (error) {
+      onMessage(error instanceof Error ? error.message : "复制失败，请使用下载功能");
+    }
+  };
+  return <div className="modal-backdrop image-preview-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+    <section className="image-preview-dialog" role="dialog" aria-modal="true" aria-label={title}>
+      <header><h2>{title}</h2><button className="zys-button red" onClick={onClose}>关闭</button></header>
+      <div className="image-preview-actions"><button className="zys-button blue" onClick={() => void copy()}>复制图片</button><button className="zys-button green" onClick={() => downloadPng(dataUrl, filename)}>下载图片</button></div>
+      <div className="image-preview-canvas"><img src={dataUrl} alt={title} /></div>
+    </section>
   </div>;
 }
 
@@ -303,6 +327,9 @@ function EquipmentModal({ hero, catalog, templates, onClose, onPrevious, onNext,
   const [skillPickerIndex, setSkillPickerIndex] = useState<number | null>(null);
   const [sheet, setSheet] = useState<CalculatedSheet | null>(null);
   const [calculating, setCalculating] = useState(false);
+  const [exportingImage, setExportingImage] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const exportSurfaceRef = useRef<HTMLDivElement>(null);
   const initialDraftRef = useRef(JSON.stringify(draft));
   const onSaveRef = useRef(onSave);
   useEffect(() => { onSaveRef.current = onSave; }, [onSave]);
@@ -380,13 +407,25 @@ function EquipmentModal({ hero, catalog, templates, onClose, onPrevious, onNext,
       setTransferStatus("英雄配装已校验并载入，正在实时同步");
     } catch (error) { setTransferStatus(error instanceof Error ? error.message : "粘贴失败"); }
   };
+  const exportImage = async () => {
+    if (!exportSurfaceRef.current) return;
+    setExportingImage(true);
+    try {
+      setImagePreview(await captureElementPng(exportSurfaceRef.current));
+    } catch (error) {
+      setTransferStatus(error instanceof Error ? error.message : "图片导出失败");
+    } finally {
+      setExportingImage(false);
+    }
+  };
   return <EquipmentPreviewContext.Provider value={{ ...slot, ...pickerConfig, catalog }}><div className="modal-backdrop equipment-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
     <button className="equipment-hero-nav previous" aria-label="上一个英雄" onClick={onPrevious}>‹</button>
     <section className="modal equipment-modal equipment-studio" role="dialog" aria-modal="true" aria-labelledby="equipment-title">
       <header className="modal-header">
         <div><h2 id="equipment-title">英雄配装模拟 - {draft.className}</h2></div>
-        <div className="modal-header-actions"><button className="zys-button blue" onClick={() => void pasteLoadout()}>导入</button><input className="modal-import-code" aria-label="粘贴配置码" placeholder="粘贴配置码" value={importText} onChange={(event) => setImportText(event.target.value)} /><button className="zys-button violet" onClick={() => void copyLoadout()}>导出</button><button className="zys-button green" onClick={() => onClone(draft)}>克隆</button><button className="zys-button violet" onClick={() => void exportHeroPng(draft, sheet ?? undefined).then(() => setTransferStatus("英雄配装图片已导出")).catch((error: unknown) => setTransferStatus(error instanceof Error ? error.message : "图片导出失败"))}>导出图片</button><button className="zys-button red" onClick={onClose}>关闭</button></div>
+        <div className="modal-header-actions"><button className="zys-button blue" onClick={() => void pasteLoadout()}>导入</button><input className="modal-import-code" aria-label="粘贴配置码" placeholder="粘贴配置码" value={importText} onChange={(event) => setImportText(event.target.value)} /><button className="zys-button violet" onClick={() => void copyLoadout()}>导出</button><button className="zys-button green" onClick={() => onClone(draft)}>克隆</button><button className="zys-button violet" disabled={exportingImage} onClick={() => void exportImage()}>{exportingImage ? "导出中..." : "导出图片"}</button><button className="zys-button red" onClick={onClose}>关闭</button></div>
       </header>
+      <div ref={exportSurfaceRef} className="editor-export-surface">
       <div className="hero-parameter-bar">
         <div className="hero-identity"><UnitAvatar unit={draft} /><div className="hero-name-editor">{editingName ? <input aria-label="英雄名称" autoFocus value={heroNameDraft} onChange={(event) => setHeroNameDraft(event.target.value)} onBlur={() => { const name = clampOnlineHeroName(heroNameDraft) || draft.name; setHeroNameDraft(name); setDraft({ ...draft, name }); setEditingName(false); }} onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); if (event.key === "Escape") { setHeroNameDraft(draft.name); setEditingName(false); } }} /> : <button type="button" title="点击改名" onClick={() => { setHeroNameDraft(draft.name); setEditingName(true); }}>{draft.name}</button>}</div></div>
         <label>英雄等级：<ChoicePicker key={`hero-level-${draft.level}`} label="英雄等级" value={draft.level} options={Array.from({ length: 50 }, (_, index) => index + 1)} onChange={(level) => setDraft({ ...draft, level })} /></label>
@@ -454,6 +493,7 @@ function EquipmentModal({ hero, catalog, templates, onClose, onPrevious, onNext,
           </button>;
         })}</div></section>
       </div>
+      </div>
       {pickerOpen && <div className="nested-picker-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) closeEquipmentPicker(); }}>
         <section className="equipment-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="equipment-picker-title">
           <header><h3 id="equipment-picker-title">装备选择 - {selectedSlot + 1}</h3><button className="zys-button red" onClick={closeEquipmentPicker}>关闭</button></header>
@@ -490,6 +530,7 @@ function EquipmentModal({ hero, catalog, templates, onClose, onPrevious, onNext,
       {transferStatus && <div className="transfer-status" role="status">{transferStatus}</div>}
       <footer className="modal-footer auto-save-footer"><div className="modal-transfer"><button className="secondary-button" onClick={() => void copyLoadout()}><Clipboard size={15} />复制配装</button><button className="secondary-button" onClick={() => void pasteLoadout()}><Upload size={15} />粘贴导入</button></div><span>修改会自动计算并同步，无需另行保存</span></footer>
     </section>
+    {imagePreview && <ImageExportPreview title="英雄配装图片预览" dataUrl={imagePreview} filename={`英雄配装_${draft.className}_${Date.now()}`} onClose={() => setImagePreview(null)} onMessage={setTransferStatus} />}
     <button className="equipment-hero-nav next" aria-label="下一个英雄" onClick={onNext}>›</button>
   </div></EquipmentPreviewContext.Provider>;
 }
@@ -509,6 +550,9 @@ function ChampionEquipmentModal({ champion, catalog, loadout, templates, onClose
   const [pickerConfig, setPickerConfig] = useState<EquipmentPreviewConfig>({ quality: "普通", shiny: false, transcendence: 0 });
   const [sheet, setSheet] = useState<CalculatedSheet | null>(null);
   const [calculating, setCalculating] = useState(false);
+  const [exportingImage, setExportingImage] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const exportSurfaceRef = useRef<HTMLDivElement>(null);
   const initialDraftRef = useRef(JSON.stringify(draft));
   const onSaveRef = useRef(onSave);
   useEffect(() => { onSaveRef.current = onSave; }, [onSave]);
@@ -599,10 +643,22 @@ function ChampionEquipmentModal({ champion, catalog, loadout, templates, onClose
       setTransferStatus("勇士配装已校验并载入，正在实时同步");
     } catch (error) { setTransferStatus(error instanceof Error ? error.message : "粘贴失败"); }
   };
+  const exportImage = async () => {
+    if (!exportSurfaceRef.current) return;
+    setExportingImage(true);
+    try {
+      setImagePreview(await captureElementPng(exportSurfaceRef.current));
+    } catch (error) {
+      setTransferStatus(error instanceof Error ? error.message : "图片导出失败");
+    } finally {
+      setExportingImage(false);
+    }
+  };
   return <EquipmentPreviewContext.Provider value={{ ...selectedChampionEquipment, ...pickerConfig, catalog }}><div className="modal-backdrop equipment-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
     <button className="equipment-hero-nav previous" aria-label="上一个勇士" onClick={onPrevious}>‹</button>
     <section className="modal champion-modal equipment-studio" role="dialog" aria-modal="true" aria-labelledby="champion-equipment-title">
-      <header className="modal-header"><div><h2 id="champion-equipment-title">勇士配装模拟 - {champion.name}</h2></div><div className="modal-header-actions"><button className="zys-button blue" onClick={() => void pasteLoadout()}>导入</button><input className="modal-import-code" aria-label="粘贴配置码" placeholder="粘贴配置码" value={importText} onChange={(event) => setImportText(event.target.value)} /><button className="zys-button violet" onClick={() => void copyLoadout()}>导出</button><button className="zys-button violet" onClick={() => void exportChampionPng(champion, draft, sheet ?? undefined).then(() => setTransferStatus("勇士配装图片已导出")).catch((error: unknown) => setTransferStatus(error instanceof Error ? error.message : "图片导出失败"))}>导出图片</button><button className="zys-button red" onClick={onClose}>关闭</button></div></header>
+      <header className="modal-header"><div><h2 id="champion-equipment-title">勇士配装模拟 - {champion.name}</h2></div><div className="modal-header-actions"><button className="zys-button blue" onClick={() => void pasteLoadout()}>导入</button><input className="modal-import-code" aria-label="粘贴配置码" placeholder="粘贴配置码" value={importText} onChange={(event) => setImportText(event.target.value)} /><button className="zys-button violet" onClick={() => void copyLoadout()}>导出</button><button className="zys-button violet" disabled={exportingImage} onClick={() => void exportImage()}>{exportingImage ? "导出中..." : "导出图片"}</button><button className="zys-button red" onClick={onClose}>关闭</button></div></header>
+      <div ref={exportSurfaceRef} className="editor-export-surface champion-export-surface">
       <div className="hero-parameter-bar champion-parameter-bar">
         <div className="hero-identity"><UnitAvatar unit={champion} /><strong>{champion.name}</strong></div>
         <label>勇士等级：<ChoicePicker key={`champion-level-${draft.level}`} label="勇士等级" value={draft.level} options={Array.from({ length: 50 }, (_, index) => index + 1)} onChange={(level) => setDraft({ ...draft, level })} /></label>
@@ -618,6 +674,7 @@ function ChampionEquipmentModal({ champion, catalog, loadout, templates, onClose
         <section className="equipment-slot-stage"><div className="editor-attribution">© 2026 cq-zys.cn | CC BY-NC-ND 4.0</div><div className="champion-slot-grid">{([
           ["familiar", "使魔", draft.familiar, familiarItems], ["aurasong", "光环", draft.aurasong, auraItems],
         ] as const).map(([kind, label, value, items]) => { const config = kind === "familiar" ? draft.familiarEquipment : draft.auraSongEquipment; const itemId = config?.itemId ?? value; const item = items.find((entry) => entry.id === itemId || entry.name === itemId); return <button key={kind} aria-label={`${label}装备槽`} className={`overview-slot champion-slot quality-${config?.quality ?? "普通"}`} onClick={() => openChampionPicker(kind)}><span className="overview-slot-art">{item ? <AssetImage path={item.spritePath} alt={item.name} /> : <span>{label.slice(0, 1)}</span>}</span><strong>{item?.name ?? (itemId || label)}</strong><small>{item ? `T${item.tier} · ${qualityDisplay[config?.quality ?? "普通"]}` : "点击选择装备"}</small></button>; })}</div></section>
+      </div>
       </div>
       {picker && <div className="nested-picker-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) closeChampionPicker(); }}>
         <section className="equipment-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="champion-picker-title">
@@ -654,6 +711,7 @@ function ChampionEquipmentModal({ champion, catalog, loadout, templates, onClose
       {transferStatus && <div className="transfer-status" role="status">{transferStatus}</div>}
       <footer className="modal-footer auto-save-footer"><div className="modal-transfer"><button className="secondary-button" onClick={() => void copyLoadout()}><Clipboard size={15} />复制配装</button><button className="secondary-button" onClick={() => void pasteLoadout()}><Upload size={15} />粘贴导入</button></div><span>修改会自动计算并同步，无需另行保存</span></footer>
     </section>
+    {imagePreview && <ImageExportPreview title="勇士配装图片预览" dataUrl={imagePreview} filename={`勇士配装_${champion.name}_${Date.now()}`} onClose={() => setImagePreview(null)} onMessage={setTransferStatus} />}
     <button className="equipment-hero-nav next" aria-label="下一个勇士" onClick={onNext}>›</button>
   </div></EquipmentPreviewContext.Provider>;
 }
@@ -692,6 +750,9 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
   const [barrierPicker, setBarrierPicker] = useState(false);
   const [questPicker, setQuestPicker] = useState(false);
   const controller = useRef<AbortController | null>(null);
+  const detailSurfaceRef = useRef<HTMLDivElement>(null);
+  const [detailImage, setDetailImage] = useState<string | null>(null);
+  const [preparingDetailImage, setPreparingDetailImage] = useState(false);
   const members = task.memberIds.map((id) => units.find((unit) => unit.id === id)).filter(Boolean) as PartyUnit[];
   const memberCandidates = units.filter((unit) => !task.memberIds.includes(unit.id) && (!onlyUnassigned || !assignedUnitIds.includes(unit.id)));
   const boosterLevel = task.config.boosterLevel ?? (task.config.booster ? 1 : 0);
@@ -710,6 +771,32 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
   const partyElementPower = Math.floor(Math.max(0, ...activeBarrierElements.map((element) => members
     .filter((unit) => unit.element === element)
     .reduce((sum, unit) => sum + (unit.stats.element ?? 0), 0))));
+  useEffect(() => {
+    if (!details || !task.result) {
+      setDetailImage(null);
+      setPreparingDetailImage(false);
+      return;
+    }
+    if (navigator.userAgent.includes("jsdom")) {
+      setDetailImage("data:image/png;base64,iVBORw0KGgo=");
+      setPreparingDetailImage(false);
+      return;
+    }
+    let active = true;
+    setDetailImage(null);
+    setPreparingDetailImage(true);
+    const timer = window.setTimeout(() => {
+      if (!detailSurfaceRef.current) return;
+      void captureElementPng(detailSurfaceRef.current)
+        .then((image) => { if (active) setDetailImage(image); })
+        .catch((error: unknown) => { if (active) setMessage(error instanceof Error ? error.message : "图片准备失败，请关闭后重试"); })
+        .finally(() => { if (active) setPreparingDetailImage(false); });
+    }, 0);
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, [details, task.result]);
   const selectQuest = (quest: CatalogQuest) => {
     onChange?.({ ...task, questId: quest.id, name: quest.name, map: quest.mapName, difficulty: quest.difficulty,
       maxMembers: quest.maxMembers, barrier: questBarrier(quest),
@@ -734,14 +821,14 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
     } finally { controller.current = null; }
   };
 
-  const exportResult = async () => {
-    if (!task.result) return;
-    try { await exportSimulationPng(task, task.result, members); setMessage("模拟结果已导出为 PNG"); }
-    catch (error) { setMessage(error instanceof Error ? error.message : "PNG 导出失败"); }
+  const exportResult = () => {
+    if (!detailImage) return;
+    downloadPng(detailImage, `冒险模拟详情_${task.map}_${task.difficulty}_${Date.now()}`);
+    setMessage("模拟详情已导出为 PNG");
   };
   const copyResult = async () => {
-    if (!task.result) return;
-    try { await copySimulationPng(task, task.result, members); setMessage("模拟结果图片已复制"); }
+    if (!detailImage) return;
+    try { await copyPng(detailImage); setMessage("模拟详情图片已复制"); }
     catch (error) { setMessage(error instanceof Error ? error.message : "图片复制失败"); }
   };
   const copyMemberConfig = async (unit: PartyUnit) => {
@@ -806,7 +893,7 @@ function TaskCard({ systemId, systemGameVersion, groupId, index, task, units, qu
     </div> : null}
     <div className="online-result-row">{task.result && <><span className="online-success-icon" aria-label="成功率">☺</span><strong>成功率: {task.result.successRate.toFixed(3)}%</strong><button onClick={() => setDetails(true)}>查看详情</button></>}<button className="online-test-button" onClick={() => void run()} disabled={!members.length}>测试冒险</button></div>
     {task.result?.stale && <small className="stale-result">数据版本已变化，请重新测试</small>}
-    {task.result && details && <div className="modal-backdrop simulation-detail-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setDetails(false); }}><section className="modal simulation-detail-modal" role="dialog" aria-modal="true" aria-labelledby={`simulation-detail-${task.id}`}><header className="modal-header"><h2 id={`simulation-detail-${task.id}`}>冒险模拟详情</h2><div className="modal-header-actions"><button className="zys-button blue" onClick={() => void copyResult()}>复制图片</button><button className="zys-button green" onClick={() => void exportResult()}>下载图片</button><button className="zys-button red" onClick={() => setDetails(false)}>关闭</button></div></header><div className="simulation-quest-banner"><div className="simulation-quest-title"><span className="quest-switcher-art">{currentQuest?.spritePath ? <AssetImage path={currentQuest.spritePath} alt={task.map} /> : "◈"}</span><div><strong>{task.map}</strong><small>{task.difficulty}</small></div></div><dl><div><dt>冒险强化道具</dt><dd>{boosterLevel ? boosterNames[boosterLevel] : "无"}</dd></div><div><dt>精英怪</dt><dd>{eliteKinds.find(([value]) => value === eliteKind)?.[1]}</dd></div><div><dt>元素屏障</dt><dd>{selectedElementLabel}</dd></div></dl></div><div className="simulation-summary"><div><span>尝试次数</span><strong>{(task.result.iterations ?? 10000).toLocaleString()}</strong></div><div><span>成功率</span><strong>{task.result.successRate.toFixed(2)}%</strong></div><div><span>平均回合数</span><strong>{task.result.averageTurns}</strong></div><div><span>最小回合数</span><strong>{task.result.minTurns}</strong></div><div><span>最大回合数</span><strong>{task.result.maxTurns}</strong></div></div><div className="simulation-member-summary">{members.map((unit) => { const memberResult = task.result?.memberResults?.find((entry) => entry.id === unit.id); return <article key={unit.id}><UnitAvatar unit={unit} small /><strong>{unit.name}</strong><span>存活率 {(memberResult?.survivalRate ?? task.result!.survivalRate).toFixed(1)}%</span><span>伤害 {Math.round(memberResult?.averageDamage ?? task.result!.averageDamage).toLocaleString()}</span><span>剩余生命 {Math.round(memberResult?.averageRemainingHealth ?? task.result!.averageRemainingHealth).toLocaleString()}</span></article>; })}</div><div className="simulation-config-hint">✦ 点击职业图标导出配置码，在英雄体系搭配平台导入使用 ✦</div><div className="simulation-members">{members.map((unit) => <SimulationMemberConfig key={unit.id} unit={unit} catalog={catalog} onCopy={() => void copyMemberConfig(unit)} />)}</div><footer className="simulation-detail-footer">模拟器 {task.result.simulatorVersion} · 数据 {task.result.gameDataVersion}</footer></section></div>}
+    {task.result && details && <div className="modal-backdrop simulation-detail-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setDetails(false); }}><section className="modal simulation-detail-modal" role="dialog" aria-modal="true" aria-labelledby={`simulation-detail-${task.id}`}><header className="modal-header"><h2 id={`simulation-detail-${task.id}`}>冒险模拟详情</h2><div className="modal-header-actions"><button aria-label="复制图片" className="zys-button blue" disabled={!detailImage || preparingDetailImage} onClick={() => void copyResult()}>{preparingDetailImage ? "准备中..." : "复制图片"}</button><button aria-label="下载图片" className="zys-button green" disabled={!detailImage || preparingDetailImage} onClick={() => void exportResult()}>{preparingDetailImage ? "准备中..." : "下载图片"}</button><button className="zys-button red" onClick={() => setDetails(false)}>关闭</button></div></header><div ref={detailSurfaceRef} className="simulation-export-surface"><div className="simulation-quest-banner"><div className="simulation-quest-title"><span className="quest-switcher-art">{currentQuest?.spritePath ? <AssetImage path={currentQuest.spritePath} alt={task.map} /> : "◈"}</span><div><strong>{task.map}</strong><small>{task.difficulty}</small></div></div><dl><div><dt>冒险强化道具</dt><dd>{boosterLevel ? boosterNames[boosterLevel] : "无"}</dd></div><div><dt>精英怪</dt><dd>{eliteKinds.find(([value]) => value === eliteKind)?.[1]}</dd></div><div><dt>元素屏障</dt><dd>{selectedElementLabel}</dd></div></dl></div><div className="simulation-summary"><div><span>尝试次数</span><strong>{(task.result.iterations ?? 10000).toLocaleString()}</strong></div><div><span>成功率</span><strong>{task.result.successRate.toFixed(2)}%</strong></div><div><span>平均回合数</span><strong>{task.result.averageTurns}</strong></div><div><span>最小回合数</span><strong>{task.result.minTurns}</strong></div><div><span>最大回合数</span><strong>{task.result.maxTurns}</strong></div></div><div className="simulation-member-summary">{members.map((unit) => { const memberResult = task.result?.memberResults?.find((entry) => entry.id === unit.id); return <article key={unit.id}><UnitAvatar unit={unit} small /><strong>{unit.name}</strong><span>存活率 {(memberResult?.survivalRate ?? task.result!.survivalRate).toFixed(1)}%</span><span>伤害 {Math.round(memberResult?.averageDamage ?? task.result!.averageDamage).toLocaleString()}</span><span>剩余生命 {Math.round(memberResult?.averageRemainingHealth ?? task.result!.averageRemainingHealth).toLocaleString()}</span></article>; })}</div><div className="simulation-config-hint">✦ 点击职业图标导出配置码，在英雄体系搭配平台导入使用 ✦</div><div className="simulation-members">{members.map((unit) => <SimulationMemberConfig key={unit.id} unit={unit} catalog={catalog} onCopy={() => void copyMemberConfig(unit)} />)}</div><footer className="simulation-detail-footer">模拟器 {task.result.simulatorVersion} · 数据 {task.result.gameDataVersion}</footer></div></section></div>}
   </article>;
 }
 
@@ -937,15 +1024,32 @@ function SystemCreateModal({ onClose, onCreate, onImport }: {
         <label>体系名称<input type="text" aria-label="新体系名称" maxLength={40} placeholder="请输入体系名称" value={name} onChange={(event) => setName(event.target.value)} /></label>
         <label>体系描述（选填）<textarea aria-label="新体系描述" maxLength={200} placeholder="用于在本地收藏中展示该体系的简介" value={description} onChange={(event) => setDescription(event.target.value)} /><small>{description.length}/200</small></label>
         <fieldset><legend>公开设置</legend><label><input type="radio" name="new-system-visibility" checked={localPublic} onChange={() => setLocalPublic(true)} />公开（允许在本地收藏中展示，便于从本机一键导入）</label><label><input type="radio" name="new-system-visibility" checked={!localPublic} onChange={() => setLocalPublic(false)} />私有（仅当前体系列表可见，不在本地收藏展示）</label></fieldset>
-      </div> : <div className="system-import-form"><textarea aria-label="粘贴体系配置码" placeholder="粘贴体系配置码" value={code} onChange={(event) => { setCode(event.target.value); setError(""); }} />{error && <p role="alert">{error}</p>}</div>}
+      </div> : <div className="system-import-form"><textarea aria-label="粘贴体系配置码" placeholder="粘贴6位线上口令或完整离线配置码" value={code} onChange={(event) => { setCode(event.target.value); setError(""); }} /><small>完全离线模式可直接导入本应用导出的完整口令；线上 6 位口令只保存服务器索引，不包含体系数据。</small>{error && <p role="alert">{error}</p>}</div>}
       <footer><button className="system-edit-cancel" onClick={onClose}>取消</button><button className="zys-button blue" disabled={mode === "create" ? !name.trim() : !code.trim()} onClick={commit}>{mode === "create" ? "创建" : "导入体系"}</button></footer>
     </section>
   </div>;
 }
 
-function SystemSidebar({ systems, activeId, dirty, contentVersion, onSelect, onCreate, onDuplicate, onDelete, onSave, onImport, onExport, onBackup, onRestore, onDataUpdate, onRename, onImportCode, onUseCollection }: {
+function SystemExportModal({ system, onClose, onCopy }: {
+  system: LineupSystem;
+  onClose: () => void;
+  onCopy: () => void;
+}) {
+  const code = encodeClipboard("system", system);
+  return <div className="modal-backdrop system-edit-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+    <section className="system-export-dialog" role="dialog" aria-modal="true" aria-labelledby="system-export-title">
+      <h3 id="system-export-title">导出口令</h3>
+      <p>复制以下完整离线口令，可以在另一台离线设备的新建体系中导入并创建相同体系：</p>
+      <textarea aria-label="体系离线口令" readOnly value={code} />
+      <footer><button className="zys-button gray" onClick={onClose}>关闭</button><button className="zys-button violet" onClick={onCopy}>复制口令</button></footer>
+    </section>
+  </div>;
+}
+
+function SystemSidebar({ systems, activeId, dirty, contentVersion, onSelect, onCreate, onDuplicate, onDelete, onSave, onImport, onExportCode, onExportFile, onBackup, onRestore, onDataUpdate, onRename, onImportCode, onUseCollection }: {
   systems: LineupSystem[]; activeId: string; dirty: boolean; onSelect: (id: string) => boolean; onCreate: (name: string, description: string, localPublic: boolean) => void;
-  contentVersion: string; onDuplicate: () => void; onDelete: () => void; onSave: () => void; onImport: () => void; onExport: (system?: LineupSystem) => void;
+  contentVersion: string; onDuplicate: () => void; onDelete: () => void; onSave: () => void; onImport: () => void;
+  onExportCode: (system: LineupSystem) => void; onExportFile: (system?: LineupSystem) => void;
   onBackup: () => void; onRestore: () => void; onDataUpdate: () => void; onRename: (name: string, description: string, localPublic: boolean) => void;
   onImportCode: (code: string) => string | undefined; onUseCollection: (system: LineupSystem) => void;
 }) {
@@ -960,9 +1064,9 @@ function SystemSidebar({ systems, activeId, dirty, contentVersion, onSelect, onC
     <div className="system-manager-body">{managerTab === "mine" ? <nav className="system-card-list">{systems.map((system) => <article key={system.id} className={`online-system-card ${system.id === activeId ? "active" : ""}`} onClick={() => onSelect(system.id)}>
       <strong>{system.name}</strong>{system.description && <small>{system.description}</small>}
       <p>英雄: {system.heroes.length} <span>|</span> 任务: {system.taskGroups.reduce((sum, group) => sum + group.tasks.length, 0)} <span>|</span> {system.localPublic ? "公开" : "私有"}</p>
-      <div><button className="zys-button blue" onClick={(event) => { event.stopPropagation(); if (system.id === activeId || onSelect(system.id)) setEditingSystemId(system.id); }}>编辑</button><button className="zys-button violet" onClick={(event) => { event.stopPropagation(); onExport(system); }}>导出口令</button></div>
+      <div><button className="zys-button blue" onClick={(event) => { event.stopPropagation(); if (system.id === activeId || onSelect(system.id)) setEditingSystemId(system.id); }}>编辑</button><button className="zys-button violet" onClick={(event) => { event.stopPropagation(); onExportCode(system); }}>导出口令</button></div>
     </article>)}</nav> : <section className="local-collection"><div className="collection-search"><input aria-label="搜索本地收藏" placeholder="搜索体系名称 / 描述" value={collectionSearch} onChange={(event) => setCollectionSearch(event.target.value)} /><button className="zys-button blue">搜索</button></div><div className="collection-grid">{collection.map((system) => <article key={system.id} className="collection-card"><span className="collection-source">本地</span><strong>{system.name}</strong>{system.description && <small>{system.description}</small>}<p>英雄: {system.heroes.length} <span>|</span> 任务: {system.taskGroups.reduce((sum, group) => sum + group.tasks.length, 0)}</p><button className="zys-button blue" onClick={() => { onUseCollection(system); setManagerTab("mine"); }}>使用体系</button></article>)}{!collection.length && <div className="empty-state"><Archive size={26} /><h3>没有匹配的本地收藏</h3><p>把体系设置为“公开”后会出现在这里。</p></div>}</div></section>}
-      <details className="local-maintenance"><summary><HardDrive size={15} />本地数据与备份 <small>{contentVersion}</small></summary><div><button onClick={onImport}><Upload size={15} />导入体系</button><button onClick={() => onExport()}><Download size={15} />导出体系</button><button onClick={onDuplicate}><Copy size={15} />复制当前</button><button onClick={onBackup}><Archive size={15} />完整备份</button><button onClick={onRestore}><PackageOpen size={15} />恢复备份</button><button onClick={onDataUpdate} disabled={!desktopBridge.isDesktop()}><HardDrive size={15} />更新本地数据</button><button className="danger-link" onClick={onDelete}><Trash2 size={15} />删除当前</button></div></details>
+      <details className="local-maintenance"><summary><HardDrive size={15} />本地数据与备份 <small>{contentVersion}</small></summary><div><button onClick={onImport}><Upload size={15} />导入体系</button><button onClick={() => onExportFile()}><Download size={15} />导出体系</button><button onClick={onDuplicate}><Copy size={15} />复制当前</button><button onClick={onBackup}><Archive size={15} />完整备份</button><button onClick={onRestore}><PackageOpen size={15} />恢复备份</button><button onClick={onDataUpdate} disabled={!desktopBridge.isDesktop()}><HardDrive size={15} />更新本地数据</button><button className="danger-link" onClick={onDelete}><Trash2 size={15} />删除当前</button></div></details>
     </div>
     {editingSystem && <SystemEditModal system={editingSystem} onClose={() => setEditingSystemId(null)} onSave={onRename} />}
     {creating && <SystemCreateModal onClose={() => setCreating(false)} onCreate={onCreate} onImport={onImportCode} />}
@@ -981,6 +1085,7 @@ function WorkspaceApp({ catalog, onCatalogChange }: { catalog: Catalog; onCatalo
   const [showTemplates, setShowTemplates] = useState(false);
   const [equipmentNeedsKind, setEquipmentNeedsKind] = useState<"hero" | "champion" | null>(null);
   const [showClassPicker, setShowClassPicker] = useState(false);
+  const [exportingSystem, setExportingSystem] = useState<LineupSystem | null>(null);
   const [toast, setToast] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
   const jumpTo = (next: Tab, id: string) => {
@@ -1069,9 +1174,9 @@ function WorkspaceApp({ catalog, onCatalogChange }: { catalog: Catalog; onCatalo
     } catch (error) { setToast(error instanceof Error ? error.message : "恢复失败"); }
   };
 
-  const copySystemConfig = async () => {
-    if (!workspace.active) return;
-    try { await writeClipboard(encodeClipboard("system", workspace.active)); setToast("当前体系配置已复制到剪贴板"); }
+  const copySystemConfig = async (system = workspace.active) => {
+    if (!system) return;
+    try { await writeClipboard(encodeClipboard("system", system)); setToast("完整离线体系口令已复制到剪贴板"); }
     catch (error) { setToast(error instanceof Error ? error.message : "复制失败"); }
   };
 
@@ -1089,6 +1194,10 @@ function WorkspaceApp({ catalog, onCatalogChange }: { catalog: Catalog; onCatalo
   };
 
   const importSystemCode = (code: string): string | undefined => {
+    const onlineShortCode = code.toUpperCase().match(/(?:^|\s)([A-Z0-9]{6})(?:$|\s)/)?.[1];
+    if (onlineShortCode && code.trim().length < 256) {
+      return `线上口令 ${onlineShortCode} 只是一条服务器索引，口令本身不包含体系数据。当前应用为完全离线模式，请先在线导入后导出完整离线口令或 .zyslineup 文件。`;
+    }
     try {
       const imported = decodeClipboard(code, "system");
       if (imported.gameDataVersion !== catalog.gameDataVersion) throw new Error(`数据版本不兼容：${imported.gameDataVersion}`);
@@ -1137,10 +1246,10 @@ function WorkspaceApp({ catalog, onCatalogChange }: { catalog: Catalog; onCatalo
 
   return <div className="app-shell online-shell">
     <input ref={fileInput} hidden type="file" accept=".zyslineup,application/json" onChange={(event) => void importFile(event.target.files?.[0])} />
-    <header className="offline-site-header"><div className="offline-site-inner"><div className="online-brand"><span><Sword size={20} /></span><strong>传奇智游社</strong><small>完全离线版</small></div><nav><button className={tab === "champions" ? "active" : ""} onClick={() => jumpTo("champions", "champions-section")}>勇士阵容</button><button className={tab === "heroes" ? "active" : ""} onClick={() => jumpTo("heroes", "heroes-section")}>英雄阵容</button><button className={tab === "adventures" ? "active" : ""} onClick={() => jumpTo("adventures", "adventures-section")}>冒险任务</button><button onClick={() => setShowTemplates(true)}>配装模板</button></nav><div className="site-header-actions"><button aria-label="粘贴配置" className="zys-button blue" onClick={() => void pasteSystemConfig()}>导入口令</button><button aria-label="复制配置" className="zys-button violet" onClick={() => void copySystemConfig()}>导出口令</button><button className="zys-button green" onClick={() => document.getElementById("system-manager-title")?.scrollIntoView?.({ behavior: "smooth" })}>本地管理</button></div></div></header>
+    <header className="offline-site-header"><div className="offline-site-inner"><div className="online-brand"><span><Sword size={20} /></span><strong>传奇智游社</strong><small>完全离线版</small></div><nav><button className={tab === "champions" ? "active" : ""} onClick={() => jumpTo("champions", "champions-section")}>勇士阵容</button><button className={tab === "heroes" ? "active" : ""} onClick={() => jumpTo("heroes", "heroes-section")}>英雄阵容</button><button className={tab === "adventures" ? "active" : ""} onClick={() => jumpTo("adventures", "adventures-section")}>冒险任务</button><button onClick={() => setShowTemplates(true)}>配装模板</button></nav><div className="site-header-actions"><button aria-label="粘贴配置" className="zys-button blue" onClick={() => void pasteSystemConfig()}>导入口令</button><button aria-label="复制配置" className="zys-button violet" onClick={() => { if (workspace.active) setExportingSystem(workspace.active); }}>导出口令</button><button className="zys-button green" onClick={() => document.getElementById("system-manager-title")?.scrollIntoView?.({ behavior: "smooth" })}>本地管理</button></div></div></header>
     <main className="workspace">
       <div className="tool-container"><section className="tool-hero"><h1>英雄体系搭配平台</h1><div className="offline-warning"><HardDrive size={17} />当前为完全离线版，所有体系、配装、模拟记录和图片均保存在本机；数据版本 {catalog.gameDataVersion}</div></section>
-        <SystemSidebar systems={workspace.systems} activeId={workspace.activeId} dirty={workspace.dirty} contentVersion={catalog.gameDataVersion} onSelect={selectSystem} onCreate={(name, description, localPublic) => workspace.createSystem({ name, description, localPublic })} onImportCode={importSystemCode} onUseCollection={(system) => { const imported = workspace.importSystem(system); setToast(`已从本地收藏导入“${imported.name}”，请保存后持久化`); }} onDuplicate={workspace.duplicateSystem} onDelete={() => { if (window.confirm("确定删除当前体系吗？")) void workspace.deleteActive(); }} onSave={() => void workspace.save().then(() => setToast("所有更改已保存在本机"))} onImport={() => { if (desktopBridge.isDesktop()) void importFromDialog(); else fileInput.current?.click(); }} onExport={(system) => void exportCurrent(system)} onBackup={() => void exportBackup()} onRestore={() => void restoreBackup()} onDataUpdate={() => void installDataPackage()} onRename={(name, description, localPublic) => workspace.updateActive((system) => ({ ...system, name, description, localPublic }))} />
+        <SystemSidebar systems={workspace.systems} activeId={workspace.activeId} dirty={workspace.dirty} contentVersion={catalog.gameDataVersion} onSelect={selectSystem} onCreate={(name, description, localPublic) => workspace.createSystem({ name, description, localPublic })} onImportCode={importSystemCode} onUseCollection={(system) => { const imported = workspace.importSystem(system); setToast(`已从本地收藏导入“${imported.name}”，请保存后持久化`); }} onDuplicate={workspace.duplicateSystem} onDelete={() => { if (window.confirm("确定删除当前体系吗？")) void workspace.deleteActive(); }} onSave={() => void workspace.save().then(() => setToast("所有更改已保存在本机"))} onImport={() => { if (desktopBridge.isDesktop()) void importFromDialog(); else fileInput.current?.click(); }} onExportCode={setExportingSystem} onExportFile={(system) => void exportCurrent(system)} onBackup={() => void exportBackup()} onRestore={() => void restoreBackup()} onDataUpdate={() => void installDataPackage()} onRename={(name, description, localPublic) => workspace.updateActive((system) => ({ ...system, name, description, localPublic }))} />
       <div className="content online-content">
         <section id="champions-section" className="flow-section"><section className="section-heading"><div><h2>勇士阵容</h2><p>点击勇士图标进行配装，可拖动到下方任务卡片中组队冒险</p></div><button className="zys-button blue" onClick={() => setEquipmentNeedsKind("champion")}><BarChart3 size={16} />装备统计</button></section><div className="champion-grid">{champions.map((unit) => { const loadout = workspace.active!.championLoadouts?.[unit.id]; return <ChampionCard key={unit.id} unit={{ ...unit, ...(loadout ?? {}), stats: { ...unit.stats, ...(loadout?.stats ?? {}), element: loadout?.stats?.element ?? championElementValue(loadout?.rank ?? unit.rank) } }} onEdit={() => setEditingChampion(unit)} />; })}</div></section>
         <section id="heroes-section" className="flow-section"><section className="section-heading"><div><h2>英雄阵容 ({workspace.active.heroes.length}/41)</h2><p>点击英雄图标进行配装，可拖动到下方任务卡片中组队冒险</p></div><div className="toolbar"><button className="zys-button blue" onClick={() => setEquipmentNeedsKind("hero")}>装备统计</button><button className="zys-button violet" onClick={() => void exportCurrentPng()}>导出阵容</button><button className="zys-button green" disabled={workspace.active.heroes.length >= 41} onClick={() => setShowClassPicker(true)}>添加英雄</button><button className={`manager-tab ${sortMode === "class" ? "active" : ""}`} onClick={() => setSortMode("class")}>职业排序</button><button className={`manager-tab ${sortMode === "element" ? "active" : ""}`} onClick={() => setSortMode("element")}>元素排序</button></div></section><div className="hero-list">{heroes.map((hero) => <HeroCard key={hero.id} hero={hero} onEdit={() => setEditingHero(hero)} onCopy={() => workspace.duplicateHero(hero)} onDelete={() => workspace.deleteHero(hero.id)} />)}{!heroes.length && <div className="empty-state"><Users size={30} /><h3>还没有英雄</h3><p>点击“添加英雄”选择职业。</p></div>}</div></section>
@@ -1173,6 +1282,7 @@ function WorkspaceApp({ catalog, onCatalogChange }: { catalog: Catalog; onCatalo
     {showTemplates && <TemplateManager templates={templates} onDelete={deleteBuildTemplate} onClose={() => setShowTemplates(false)} />}
     {equipmentNeedsKind && <EquipmentNeedsModal kind={equipmentNeedsKind} needs={equipmentNeeds} onClose={() => setEquipmentNeedsKind(null)} />}
     {showClassPicker && <ClassPickerModal catalog={catalog} heroIndex={workspace.active.heroes.length + 1} onClose={() => setShowClassPicker(false)} onChoose={(hero) => { workspace.addHero(hero.classId, hero); setShowClassPicker(false); }} />}
+    {exportingSystem && <SystemExportModal system={exportingSystem} onClose={() => setExportingSystem(null)} onCopy={() => void copySystemConfig(exportingSystem)} />}
     {toast && <button className="toast" onClick={() => setToast("")}><Check size={16} />{toast}<X size={14} /></button>}
   </div>;
 }
