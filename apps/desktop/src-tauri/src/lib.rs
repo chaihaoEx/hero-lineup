@@ -1709,6 +1709,47 @@ mod tests {
         assert_eq!(catalog.counts.skills, 544);
         assert!(catalog.counts.sprites >= 2_200);
         assert!(catalog.classes.iter().all(|class| class.slots.len() == 6));
+        for class in &catalog.classes {
+            let unlocks = class
+                .skill_unlock_levels
+                .iter()
+                .copied()
+                .filter(|level| *level > 0)
+                .collect::<Vec<_>>();
+            assert_eq!(
+                unlocks.len(),
+                class.skill_slots,
+                "{} 技能槽数量不一致",
+                class.id
+            );
+            assert!(
+                unlocks.windows(2).all(|pair| pair[0] < pair[1]),
+                "{} 技能解锁等级不是严格递增",
+                class.id
+            );
+            let family = class
+                .innate_skill_family
+                .as_deref()
+                .unwrap_or_else(|| panic!("{} 缺少自带技能族", class.id));
+            assert!(
+                catalog
+                    .skills
+                    .iter()
+                    .any(|skill| skill.family == family && skill.tier == 1),
+                "{} 缺少一级自带技能 {}",
+                class.id,
+                family
+            );
+            assert!(
+                catalog.skills.iter().any(|skill| {
+                    skill.family == family && skill.tier == u64::from(class.max_skill_level)
+                }),
+                "{} 缺少职业上限等级自带技能 {}{}",
+                class.id,
+                family,
+                class.max_skill_level
+            );
+        }
         assert_eq!(
             catalog
                 .classes
