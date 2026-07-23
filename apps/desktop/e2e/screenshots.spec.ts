@@ -56,7 +56,7 @@ test("生成线上同款配装交互验收截图", async ({ page }) => {
   await expect(page.getByRole("dialog", { name: /装备选择 - 1/ })).toBeVisible();
   await page.screenshot({ path: path.join(outputDirectory, "local-equipment-picker-1440x900.png") });
   await page.getByRole("dialog", { name: /装备选择 - 1/ }).getByRole("button", { name: "关闭", exact: true }).click();
-  await page.getByRole("button", { name: "技能槽 1 未选择" }).click();
+  await page.getByRole("button", { name: "技能 未选择" }).first().click();
   await expect(page.getByRole("dialog", { name: "选择技能" })).toBeVisible();
   await page.screenshot({ path: path.join(outputDirectory, "local-skill-picker-1440x900.png") });
   await assertOffline(remoteRequests);

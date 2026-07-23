@@ -557,7 +557,7 @@ impl Catalog {
     }
 
     fn element_value(&self, item: &Value, build: &Equipment, unit_element: &str) -> u32 {
-        let Some(element_id) = build.element.as_deref() else {
+        let Some(element_id) = effective_attachment(item, build.element.as_deref(), "lTag2") else {
             return 0;
         };
         let Some(core) = self.items.get(element_id) else {
@@ -610,10 +610,14 @@ impl Catalog {
             crit: raw.crit,
             ..Bonus::default()
         };
-        if let Some(element) = build.element.as_deref().and_then(|id| self.items.get(id)) {
+        if let Some(element) = effective_attachment(item, build.element.as_deref(), "lTag2")
+            .and_then(|id| self.items.get(id))
+        {
             add_core_attachment(&mut result, &raw, item, element, true);
         }
-        if let Some(spirit) = build.spirit.as_deref().and_then(|id| self.items.get(id)) {
+        if let Some(spirit) = effective_attachment(item, build.spirit.as_deref(), "lTag3")
+            .and_then(|id| self.items.get(id))
+        {
             add_core_attachment(&mut result, &raw, item, spirit, false);
         }
         // The portable domain currently stores only the shiny flag, not the
@@ -629,7 +633,9 @@ impl Catalog {
     }
 
     fn apply_spirit_flat(&self, bonus: &mut Bonus, item: &Value, build: &Equipment) {
-        let Some(spirit) = build.spirit.as_deref().and_then(|id| self.items.get(id)) else {
+        let Some(spirit) = effective_attachment(item, build.spirit.as_deref(), "lTag3")
+            .and_then(|id| self.items.get(id))
+        else {
             return;
         };
         let Some(family) = text(spirit, "skill") else {
@@ -667,7 +673,9 @@ impl Catalog {
         build: &Equipment,
         titan_tower_or_tomb: bool,
     ) {
-        let Some(spirit) = build.spirit.as_deref().and_then(|id| self.items.get(id)) else {
+        let Some(spirit) = effective_attachment(item, build.spirit.as_deref(), "lTag3")
+            .and_then(|id| self.items.get(id))
+        else {
             return;
         };
         if text(spirit, "skill") != Some("i_tomb") {
@@ -705,6 +713,14 @@ fn read_object(path: &Path) -> Result<Map<String, Value>, CatalogError> {
         .ok_or_else(|| CatalogError::ExpectedObject {
             path: path.to_path_buf(),
         })
+}
+
+fn effective_attachment<'a>(
+    item: &'a Value,
+    configured: Option<&'a str>,
+    tag: &str,
+) -> Option<&'a str> {
+    text(item, tag).or(configured)
 }
 
 fn text<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
@@ -951,10 +967,12 @@ fn add_core_attachment(
         "spiritAffinity"
     };
     let core_id = text(core, "uid").unwrap_or("");
-    let affinity = text(item, affinity_key).map(split_list).is_some_and(|ids| {
-        ids.iter()
-            .any(|id| id == core_id || (elemental && id == "all"))
-    });
+    let built_in_tag = if elemental { "lTag2" } else { "lTag3" };
+    let affinity = text(item, built_in_tag) == Some(core_id)
+        || text(item, affinity_key).map(split_list).is_some_and(|ids| {
+            ids.iter()
+                .any(|id| id == core_id || (elemental && id == "all"))
+        });
     let multiplier = if affinity { 1.5 } else { 1.0 };
     result.atk += (number(core, "atk") * multiplier).floor().min(base.atk);
     result.def += (number(core, "def") * multiplier).floor().min(base.def);
@@ -1287,6 +1305,39 @@ mod tests {
         let codes: BTreeSet<_> = issues.into_iter().map(|issue| issue.code).collect();
         assert!(codes.contains("missing_element_core"));
         assert!(codes.contains("missing_spirit_core"));
+    }
+
+    #[test]
+    fn built_in_element_is_applied_and_cannot_be_replaced() {
+        let catalog = catalog();
+        let item = catalog.items.get("forestdagger").unwrap();
+        let mut dagger = equipment("forestdagger", EquipmentSlot::Weapon);
+        dagger.quality = Quality::Legendary;
+        let normal = catalog.item_stats(item, &dagger);
+        assert_eq!(normal.atk, 114.0); // 30 * 3 + built-in bubble element 24
+
+        dagger.element = Some("ember".to_owned());
+        let attempted_override = catalog.item_stats(item, &dagger);
+        assert_eq!(attempted_override.atk, 114.0);
+
+        dagger.transcended = true;
+        let transcended = catalog.item_stats(item, &dagger);
+        assert_eq!(transcended.atk, 135.0);
+        assert_eq!(transcended.eva, 0.02);
+    }
+
+    #[test]
+    fn tier_16_star_forge_and_transcend_match_online_gold_sample() {
+        let catalog = catalog();
+        let item = catalog.items.get("t16sword").unwrap();
+        let mut sword = equipment("t16sword", EquipmentSlot::Weapon);
+        assert_eq!(catalog.item_stats(item, &sword).atk, 1420.0);
+        sword.shiny = true;
+        assert_eq!(catalog.item_stats(item, &sword).atk, 1775.0);
+        sword.transcended = true;
+        let combined = catalog.item_stats(item, &sword);
+        assert_eq!(combined.atk, 2109.0);
+        assert_eq!(combined.def, 154.0);
     }
 
     #[test]

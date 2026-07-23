@@ -43,12 +43,12 @@ test.describe("浏览器预览中的主要离线工作流", () => {
     await page.getByRole("button", { name: /T4 .*余烬元素/ }).click();
     await page.getByRole("button", { name: /T14 比蒙精魂/ }).click();
     await page.getByRole("button", { name: "传奇", exact: true }).click();
-    await page.locator(".picker-filter-bar > div").nth(1).getByRole("button").click();
+    await page.getByRole("button", { name: "武器超越" }).click();
     await page.getByRole("button", { name: "完成选择" }).click();
     await expect(page.getByLabel("自带技能 堡垒")).toBeVisible();
-    await page.getByRole("button", { name: "技能槽 1 未选择" }).click();
+    await page.getByRole("button", { name: "技能 未选择" }).first().click();
     await page.getByRole("button", { name: "选择技能 裂痕" }).click();
-    await expect(page.getByRole("button", { name: "技能槽 1 裂痕" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "技能 裂痕" })).toBeVisible();
     await expect(page.getByText("修改已实时同步到当前体系")).toBeVisible();
     await page.getByRole("button", { name: "关闭", exact: true }).click();
     await expect(page.locator(".unit-card").filter({ hasText: "E2E 骑士" })).toContainText("E2E 骑士");

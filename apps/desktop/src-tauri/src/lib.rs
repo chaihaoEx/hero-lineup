@@ -138,6 +138,8 @@ struct CatalogItem {
     skill: Option<String>,
     element_affinity: Option<String>,
     spirit_affinity: Option<String>,
+    built_in_element_id: Option<String>,
+    built_in_spirit_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -795,6 +797,14 @@ fn load_catalog_from_content_dir(content_dir: &Path) -> Result<Catalog, String> 
                     .map(str::to_owned),
                 spirit_affinity: value
                     .get("spiritAffinity")
+                    .and_then(Value::as_str)
+                    .map(str::to_owned),
+                built_in_element_id: value
+                    .get("lTag2")
+                    .and_then(Value::as_str)
+                    .map(str::to_owned),
+                built_in_spirit_id: value
+                    .get("lTag3")
                     .and_then(Value::as_str)
                     .map(str::to_owned),
             })
@@ -1844,6 +1854,13 @@ mod tests {
         assert_eq!(short_sword.transcend_multiplier, 1.1);
         assert_eq!(short_sword.transcend_attack, 2.0);
         assert_eq!(short_sword.transcend_defense, 1.0);
+        let forest_dagger = catalog
+            .items
+            .iter()
+            .find(|item| item.id == "forestdagger")
+            .unwrap();
+        assert_eq!(forest_dagger.built_in_element_id.as_deref(), Some("bubble"));
+        assert_eq!(forest_dagger.built_in_spirit_id, None);
         let tier_16_sword = catalog
             .items
             .iter()

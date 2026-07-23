@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { heroSlotNames, itemsForSlot, makeHero, normalizeHeroEquipmentSlots, previewCatalog, skillsForClass, type Catalog } from "../src/data/catalog";
+import { applyEquipmentFieldToAll, heroSlotNames, itemsForSlot, makeHero, normalizeHeroEquipmentSlots, previewCatalog, skillsForClass, type Catalog } from "../src/data/catalog";
 import { previewEquipmentStats } from "../src/data/equipmentPreview";
 
 describe("local catalog projections", () => {
@@ -56,5 +56,28 @@ describe("local catalog projections", () => {
       defense: 4,
       baseMultiplier: 1.35,
     });
+    const builtIn = { ...item, attack: 30, builtInElementId: "bubble", transcendAttack: 3, transcendEvasion: 0.02 };
+    const bubble = { id: "bubble", name: "泡泡元素", itemType: "z", typeName: "元素附魔", tier: 4, attack: 16 };
+    expect(previewEquipmentStats(builtIn, { quality: "传说", shiny: false, transcendence: 0 }, { elementItem: bubble }).attack).toBe(114);
+    expect(previewEquipmentStats(builtIn, { quality: "传说", shiny: false, transcendence: 1 }, { elementItem: bubble })).toMatchObject({ attack: 135, evasion: 0.02 });
+    const t16Sword = { ...item, id: "t16sword", attack: 1420, shinyMultiplier: 1.25, transcendAttack: 142, transcendDefense: 114 };
+    expect(previewEquipmentStats(t16Sword, { quality: "普通", shiny: true, transcendence: 0 }).attack).toBe(1775);
+    expect(previewEquipmentStats(t16Sword, { quality: "普通", shiny: true, transcendence: 1 })).toMatchObject({ attack: 2109, defense: 154, baseMultiplier: 1.35 });
+  });
+
+  it("applies picker settings only to equipped slots and preserves built-in enchants", () => {
+    const hero = makeHero(previewCatalog, "knight", 1);
+    hero.equipment[0] = { ...hero.equipment[0]!, itemId: "fixed", quality: "传说", element: "ember", spirit: "behemoth", shiny: true, transcendence: 1 };
+    hero.equipment[1] = { ...hero.equipment[1]!, itemId: "plain", quality: "普通", element: "old", spirit: "old", shiny: false, transcendence: 0 };
+    const catalog: Catalog = { ...previewCatalog, items: [
+      { id: "fixed", name: "内置附魔", itemType: "ws", typeName: "剑", tier: 1, builtInElementId: "natural", builtInSpiritId: "dragon" },
+      { id: "plain", name: "普通装备", itemType: "ah", typeName: "甲", tier: 1 },
+    ] };
+    const elementsApplied = applyEquipmentFieldToAll(hero.equipment, catalog, hero.equipment[0], "element");
+    const spiritsApplied = applyEquipmentFieldToAll(elementsApplied, catalog, hero.equipment[0], "spirit");
+    const qualityApplied = applyEquipmentFieldToAll(spiritsApplied, catalog, hero.equipment[0], "quality");
+    expect(qualityApplied[0]).toMatchObject({ element: "ember", spirit: "behemoth", quality: "传说" });
+    expect(qualityApplied[1]).toMatchObject({ element: "ember", spirit: "behemoth", quality: "传说" });
+    expect(qualityApplied[2]!.itemId).toBeUndefined();
   });
 });

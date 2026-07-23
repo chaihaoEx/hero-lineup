@@ -88,6 +88,22 @@ export interface CatalogItem {
   skill?: string;
   elementAffinity?: string;
   spiritAffinity?: string;
+  /** Attachment permanently supplied by the item (`lTag2` / `lTag3`). */
+  builtInElementId?: string;
+  builtInSpiritId?: string;
+}
+
+export type EquipmentApplyField = "quality" | "shiny" | "transcendence" | "element" | "spirit";
+
+/** Mirrors the online picker's “全部应用”: only equipped slots are changed and built-in enchants win. */
+export function applyEquipmentFieldToAll(equipment: EquipmentSlot[], catalog: Catalog, source: EquipmentSlot, field: EquipmentApplyField): EquipmentSlot[] {
+  return equipment.map((entry) => {
+    if (!entry.itemId) return entry;
+    const item = catalog.items.find((candidate) => candidate.id === entry.itemId);
+    if (field === "element" && item?.builtInElementId) return entry;
+    if (field === "spirit" && item?.builtInSpiritId) return entry;
+    return { ...entry, [field]: source[field] };
+  });
 }
 
 export interface CatalogSkill {

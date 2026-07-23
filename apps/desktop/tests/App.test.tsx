@@ -84,6 +84,7 @@ test("adds a hero and edits equipment", async () => {
   await user.click(screen.getByRole("button", { name: "配装" }));
   await user.click(screen.getByRole("button", { name: "武器装备槽" }));
   await user.click(screen.getByRole("button", { name: /学徒短剑/ }));
+  expect(screen.getAllByRole("button", { name: "全部应用" })).toHaveLength(5);
   await user.click(screen.getByRole("button", { name: "完成选择" }));
   await screen.findByText("修改已实时同步到当前体系");
   expect(screen.getByText("999")).toBeInTheDocument();
@@ -165,9 +166,9 @@ test("uses online hero skill unlock levels and discrete selectors", async () => 
   await user.click(screen.getByRole("button", { name: "配装" }));
   await user.click(screen.getByRole("button", { name: "英雄等级" }));
   await user.click(screen.getByRole("option", { name: "1" }));
-  expect(screen.getByRole("button", { name: /技能槽 1 5级解锁/ })).toBeDisabled();
-  expect(screen.getByRole("button", { name: /技能槽 2 10级解锁/ })).toBeDisabled();
-  expect(screen.getByRole("button", { name: /技能槽 3 23级解锁/ })).toBeDisabled();
+  expect(screen.getByRole("button", { name: /技能 5级解锁/ })).toBeDisabled();
+  expect(screen.getByRole("button", { name: /技能 10级解锁/ })).toBeDisabled();
+  expect(screen.getByRole("button", { name: /技能 23级解锁/ })).toBeDisabled();
   await user.click(screen.getByRole("button", { name: "收藏卡牌" }));
   const cardOptions = screen.getByRole("listbox", { name: "收藏卡牌选项" });
   expect([...cardOptions.querySelectorAll('[role="option"]')].map((option) => option.textContent)).toEqual(["0", "1", "2", "3"]);
