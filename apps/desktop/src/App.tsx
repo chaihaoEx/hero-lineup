@@ -8,6 +8,7 @@ import { applyEquipmentFieldToAll, catalogChampions, championElementValue, eleme
 import { previewEquipmentStats, type EquipmentPreviewConfig } from "./data/equipmentPreview";
 import { encodeOnlineChampionConfig, importOnlineChampionConfig } from "./data/championConfig";
 import { decodeOnlineHeroTemplate, encodeOnlineHeroConfig, heroTemplateSnapshotDate, importOnlineHeroConfig, makeHeroFromOnlineTemplate, templatesForClass } from "./data/heroCreationTemplates";
+import { sortHeroesLikeOnline, type HeroSortMode } from "./data/heroSorting";
 import { desktopBridge } from "./platform/bridge";
 import { useWorkspace } from "./state/useWorkspace";
 import type { AdventureTask, BuildTemplate, CalculatedSheet, Champion, ChampionEquipmentConfig, ChampionLoadout, ElementType, Hero, LineupSystem, PartyUnit, Quality, SimulationProgress, TaskGroup, UnitStats } from "./types/domain";
@@ -16,7 +17,7 @@ import {
 } from "./utils/localTransfer";
 
 type Tab = "champions" | "heroes" | "adventures";
-type SortMode = "class" | "element";
+type SortMode = HeroSortMode;
 const quality: Quality[] = ["普通", "优质", "高级", "史诗", "传说"];
 const qualityDisplay: Record<Quality, string> = { 普通: "普通", 优质: "高级", 高级: "无暇", 史诗: "史诗", 传说: "传奇" };
 const elementCode: Record<string, Hero["element"]> = { fire: "火", water: "水", earth: "土", air: "风", light: "光", dark: "暗" };
@@ -171,6 +172,16 @@ function AssetImage({ path, alt, className = "" }: { path?: string | undefined; 
   return <img className={className} src={source} alt={alt} onError={() => setFailed(true)} />;
 }
 
+function RosterAvatar({ unit, allElements = false }: { unit: PartyUnit; allElements?: boolean }) {
+  const badge = allElements
+    ? { label: "all", path: "Sprite/icon_global_elemental_all.png" }
+    : elementBadge[unit.element];
+  return <span className="roster-avatar-wrap">
+    <UnitAvatar unit={unit} />
+    <AssetImage className="roster-element-badge" path={badge.path} alt={badge.label} />
+  </span>;
+}
+
 function ItemTile({ item, selected, onClick, compact = false, previewConfig }: { item: CatalogItem; selected: boolean; onClick: () => void; compact?: boolean; previewConfig?: EquipmentPreviewConfig }) {
   const pickerPreviewConfig = useContext(EquipmentPreviewContext);
   const activePreviewConfig = previewConfig ?? (compact ? undefined : pickerPreviewConfig);
@@ -319,14 +330,14 @@ function SimulationMemberConfig({ unit, catalog, onCopy }: { unit: PartyUnit; ca
   </article>;
 }
 
-function HeroCard({ hero, onEdit, onCopy, onDelete }: {
-  hero: Hero; onEdit: () => void; onCopy: () => void; onDelete: () => void;
+function HeroCard({ hero, allElements, onEdit, onCopy, onDelete }: {
+  hero: Hero; allElements: boolean; onEdit: () => void; onCopy: () => void; onDelete: () => void;
 }) {
   return <article className="unit-card hero-icon-card" draggable onDragStart={(event) => {
     event.dataTransfer.setData("application/x-zys-unit", hero.id);
     event.dataTransfer.effectAllowed = "copy";
   }}>
-    <button className="unit-icon-open" aria-label="配装" title={hero.equipment.find((entry) => entry.name)?.name} onClick={onEdit}><UnitAvatar unit={hero} /><strong>{hero.name}</strong><small>{hero.className}</small></button>
+    <button className="unit-icon-open" aria-label="配装" title={hero.equipment.find((entry) => entry.name)?.name} onClick={onEdit}><RosterAvatar unit={hero} allElements={allElements} /><strong>{hero.name}</strong></button>
     <button className="unit-remove" aria-label="删除英雄" title="删除英雄" onClick={onDelete}><X size={11} /></button>
     <button className="unit-copy" aria-label="复制英雄" title="复制英雄" onClick={onCopy}><Copy size={11} /></button>
   </article>;
@@ -337,7 +348,7 @@ function ChampionCard({ unit, onEdit }: { unit: PartyUnit; onEdit: () => void })
     event.dataTransfer.setData("application/x-zys-unit", unit.id);
     event.dataTransfer.effectAllowed = "copy";
   }}>
-    <button className="unit-icon-open" aria-label={`勇士配装 ${unit.name}`} title={`${unit.name} · Lv.${unit.level} · Rank ${unit.rank}`} onClick={onEdit}><UnitAvatar unit={unit} /><strong>{unit.name}</strong><small>{unit.element}</small></button>
+    <button className="unit-icon-open" aria-label={`勇士配装 ${unit.name}`} title={`${unit.name} · Lv.${unit.level} · Rank ${unit.rank}`} onClick={onEdit}><RosterAvatar unit={unit} /><strong>{unit.name}</strong></button>
   </article>;
 }
 
@@ -1147,9 +1158,7 @@ function WorkspaceApp({ catalog, onCatalogChange }: { catalog: Catalog; onCatalo
     void desktopBridge.listTemplates().then(setTemplates).catch((error) => setToast(error instanceof Error ? error.message : "模板加载失败"));
   }, []);
 
-  const heroes = useMemo(() => [...(workspace.active?.heroes ?? [])].sort((a, b) => sortMode === "element"
-    ? elements.indexOf(a.element) - elements.indexOf(b.element)
-    : classes.findIndex((entry) => entry.id === a.classId) - classes.findIndex((entry) => entry.id === b.classId)), [classes, sortMode, workspace.active?.heroes]);
+  const heroes = useMemo(() => sortHeroesLikeOnline(workspace.active?.heroes ?? [], classes, sortMode), [classes, sortMode, workspace.active?.heroes]);
   const equipmentNeeds = useMemo(() => {
     if (!workspace.active || !equipmentNeedsKind) return [];
     const itemIds = equipmentNeedsKind === "hero"
@@ -1297,7 +1306,7 @@ function WorkspaceApp({ catalog, onCatalogChange }: { catalog: Catalog; onCatalo
         <SystemSidebar systems={workspace.systems} activeId={workspace.activeId} dirty={workspace.dirty} contentVersion={catalog.gameDataVersion} onSelect={selectSystem} onCreate={(name, description, localPublic) => workspace.createSystem({ name, description, localPublic })} onImportCode={importSystemCode} onUseCollection={(system) => { const imported = workspace.importSystem(system); setToast(`已从本地收藏导入“${imported.name}”，请保存后持久化`); }} onDuplicate={workspace.duplicateSystem} onDelete={() => { if (window.confirm("确定删除当前体系吗？")) void workspace.deleteActive(); }} onSave={() => void workspace.save().then(() => setToast("所有更改已保存在本机"))} onImport={() => { if (desktopBridge.isDesktop()) void importFromDialog(); else fileInput.current?.click(); }} onExportCode={setExportingSystem} onExportFile={(system) => void exportCurrent(system)} onBackup={() => void exportBackup()} onRestore={() => void restoreBackup()} onDataUpdate={() => void installDataPackage()} onRename={(name, description, localPublic) => workspace.updateActive((system) => ({ ...system, name, description, localPublic }))} />
       <div className="content online-content">
         <section id="champions-section" className="flow-section"><section className="section-heading"><div><h2>勇士阵容</h2><p>点击勇士图标进行配装，可拖动到下方任务卡片中组队冒险</p></div><button className="zys-button blue" onClick={() => setEquipmentNeedsKind("champion")}><BarChart3 size={16} />装备统计</button></section><div className="champion-grid">{champions.map((unit) => { const loadout = workspace.active!.championLoadouts?.[unit.id]; return <ChampionCard key={unit.id} unit={{ ...unit, ...(loadout ?? {}), stats: { ...unit.stats, ...(loadout?.stats ?? {}), element: loadout?.stats?.element ?? championElementValue(loadout?.rank ?? unit.rank) } }} onEdit={() => setEditingChampion(unit)} />; })}</div></section>
-        <section id="heroes-section" className="flow-section"><section className="section-heading"><div><h2>英雄阵容 ({workspace.active.heroes.length}/41)</h2><p>点击英雄图标进行配装，可拖动到下方任务卡片中组队冒险</p></div><div className="toolbar"><button className="zys-button blue" onClick={() => setEquipmentNeedsKind("hero")}>装备统计</button><button className="zys-button violet" onClick={() => void exportCurrentPng()}>导出阵容</button><button className="zys-button green" disabled={workspace.active.heroes.length >= 41} onClick={() => setShowClassPicker(true)}>添加英雄</button><button className={`manager-tab ${sortMode === "class" ? "active" : ""}`} onClick={() => setSortMode("class")}>职业排序</button><button className={`manager-tab ${sortMode === "element" ? "active" : ""}`} onClick={() => setSortMode("element")}>元素排序</button></div></section><div className="hero-list">{heroes.map((hero) => <HeroCard key={hero.id} hero={hero} onEdit={() => setEditingHero(hero)} onCopy={() => workspace.duplicateHero(hero)} onDelete={() => workspace.deleteHero(hero.id)} />)}{!heroes.length && <div className="empty-state"><Users size={30} /><h3>还没有英雄</h3><p>点击“添加英雄”选择职业。</p></div>}</div></section>
+        <section id="heroes-section" className="flow-section"><section className="section-heading"><div><h2>英雄阵容 ({workspace.active.heroes.length}/41)</h2><p>点击英雄图标进行配装，可拖动到下方任务卡片中组队冒险</p></div><div className="toolbar"><button className="zys-button blue" onClick={() => setEquipmentNeedsKind("hero")}>装备统计</button><button className="zys-button violet" onClick={() => void exportCurrentPng()}>导出阵容</button><button className="zys-button green" disabled={workspace.active.heroes.length >= 41} onClick={() => setShowClassPicker(true)}>添加英雄</button><button className={`manager-tab ${sortMode === "class" ? "active" : ""}`} onClick={() => setSortMode("class")}>职业排序</button><button className={`manager-tab ${sortMode === "element" ? "active" : ""}`} onClick={() => setSortMode("element")}>元素排序</button></div></section><div className="hero-list">{heroes.map((hero) => <HeroCard key={hero.id} hero={hero} allElements={classes.find((entry) => entry.id === hero.classId)?.allElements === true} onEdit={() => setEditingHero(hero)} onCopy={() => workspace.duplicateHero(hero)} onDelete={() => workspace.deleteHero(hero.id)} />)}{!heroes.length && <div className="empty-state"><Users size={30} /><h3>还没有英雄</h3><p>点击“添加英雄”选择职业。</p></div>}</div></section>
         <section id="adventures-section" className="flow-section"><section className="section-heading"><div><h2>冒险任务 ({workspace.active.taskGroups.reduce((sum, group) => sum + group.tasks.length, 0)}/48)</h2><p>点击冒险任务卡片左上角冒险图标可以切换地图，拖动冒险任务卡片切换分组</p></div><button className="primary-button" disabled={workspace.active.taskGroups.reduce((sum, group) => sum + group.tasks.length, 0) >= 48} onClick={workspace.addGroup}><Plus size={16} />添加分组</button></section>{workspace.active.taskGroups.map((group) => <AdventureGroup key={group.id} systemId={workspace.active!.id} systemGameVersion={catalog.gameDataVersion} group={group} units={workspace.units} quests={catalog.quests} catalog={catalog} assignedUnitIds={assignedUnitIds} canAddTask={workspace.active!.taskGroups.reduce((sum, entry) => sum + entry.tasks.length, 0) < 48} onAddTask={(quest) => workspace.addTask(group.id, quest)} onDrop={(taskId, unitId) => workspace.dropUnit(group.id, taskId, unitId)} onMoveTask={(sourceGroupId, taskId, targetIndex) => workspace.moveTask(sourceGroupId, taskId, group.id, targetIndex)} onRemove={(taskId, unitId) => workspace.removeUnit(group.id, taskId, unitId)} onCopyTask={(task) => workspace.duplicateTask(group.id, task)} onDeleteTask={(taskId) => workspace.deleteTask(group.id, taskId)} onResult={workspace.setTaskResult} onTaskChange={(task) => workspace.updateTask(group.id, task)} />)}</section>
       </div></div>
     </main>

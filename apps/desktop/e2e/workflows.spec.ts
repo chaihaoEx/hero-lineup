@@ -50,6 +50,8 @@ test.describe("浏览器预览中的主要离线工作流", () => {
     await page.locator(".class-picker-grid button").first().click();
     await page.getByRole("button", { name: /空白模板/ }).click();
     await expect(page.locator(".unit-card")).toHaveCount(1);
+    await expect(page.locator(".hero-icon-card .roster-element-badge")).toHaveAttribute("alt", "light");
+    await expect(page.locator(".champion-icon-card .roster-element-badge")).toHaveAttribute("alt", "light");
 
     await page.locator(".unit-card").first().getByRole("button", { name: "配装" }).click();
     await page.getByTitle("点击改名").click();

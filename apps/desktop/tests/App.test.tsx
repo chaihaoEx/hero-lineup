@@ -24,6 +24,25 @@ async function appReady() {
   await screen.findByText("默认体系", { selector: ".online-system-card > strong" });
 }
 
+test("renders online-style roster element badges and sorts same-class heroes by name", async () => {
+  const systems = JSON.parse(localStorage.getItem("zys.hero-lineup.systems.v1")!) as ReturnType<typeof makeDefaultSystem>[];
+  const first = systems[0]!.heroes[0]!;
+  first.name = "骑士B";
+  systems[0]!.heroes.push({ ...structuredClone(first), id: crypto.randomUUID(), name: "骑士A" });
+  localStorage.setItem("zys.hero-lineup.systems.v1", JSON.stringify(systems));
+  const user = userEvent.setup();
+  render(<App />);
+  await appReady();
+  await waitFor(() => expect(document.querySelectorAll(".roster-element-badge")).toHaveLength(3));
+  expect(document.querySelector(".champion-icon-card .roster-element-badge")).toHaveAttribute("alt", "light");
+  expect(document.querySelector(".hero-icon-card .roster-element-badge")).toHaveAttribute("alt", "light");
+  expect([...document.querySelectorAll(".hero-icon-card strong")].map((node) => node.textContent)).toEqual(["骑士A", "骑士B"]);
+  expect(screen.getByRole("button", { name: "职业排序" })).toHaveClass("active");
+  await user.click(screen.getByRole("button", { name: "元素排序" }));
+  expect(screen.getByRole("button", { name: "元素排序" })).toHaveClass("active");
+  expect([...document.querySelectorAll(".hero-icon-card strong")].map((node) => node.textContent)).toEqual(["骑士A", "骑士B"]);
+});
+
 test("creates and persists a local system", async () => {
   const user = userEvent.setup();
   render(<App />);
