@@ -131,8 +131,10 @@ async function invoke<T>(command: string, args?: Record<string, unknown>): Promi
 
 function previewSheet(stats: UnitStats): CalculatedSheet {
   return {
-    stats: { health: stats.health, attack: stats.attack, defense: stats.defense, evasion: stats.evasion,
-      critical: stats.crit, criticalDamage: 2, aggro: 0, elementValue: 0 },
+    stats: { health: stats.health, attack: stats.attack, defense: stats.defense,
+      baseDefense: stats.baseDefense ?? stats.defense, evasion: stats.evasion,
+      critical: stats.crit, criticalDamage: (stats.criticalDamage ?? 200) / 100,
+      aggro: stats.aggro ?? 0, elementValue: stats.element ?? 0, regeneration: stats.regeneration ?? 0 },
     issues: [], applied: { source: "browser-preview" },
   };
 }
@@ -211,12 +213,12 @@ export const desktopBridge = {
     } });
   },
 
-  async calculateChampion(champion: Champion, loadout: ChampionLoadout): Promise<CalculatedSheet> {
+  async calculateChampion(champion: Champion, loadout: ChampionLoadout, titanTower = false): Promise<CalculatedSheet> {
     if (!isTauri()) return previewSheet(loadout.stats ?? champion.stats);
     const equipment = (itemId: string, slot: "familiar" | "auraSong"): CanonicalEquipment => ({ itemId, slot, quality: "normal", shiny: false, transcended: false, transcendence: 0 });
     const familiar = loadout.familiarEquipment ? toChampionEquipment(loadout.familiarEquipment, "familiar") : (loadout.familiar ? equipment(loadout.familiar, "familiar") : undefined);
     const auraSong = loadout.auraSongEquipment ? toChampionEquipment(loadout.auraSongEquipment, "auraSong") : (loadout.aurasong ? equipment(loadout.aurasong, "auraSong") : undefined);
-    return invoke<CalculatedSheet>("calculate_champion_build", { build: {
+    return invoke<CalculatedSheet>("calculate_champion_build", { titanTower, build: {
       id: champion.id, loadoutPresent: true, name: champion.name, classId: champion.classId,
       spritePath: champion.spritePath, element: champion.element, level: loadout.level, rank: loadout.rank, seed: loadout.seed,
       cardLevel: loadout.cardLevel, titan: loadout.titan, familiarId: familiar?.itemId ?? loadout.familiar, auraSongId: auraSong?.itemId ?? loadout.aurasong,

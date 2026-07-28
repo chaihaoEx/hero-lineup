@@ -444,7 +444,7 @@ function EquipmentModal({ hero, catalog, templates, onClose, onPrevious, onNext,
     void desktopBridge.calculateHero(draft).then(async (next) => {
         if (active) setSheet(next);
         if (JSON.stringify(draft) !== initialDraftRef.current) {
-          const synced = { ...draft, stats: { attack: next.stats.attack, defense: next.stats.defense, health: next.stats.health, evasion: next.stats.evasion, crit: next.stats.critical, element: next.stats.elementValue, aggro: next.stats.aggro, criticalDamage: next.stats.criticalDamage * 100 } };
+          const synced = { ...draft, stats: { attack: next.stats.attack, defense: next.stats.defense, baseDefense: next.stats.baseDefense, health: next.stats.health, evasion: next.stats.evasion, crit: next.stats.critical, element: next.stats.elementValue, aggro: next.stats.aggro, criticalDamage: next.stats.criticalDamage * 100, regeneration: next.stats.regeneration } };
           await onSaveRef.current(synced, next);
           if (active) setTransferStatus(next.issues.some((issue) => issue.severity === "error")
             ? "修改已同步；存在未计入属性的无效配置，请查看校验提示"
@@ -632,14 +632,25 @@ function ChampionEquipmentModal({ champion, catalog, loadout, templates, onClose
   const [importText, setImportText] = useState("");
   const [picker, setPicker] = useState<"familiar" | "aurasong" | null>(null);
   const [pickerConfig, setPickerConfig] = useState<EquipmentPreviewConfig>({ quality: "普通", shiny: false, transcendence: 0 });
-  const [sheet, setSheet] = useState<CalculatedSheet | null>(null);
+  const [sheets, setSheets] = useState<{ normal: CalculatedSheet | null; titanTower: CalculatedSheet | null }>({
+    normal: null,
+    titanTower: null,
+  });
+  const [titanTowerActive, setTitanTowerActive] = useState(false);
   const [calculating, setCalculating] = useState(false);
   const [exportingImage, setExportingImage] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const exportSurfaceRef = useRef<HTMLDivElement>(null);
-  const initialDraftRef = useRef(JSON.stringify(draft));
+  const lastSyncedDraftRef = useRef(JSON.stringify(draft));
+  const calculationRequestRef = useRef(0);
   const onSaveRef = useRef(onSave);
   useEffect(() => { onSaveRef.current = onSave; }, [onSave]);
+  const sheet = titanTowerActive ? sheets.titanTower : sheets.normal;
+  const titanTowerChangesStats = Boolean(
+    sheets.normal
+    && sheets.titanTower
+    && JSON.stringify(sheets.normal.stats) !== JSON.stringify(sheets.titanTower.stats),
+  );
   const championTemplates = templates.filter((template) => template.build.kind === "champion-loadout" && (!template.classId || template.classId === `champion:${champion.id}`));
   const catalogChampion = catalog.champions.find((entry) => entry.id === champion.id);
   const teamSkillLevel = draft.rank >= 10 ? 4 : draft.rank >= 6 ? 3 : draft.rank >= 3 ? 2 : 1;
@@ -697,21 +708,30 @@ function ChampionEquipmentModal({ champion, catalog, loadout, templates, onClose
     });
   };
   useEffect(() => {
-    let active = true;
+    const requestId = ++calculationRequestRef.current;
     setCalculating(true);
-    void desktopBridge.calculateChampion(champion, draft).then(async (next) => {
-        if (active) setSheet(next);
-        if (JSON.stringify(draft) !== initialDraftRef.current) {
-          const synced = { ...draft, stats: { attack: next.stats.attack, defense: next.stats.defense, health: next.stats.health, evasion: next.stats.evasion, crit: next.stats.critical, element: next.stats.elementValue, aggro: next.stats.aggro, criticalDamage: next.stats.criticalDamage * 100 } };
-          await onSaveRef.current(synced, next);
-          if (active) setTransferStatus(next.issues.some((issue) => issue.severity === "error")
+    const timer = window.setTimeout(() => {
+      void Promise.all([
+        desktopBridge.calculateChampion(champion, draft, false),
+        desktopBridge.calculateChampion(champion, draft, true),
+      ]).then(async ([normal, titanTower]) => {
+        if (requestId !== calculationRequestRef.current) return;
+        setSheets({ normal, titanTower });
+        const serializedDraft = JSON.stringify(draft);
+        if (serializedDraft !== lastSyncedDraftRef.current) {
+          const synced = { ...draft, stats: { attack: normal.stats.attack, defense: normal.stats.defense, baseDefense: normal.stats.baseDefense, health: normal.stats.health, evasion: normal.stats.evasion, crit: normal.stats.critical, element: normal.stats.elementValue, aggro: normal.stats.aggro, criticalDamage: normal.stats.criticalDamage * 100, regeneration: normal.stats.regeneration } };
+          await onSaveRef.current(synced, normal);
+          if (requestId !== calculationRequestRef.current) return;
+          lastSyncedDraftRef.current = serializedDraft;
+          setTransferStatus(normal.issues.some((issue) => issue.severity === "error")
             ? "修改已同步；存在未计入属性的无效配置，请查看校验提示"
             : "修改已实时同步到当前体系");
         }
       })
-      .catch((error) => { if (active) setTransferStatus(error instanceof Error ? error.message : "实时计算失败"); })
-      .finally(() => { if (active) setCalculating(false); });
-    return () => { active = false; };
+        .catch((error) => { if (requestId === calculationRequestRef.current) setTransferStatus(error instanceof Error ? error.message : "实时计算失败"); })
+        .finally(() => { if (requestId === calculationRequestRef.current) setCalculating(false); });
+    }, 40);
+    return () => { window.clearTimeout(timer); };
   }, [champion, draft]);
   const copyLoadout = async () => {
     try { await writeClipboard(encodeOnlineChampionConfig(champion, draft)); setTransferStatus("线上兼容勇士配置码已复制"); }
@@ -754,7 +774,7 @@ function ChampionEquipmentModal({ champion, catalog, loadout, templates, onClose
       </div>
       <section className="champion-team-skill" aria-label="勇士团队技能"><SkillArt skill={teamSkill} innate level={teamSkillLevel} /><div><small>固定团队技能 · 等级 {teamSkillLevel}</small><strong>{teamSkill?.name ?? catalogChampion?.teamSkillIds[teamSkillLevel - 1] ?? "团队技能"}</strong>{teamSkill?.effects.slice(0, 3).map((effect) => <span key={effect}>{effect}</span>)}</div></section>
       <div className="equipment-overview champion-overview">
-        <aside className="live-sheet overview-stats"><div className="workbench-title"><button className={`tower-preview-button ${draft.titan ? "active" : ""}`} onClick={() => setDraft({ ...draft, titan: !draft.titan })}>▣ 泰坦之塔/墓</button><small>{calculating ? "计算中…" : ""}</small></div>{(["health", "attack", "critical", "defense", "evasion", "aggro", "elementValue"] as const).map((statKey) => <EditorStatRow key={statKey} statKey={statKey} sheet={sheet} fallback={draft.stats ?? champion.stats} />)}{sheet?.issues.length ? <div className="sheet-issues">{sheet.issues.slice(0, 3).map((issue) => <small key={issue.code}>{issue.message}</small>)}</div> : <div className="sheet-valid"><ShieldCheck size={15} />当前配装通过本地规则校验</div>}</aside>
+        <aside className="live-sheet overview-stats"><div className="workbench-title"><button type="button" aria-pressed={titanTowerActive} className={`tower-preview-button ${titanTowerActive ? "active" : ""}`} onClick={() => setTitanTowerActive((active) => !active)}>▣ 泰坦之塔/墓</button><small>{calculating ? "正在预计算普通与塔/墓属性…" : titanTowerActive ? (titanTowerChangesStats ? "已应用墓生灵的塔/墓加成" : "当前配装未使用墓生灵，面板数值不变") : ""}</small></div>{(["health", "attack", "critical", "defense", "evasion", "aggro", "elementValue"] as const).map((statKey) => <EditorStatRow key={statKey} statKey={statKey} sheet={sheet} fallback={draft.stats ?? champion.stats} />)}{sheet?.issues.length ? <div className="sheet-issues">{sheet.issues.slice(0, 3).map((issue) => <small key={issue.code}>{issue.message}</small>)}</div> : <div className="sheet-valid"><ShieldCheck size={15} />当前配装通过本地规则校验</div>}</aside>
         <section className="equipment-slot-stage"><div className="editor-attribution">© 2026 cq-zys.cn | CC BY-NC-ND 4.0</div><div className="champion-slot-grid">{([
           ["familiar", "使魔", draft.familiar, familiarItems], ["aurasong", "光环", draft.aurasong, auraItems],
         ] as const).map(([kind, label, value, items]) => { const config = kind === "familiar" ? draft.familiarEquipment : draft.auraSongEquipment; const itemId = config?.itemId ?? value; const item = items.find((entry) => entry.id === itemId || entry.name === itemId); return <button key={kind} aria-label={`${label}装备槽`} className={`overview-slot champion-slot quality-${config?.quality ?? "普通"}`} onClick={() => openChampionPicker(kind)}><span className="overview-slot-art">{item ? <AssetImage path={item.spritePath} alt={item.name} /> : <span>{label.slice(0, 1)}</span>}</span><strong>{item?.name ?? (itemId || label)}</strong><small>{item ? `T${item.tier} · ${qualityDisplay[config?.quality ?? "普通"]}` : "点击选择装备"}</small></button>; })}</div></section>

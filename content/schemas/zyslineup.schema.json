@@ -95,7 +95,12 @@
     "stats": {
       "type": "object", "additionalProperties": false,
       "required": ["attack", "defense", "health", "evasion", "crit"],
-      "properties": { "attack": { "type": "number" }, "defense": { "type": "number" }, "health": { "type": "number" }, "evasion": { "type": "number" }, "crit": { "type": "number" } }
+      "properties": {
+        "attack": { "type": "number" }, "defense": { "type": "number" }, "baseDefense": { "type": ["number", "null"] },
+        "health": { "type": "number" }, "evasion": { "type": "number" }, "crit": { "type": "number" },
+        "element": { "type": ["number", "null"] }, "aggro": { "type": ["number", "null"] },
+        "criticalDamage": { "type": ["number", "null"] }, "regeneration": { "type": "number", "default": 0 }
+      }
     },
     "simulationConfig": {
       "type": "object", "additionalProperties": false,

@@ -16,6 +16,8 @@ export interface EquipmentSlot {
 export interface UnitStats {
   attack: number;
   defense: number;
+  /** Pre-percentage defense used by class-targeted Titan modifiers. */
+  baseDefense?: number | undefined;
   health: number;
   evasion: number;
   crit: number;
@@ -23,6 +25,8 @@ export interface UnitStats {
   element?: number | undefined;
   aggro?: number | undefined;
   criticalDamage?: number | undefined;
+  /** Signed flat healing used by the adventure healing phase. */
+  regeneration?: number | undefined;
 }
 
 export interface Hero {
@@ -91,8 +95,8 @@ export interface CalculationIssue {
 
 export interface CalculatedSheet {
   stats: {
-    health: number; attack: number; defense: number; evasion: number; critical: number;
-    criticalDamage: number; aggro: number; elementValue: number;
+    health: number; attack: number; defense: number; baseDefense: number; evasion: number; critical: number;
+    criticalDamage: number; aggro: number; elementValue: number; regeneration: number;
   };
   issues: CalculationIssue[];
   applied: Record<string, unknown>;

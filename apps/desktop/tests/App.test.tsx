@@ -245,7 +245,7 @@ test("clones the current hero and navigates circularly like the online editor", 
 test("persists equipment and calculated attributes even when validation reports an error", async () => {
   const user = userEvent.setup();
   vi.spyOn(desktopBridge, "calculateHero").mockImplementation((hero) => Promise.resolve({
-    stats: { health: 333, attack: hero.equipment.some((entry) => entry.itemId) ? 777 : 100, defense: 222, evasion: 4, critical: 5, criticalDamage: 2, aggro: 0, elementValue: 0 },
+    stats: { health: 333, attack: hero.equipment.some((entry) => entry.itemId) ? 777 : 100, defense: 222, baseDefense: 222, evasion: 4, critical: 5, criticalDamage: 2, aggro: 0, elementValue: 0, regeneration: 0 },
     issues: hero.equipment.some((entry) => entry.itemId)
       ? [{ severity: "error", code: "test_invalid", message: "测试校验提示", slot: "武器" }]
       : [],
@@ -322,6 +322,80 @@ test("shows champion soul, full rank range, team skill and full equipment contro
   await user.click(screen.getAllByRole("button", { name: "关闭" }).at(-1)!);
   await user.click(screen.getByRole("button", { name: "光环装备槽" }));
   expect(screen.getByRole("heading", { name: "装备选择 - 光环" })).toBeInTheDocument();
+});
+
+test("synchronizes champion soul when toggled on and back off", async () => {
+  const calculateChampion = vi.spyOn(desktopBridge, "calculateChampion");
+  const user = userEvent.setup();
+  render(<App />);
+  await appReady();
+  await user.click(screen.getByRole("button", { name: "勇士配装 阿尔贡" }));
+  const soul = screen.getByRole("checkbox", { name: "勇士之魂" });
+  await waitFor(() => expect(calculateChampion).toHaveBeenCalledTimes(2));
+
+  await user.click(soul);
+  await waitFor(() => expect(calculateChampion).toHaveBeenCalledTimes(4));
+  expect(soul).toBeChecked();
+
+  await user.click(soul);
+  await waitFor(() => expect(calculateChampion).toHaveBeenCalledTimes(6));
+  expect(soul).not.toBeChecked();
+
+  await user.click(within(screen.getByRole("dialog", { name: /勇士配装模拟/ })).getByRole("button", { name: "关闭" }));
+  await user.click(screen.getByRole("button", { name: "勇士配装 阿尔贡" }));
+  expect(screen.getByRole("checkbox", { name: "勇士之魂" })).not.toBeChecked();
+});
+
+test("keeps champion soul independent from the titan tower and tomb preview", async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  await appReady();
+  await user.click(screen.getByRole("button", { name: "勇士配装 阿尔贡" }));
+  const soul = screen.getByRole("checkbox", { name: "勇士之魂" });
+  const tower = screen.getByRole("button", { name: "▣ 泰坦之塔/墓" });
+  expect(soul).not.toBeChecked();
+  expect(tower).toHaveAttribute("aria-pressed", "false");
+
+  await user.click(soul);
+  expect(soul).toBeChecked();
+  expect(tower).toHaveAttribute("aria-pressed", "false");
+
+  await user.click(tower);
+  expect(tower).toHaveAttribute("aria-pressed", "true");
+  expect(soul).toBeChecked();
+  expect(await screen.findByText("当前配装未使用墓生灵，面板数值不变")).toBeInTheDocument();
+});
+
+test("switches the champion panel immediately between cached normal and titan tower stats", async () => {
+  vi.spyOn(desktopBridge, "calculateChampion").mockImplementation((_champion, _loadout, titanTower) => Promise.resolve({
+    stats: {
+      health: titanTower ? 222 : 111,
+      attack: titanTower ? 444 : 333,
+      defense: 10,
+      baseDefense: 10,
+      evasion: 0,
+      critical: 5,
+      criticalDamage: 2,
+      aggro: 0,
+      elementValue: 0,
+      regeneration: 0,
+    },
+    issues: [],
+    applied: { source: titanTower ? "titan-tower" : "normal" },
+  }));
+  const user = userEvent.setup();
+  render(<App />);
+  await appReady();
+  await user.click(screen.getByRole("button", { name: "勇士配装 阿尔贡" }));
+  const dialog = screen.getByRole("dialog", { name: /勇士配装模拟/ });
+  const panel = dialog.querySelector<HTMLElement>(".overview-stats")!;
+  await waitFor(() => expect(within(panel).getByText("111")).toBeInTheDocument());
+
+  await user.click(within(panel).getByRole("button", { name: "▣ 泰坦之塔/墓" }));
+
+  expect(within(panel).getByText("222")).toBeInTheDocument();
+  expect(within(panel).getByText("444")).toBeInTheDocument();
+  expect(within(panel).getByText("已应用墓生灵的塔/墓加成")).toBeInTheDocument();
 });
 
 test("supports drag payload into an adventure task", async () => {

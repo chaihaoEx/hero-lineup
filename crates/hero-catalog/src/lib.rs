@@ -64,6 +64,9 @@ pub struct SheetStats {
     pub health: u64,
     pub attack: u64,
     pub defense: u64,
+    /// Defense before skill/aura percentages, including the card multiplier.
+    /// The online simulator uses this separately for class-targeted modifiers.
+    pub base_defense: f64,
     /// Percent, matching the archived web UI (for example `5.0`).
     pub evasion: f64,
     /// Percent, matching the archived web UI (for example `5.0`).
@@ -71,6 +74,7 @@ pub struct SheetStats {
     pub critical_damage: f64,
     pub aggro: f64,
     pub element_value: u32,
+    pub regeneration: f64,
 }
 
 impl SheetStats {
@@ -78,9 +82,14 @@ impl SheetStats {
         UnitStats {
             attack: self.attack as f64,
             defense: self.defense as f64,
+            base_defense: Some(self.base_defense),
             health: self.health as f64,
             evasion: self.evasion,
             crit: self.critical,
+            element: Some(f64::from(self.element_value)),
+            aggro: Some(self.aggro),
+            critical_damage: Some(self.critical_damage * 100.0),
+            regeneration: self.regeneration,
         }
     }
 }
@@ -122,6 +131,7 @@ pub struct AppliedRules {
 #[serde(rename_all = "camelCase", default)]
 pub struct ChampionCalculationOptions {
     pub titan: bool,
+    pub titan_tower: bool,
 }
 
 #[derive(Clone, Copy)]
@@ -133,6 +143,7 @@ struct Core {
     crit: f64,
     crit_mult: f64,
     aggro: f64,
+    regen: f64,
 }
 
 #[derive(Default, Clone, Copy)]
@@ -144,6 +155,7 @@ struct Bonus {
     crit: f64,
     crit_mult: f64,
     aggro: f64,
+    regen: f64,
 }
 
 struct Resolved<'a> {
@@ -220,6 +232,7 @@ impl Catalog {
             self.apply_spirit_flat(&mut equipment, entry.item, entry.build);
         }
         base.add(equipment);
+        let base_defense = base.def * card_multiplier(build.card_level);
 
         let mut core_percent = Bonus::default();
         if let Some(skill) = innate {
@@ -232,7 +245,7 @@ impl Catalog {
         apply_card(&mut base, build.card_level);
 
         CalculatedSheet {
-            stats: finish(base, element_value),
+            stats: finish(base, element_value, base_defense),
             issues,
             applied: AppliedRules {
                 level_curve: "archived-bundle-segmented-1-50".to_owned(),
@@ -252,7 +265,10 @@ impl Catalog {
     pub fn calculate_champion(&self, build: &ChampionBuild) -> CalculatedSheet {
         self.calculate_champion_with_options(
             build,
-            ChampionCalculationOptions { titan: build.titan },
+            ChampionCalculationOptions {
+                titan: build.titan,
+                titan_tower: false,
+            },
         )
     }
 
@@ -286,16 +302,17 @@ impl Catalog {
         let mut equipment = Bonus::default();
         for entry in &resolved {
             let mut item = self.item_stats(entry.item, entry.build);
-            self.apply_tomb_spirit(&mut item, entry.item, entry.build, false);
+            self.apply_tomb_spirit(&mut item, entry.item, entry.build, options.titan_tower);
             equipment.add(item);
             self.apply_spirit_flat(&mut equipment, entry.item, entry.build);
         }
         base.add(equipment);
+        let base_defense = base.def * card_multiplier(build.card_level);
         apply_card(&mut base, build.card_level);
         let element_value = champion_element_value(build.rank);
 
         CalculatedSheet {
-            stats: finish(base, element_value),
+            stats: finish(base, element_value, base_defense),
             issues,
             applied: AppliedRules {
                 level_curve: "archived-bundle-champion-level-rank-1-50".to_owned(),
@@ -716,6 +733,7 @@ impl Catalog {
         bonus.crit += number(skill, "critical") * scale;
         bonus.crit_mult += number(skill, "critMult") * scale;
         bonus.aggro += number(skill, "aggro") * scale;
+        bonus.regen += number(skill, "regen") * scale;
     }
 
     fn apply_tomb_spirit(
@@ -740,7 +758,12 @@ impl Catalog {
         let Some(skill) = self.skills.get(skill_id) else {
             return;
         };
-        let multiplier = 1.0 + number(skill, "item") * if titan_tower_or_tomb { 2.0 } else { 1.0 };
+        let multiplier = 1.0
+            + if titan_tower_or_tomb {
+                1.0
+            } else {
+                number(skill, "item")
+            };
         item_stats.atk = (item_stats.atk * multiplier).round();
         item_stats.def = (item_stats.def * multiplier).round();
         item_stats.hp = (item_stats.hp * multiplier).round();
@@ -879,6 +902,7 @@ fn level_core(record: &Value, level: u16) -> Core {
         crit: number(record, "critical"),
         crit_mult: number(record, "critMult"),
         aggro: number(record, "aggro"),
+        regen: 0.0,
     }
 }
 
@@ -1082,6 +1106,7 @@ fn add_general_skill(skill: &Value, bonus: &mut Bonus) {
     bonus.crit += number(skill, "critical");
     bonus.crit_mult += number(skill, "critMult");
     bonus.aggro += number(skill, "aggro");
+    bonus.regen += number(skill, "regen");
 }
 
 fn apply_hero_seeds(core: &mut Core, uniform_seed: u32, seeds: &BTreeMap<Stat, i32>) {
@@ -1113,18 +1138,23 @@ fn apply_percent(core: &mut Core, percent: Bonus) {
     core.crit += percent.crit;
     core.crit_mult += percent.crit_mult;
     core.aggro += percent.aggro;
+    core.regen += percent.regen;
 }
 
-fn apply_card(core: &mut Core, card_level: u8) {
-    let multiplier = match card_level.min(3) {
+fn card_multiplier(card_level: u8) -> f64 {
+    1.0 + match card_level.min(3) {
         1 => 0.05,
         2 => 0.10,
         3 => 0.25,
         _ => 0.0,
-    };
-    core.atk *= 1.0 + multiplier;
-    core.def *= 1.0 + multiplier;
-    core.hp *= 1.0 + multiplier;
+    }
+}
+
+fn apply_card(core: &mut Core, card_level: u8) {
+    let multiplier = card_multiplier(card_level);
+    core.atk *= multiplier;
+    core.def *= multiplier;
+    core.hp *= multiplier;
 }
 
 impl Core {
@@ -1136,6 +1166,7 @@ impl Core {
         self.crit += bonus.crit;
         self.crit_mult += bonus.crit_mult;
         self.aggro += bonus.aggro;
+        self.regen += bonus.regen;
     }
 }
 
@@ -1148,19 +1179,22 @@ impl Bonus {
         self.crit += other.crit;
         self.crit_mult += other.crit_mult;
         self.aggro += other.aggro;
+        self.regen += other.regen;
     }
 }
 
-fn finish(core: Core, element_value: u32) -> SheetStats {
+fn finish(core: Core, element_value: u32, base_defense: f64) -> SheetStats {
     SheetStats {
         health: core.hp.max(1.0).round() as u64,
         attack: core.atk.max(0.0).floor() as u64,
         defense: core.def.max(0.0).floor() as u64,
+        base_defense: base_defense.max(0.0),
         evasion: core.eva * 100.0,
         critical: core.crit * 100.0,
         critical_damage: core.crit_mult,
         aggro: core.aggro,
         element_value,
+        regeneration: core.regen,
     }
 }
 
@@ -1211,11 +1245,13 @@ fn empty_sheet(id: String, issue: CalculationIssue) -> CalculatedSheet {
             health: 0,
             attack: 0,
             defense: 0,
+            base_defense: 0.0,
             evasion: 0.0,
             critical: 0.0,
             critical_damage: 0.0,
             aggro: 0.0,
             element_value: 0,
+            regeneration: 0.0,
         },
         issues: vec![issue],
         applied: AppliedRules {
@@ -1566,12 +1602,69 @@ mod tests {
             aura_song: None,
             card_levels: BTreeMap::new(),
         };
-        let result = catalog
-            .calculate_champion_with_options(&build, ChampionCalculationOptions { titan: true });
+        let result = catalog.calculate_champion_with_options(
+            &build,
+            ChampionCalculationOptions {
+                titan: true,
+                titan_tower: false,
+            },
+        );
         assert_eq!(result.stats.health, 934);
         assert_eq!(result.stats.attack, 3942);
         assert_eq!(result.stats.defense, 5502);
         assert!(result.applied.titan_applied);
+    }
+
+    #[test]
+    fn champion_soul_and_titan_tower_preview_are_independent() {
+        let catalog = catalog();
+        let mut familiar = equipment("troblin", EquipmentSlot::Familiar);
+        familiar.spirit = Some("tomb".to_owned());
+        let build = ChampionBuild {
+            id: "argon".to_owned(),
+            loadout_present: true,
+            name: String::new(),
+            class_id: None,
+            sprite_path: None,
+            element: "light".to_owned(),
+            level: 40,
+            rank: 11,
+            seed: 0,
+            card_level: 0,
+            titan: false,
+            familiar_id: "troblin".to_owned(),
+            aura_song_id: String::new(),
+            stats: UnitStats::default(),
+            familiar: Some(familiar),
+            aura_song: None,
+            card_levels: BTreeMap::new(),
+        };
+        let normal = catalog.calculate_champion_with_options(
+            &build,
+            ChampionCalculationOptions {
+                titan: false,
+                titan_tower: false,
+            },
+        );
+        let soul = catalog.calculate_champion_with_options(
+            &build,
+            ChampionCalculationOptions {
+                titan: true,
+                titan_tower: false,
+            },
+        );
+        let tower = catalog.calculate_champion_with_options(
+            &build,
+            ChampionCalculationOptions {
+                titan: false,
+                titan_tower: true,
+            },
+        );
+
+        assert_ne!(soul.stats, normal.stats);
+        assert_ne!(tower.stats, normal.stats);
+        assert!(soul.applied.titan_applied);
+        assert!(!tower.applied.titan_applied);
     }
 
     #[test]

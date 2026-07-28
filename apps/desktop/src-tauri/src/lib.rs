@@ -20,7 +20,7 @@ use std::{
     collections::HashMap,
     fs,
     path::{Path, PathBuf},
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex, RwLock},
 };
 use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_dialog::DialogExt;
@@ -30,7 +30,22 @@ struct DesktopState {
     simulation_tokens: Arc<Mutex<HashMap<String, CancellationToken>>>,
     content_paths: ContentPaths,
     content_install_lock: Mutex<()>,
-    active_content_root: Mutex<PathBuf>,
+    active_content: RwLock<ActiveContent>,
+}
+
+struct ActiveContent {
+    root: PathBuf,
+    status: ContentStatus,
+    catalog: Catalog,
+    calculation_catalog: hero_catalog::Catalog,
+    simulation: SimulationCatalog,
+}
+
+struct SimulationCatalog {
+    quests: Arc<Value>,
+    classes: Arc<Value>,
+    champions: Arc<Value>,
+    quest_modifiers: Arc<Value>,
 }
 
 const SIMULATOR_VERSION: &str = "hero-simulator-0.1.0";
@@ -1488,34 +1503,49 @@ fn load_catalog_from_content_dir(content_dir: &Path) -> Result<Catalog, String> 
     })
 }
 
-fn active_catalog(
-    paths: &ContentPaths,
-) -> Result<(Catalog, PathBuf, content_manager::ContentSource), String> {
-    paths.load_active(|root| {
+fn load_active_content(paths: &ContentPaths) -> Result<ActiveContent, String> {
+    let ((catalog, calculation_catalog, simulation), root, source) = paths.load_active(|root| {
         content_manager::ensure_directory_compatible(root, env!("CARGO_PKG_VERSION"))?;
-        load_catalog_from_content_dir(root)
+        let catalog = load_catalog_from_content_dir(root)?;
+        let calculation_catalog =
+            hero_catalog::Catalog::load(root).map_err(|error| error.to_string())?;
+        let text = root.join("TextAsset");
+        let simulation = SimulationCatalog {
+            quests: Arc::new(read_json(&text.join("quests.json"))?),
+            classes: Arc::new(read_json(&text.join("classes.json"))?),
+            champions: Arc::new(read_json(&text.join("heroes.json"))?),
+            quest_modifiers: Arc::new(read_json(&text.join("qmodifiers.json"))?),
+        };
+        Ok((catalog, calculation_catalog, simulation))
+    })?;
+    let status = content_manager::status(&root, source)?;
+    Ok(ActiveContent {
+        root,
+        status,
+        catalog,
+        calculation_catalog,
+        simulation,
     })
 }
 
 #[tauri::command]
 fn load_catalog(state: State<'_, DesktopState>) -> Result<Catalog, String> {
-    let (catalog, root, _) = active_catalog(&state.content_paths)?;
-    *state
-        .active_content_root
-        .lock()
-        .map_err(|_| "活动内容路径锁已损坏")? = root;
-    Ok(catalog)
+    Ok(state
+        .active_content
+        .read()
+        .map_err(|_| "活动内容缓存锁已损坏")?
+        .catalog
+        .clone())
 }
 
 #[tauri::command]
 fn get_content_status(state: State<'_, DesktopState>) -> Result<ContentStatus, String> {
-    let (_, root, source) = active_catalog(&state.content_paths)?;
-    let status = content_manager::status(&root, source)?;
-    *state
-        .active_content_root
-        .lock()
-        .map_err(|_| "活动内容路径锁已损坏")? = root;
-    Ok(status)
+    Ok(state
+        .active_content
+        .read()
+        .map_err(|_| "活动内容缓存锁已损坏")?
+        .status
+        .clone())
 }
 
 #[tauri::command]
@@ -1524,9 +1554,10 @@ fn resolve_content_asset(
     state: State<'_, DesktopState>,
 ) -> Result<PathBuf, String> {
     let root = state
-        .active_content_root
-        .lock()
-        .map_err(|_| "活动内容路径锁已损坏")?
+        .active_content
+        .read()
+        .map_err(|_| "活动内容缓存锁已损坏")?
+        .root
         .clone();
     content_manager::resolve_content_file(&root, &relative_path)
 }
@@ -1554,22 +1585,24 @@ fn pick_install_data_package(
         &state.content_paths.installed,
         env!("CARGO_PKG_VERSION"),
         SIMULATOR_VERSION,
-        |root| load_catalog_from_content_dir(root).map(|_| ()),
+        |root| {
+            load_catalog_from_content_dir(root)?;
+            hero_catalog::Catalog::load(root).map_err(|error| error.to_string())?;
+            Ok(())
+        },
     )?;
+    let next_content = load_active_content(&state.content_paths)?;
     let stale_simulations = state
         .storage
         .lock()
         .map_err(|_| "数据库锁已损坏")?
         .mark_simulations_stale(&manifest.game_data_version, SIMULATOR_VERSION)
         .map_err(|error| error.to_string())?;
-    let content = content_manager::status(
-        &state.content_paths.installed,
-        content_manager::ContentSource::Installed,
-    )?;
+    let content = next_content.status.clone();
     *state
-        .active_content_root
-        .lock()
-        .map_err(|_| "活动内容路径锁已损坏")? = state.content_paths.installed.clone();
+        .active_content
+        .write()
+        .map_err(|_| "活动内容缓存锁已损坏")? = next_content;
     Ok(Some(DataInstallResult {
         content,
         verification,
@@ -1763,31 +1796,37 @@ fn delete_template(id: String, state: State<'_, DesktopState>) -> Result<(), Str
     Ok(())
 }
 
-fn active_calculation_catalog(
-    state: &State<'_, DesktopState>,
-) -> Result<hero_catalog::Catalog, String> {
-    let root = state
-        .active_content_root
-        .lock()
-        .map_err(|_| "内容目录锁已损坏")?
-        .clone();
-    hero_catalog::Catalog::load(root).map_err(|error| error.to_string())
-}
-
 #[tauri::command]
 fn calculate_hero_build(
     build: HeroBuild,
     state: State<'_, DesktopState>,
 ) -> Result<hero_catalog::CalculatedSheet, String> {
-    Ok(active_calculation_catalog(&state)?.calculate_hero(&build))
+    Ok(state
+        .active_content
+        .read()
+        .map_err(|_| "活动内容缓存锁已损坏")?
+        .calculation_catalog
+        .calculate_hero(&build))
 }
 
 #[tauri::command]
 fn calculate_champion_build(
     build: ChampionBuild,
+    titan_tower: bool,
     state: State<'_, DesktopState>,
 ) -> Result<hero_catalog::CalculatedSheet, String> {
-    Ok(active_calculation_catalog(&state)?.calculate_champion(&build))
+    Ok(state
+        .active_content
+        .read()
+        .map_err(|_| "活动内容缓存锁已损坏")?
+        .calculation_catalog
+        .calculate_champion_with_options(
+            &build,
+            hero_catalog::ChampionCalculationOptions {
+                titan: build.titan,
+                titan_tower,
+            },
+        ))
 }
 
 #[tauri::command]
@@ -1797,9 +1836,15 @@ fn export_system(system: LineupSystem, state: State<'_, DesktopState>) -> Result
     } else {
         &system.game_data_version
     };
-    let (catalog, _, _) = active_catalog(&state.content_paths)?;
+    let asset_version = state
+        .active_content
+        .read()
+        .map_err(|_| "活动内容缓存锁已损坏")?
+        .catalog
+        .asset_version
+        .clone();
     String::from_utf8(
-        encode_lineup(&system, &versions(game, &catalog.asset_version))
+        encode_lineup(&system, &versions(game, &asset_version))
             .map_err(|error| error.to_string())?,
     )
     .map_err(|error| error.to_string())
@@ -1852,13 +1897,16 @@ fn export_backup_file(
         .map_err(|_| "数据库锁已损坏")?
         .export_backup()
         .map_err(|error| error.to_string())?;
-    let (catalog, _, _) = active_catalog(&state.content_paths)?;
+    let asset_version = state
+        .active_content
+        .read()
+        .map_err(|_| "活动内容缓存锁已损坏")?
+        .catalog
+        .asset_version
+        .clone();
     String::from_utf8(
-        encode_backup(
-            &backup,
-            &versions(&game_data_version, &catalog.asset_version),
-        )
-        .map_err(|error| error.to_string())?,
+        encode_backup(&backup, &versions(&game_data_version, &asset_version))
+            .map_err(|error| error.to_string())?,
     )
     .map_err(|error| error.to_string())
 }
@@ -1964,15 +2012,18 @@ async fn start_simulation(
         .get("questId")
         .and_then(Value::as_str)
         .unwrap_or_default();
-    let content_root = state
-        .active_content_root
-        .lock()
-        .map_err(|_| "活动内容路径锁已损坏")?
-        .clone();
-    let quests = read_json(&content_root.join("TextAsset/quests.json"))?;
-    let classes = read_json(&content_root.join("TextAsset/classes.json"))?;
-    let champions = read_json(&content_root.join("TextAsset/heroes.json"))?;
-    let quest_modifiers_document = read_json(&content_root.join("TextAsset/qmodifiers.json"))?;
+    let (quests, classes, champions, quest_modifiers_document) = {
+        let active = state
+            .active_content
+            .read()
+            .map_err(|_| "活动内容缓存锁已损坏")?;
+        (
+            Arc::clone(&active.simulation.quests),
+            Arc::clone(&active.simulation.classes),
+            Arc::clone(&active.simulation.champions),
+            Arc::clone(&active.simulation.quest_modifiers),
+        )
+    };
     let quest_modifiers = quest_modifiers_document
         .get("qmodifiers")
         .and_then(Value::as_object)
@@ -2441,16 +2492,19 @@ pub fn run() {
                 bundled: app.path().resource_dir()?.join("content"),
                 installed: data_dir.join("content"),
             };
-            let (catalog, active_content_root, _) = active_catalog(&content_paths)
+            let active_content = load_active_content(&content_paths)
                 .map_err(|error| std::io::Error::other(format!("无法载入离线内容：{error}")))?;
             let mut storage = Storage::open(&data_dir.join("user.db"))?;
-            storage.mark_simulations_stale(&catalog.game_data_version, SIMULATOR_VERSION)?;
+            storage.mark_simulations_stale(
+                &active_content.catalog.game_data_version,
+                SIMULATOR_VERSION,
+            )?;
             app.manage(DesktopState {
                 storage: Mutex::new(storage),
                 simulation_tokens: Arc::new(Mutex::new(HashMap::new())),
                 content_paths,
                 content_install_lock: Mutex::new(()),
-                active_content_root: Mutex::new(active_content_root),
+                active_content: RwLock::new(active_content),
             });
             Ok(())
         })
@@ -3029,6 +3083,59 @@ mod tests {
             .unwrap();
         assert_eq!(tier_16_sword.shiny_multiplier, 1.25);
         assert_eq!(tier_16_sword.transcend_attack, 142.0);
+    }
+
+    #[test]
+    fn production_content_builds_a_complete_in_memory_runtime() {
+        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../content");
+        let paths = ContentPaths {
+            bundled: root.clone(),
+            installed: root.join("not-installed"),
+        };
+        let active = load_active_content(&paths).expect("production runtime content should load");
+
+        assert_eq!(active.root, root);
+        assert_eq!(
+            active.status.source,
+            content_manager::ContentSource::Bundled
+        );
+        assert_eq!(active.catalog.items.len(), 1_660);
+        assert!(active.simulation.quests.get("forest01").is_some());
+        assert!(active.simulation.classes.get("soldier").is_some());
+        assert!(active.simulation.champions.get("argon").is_some());
+        assert!(active
+            .simulation
+            .quest_modifiers
+            .get("ignoreelement")
+            .is_some());
+
+        let build = ChampionBuild {
+            id: "argon".to_owned(),
+            loadout_present: false,
+            name: "阿尔贡".to_owned(),
+            class_id: None,
+            sprite_path: None,
+            element: "light".to_owned(),
+            level: 40,
+            rank: 11,
+            seed: 0,
+            card_level: 0,
+            titan: true,
+            familiar_id: String::new(),
+            aura_song_id: String::new(),
+            stats: Default::default(),
+            familiar: None,
+            aura_song: None,
+            card_levels: Default::default(),
+        };
+        let started = std::time::Instant::now();
+        for _ in 0..100 {
+            active.calculation_catalog.calculate_champion(&build);
+        }
+        assert!(
+            started.elapsed() < std::time::Duration::from_secs(1),
+            "100 cached champion calculations should stay below one second"
+        );
     }
 
     #[test]

@@ -184,9 +184,17 @@ pub struct Equipment {
 pub struct UnitStats {
     pub attack: f64,
     pub defense: f64,
+    /// Online combat keeps the pre-percentage defense component so
+    /// class-targeted Titan modifiers can add/subtract a fraction of it.
+    pub base_defense: Option<f64>,
     pub health: f64,
     pub evasion: f64,
     pub crit: f64,
+    pub element: Option<f64>,
+    pub aggro: Option<f64>,
+    pub critical_damage: Option<f64>,
+    /// Signed flat healing used by the combat healing phase.
+    pub regeneration: f64,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
