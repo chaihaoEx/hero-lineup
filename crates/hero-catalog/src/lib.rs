@@ -477,10 +477,15 @@ impl Catalog {
                 ));
                 continue;
             }
-            if number(item, "level") > f64::from(build.level) {
+            // Champion equipment follows the same editor tier curve shown by the
+            // online tool. `items.json.level` is the shop/crafting unlock level,
+            // so using it as an equip requirement incorrectly rejects valid
+            // loadouts such as a level-40 Argon with the T15 T-Rex familiar.
+            let max_tier = self.equipment_tier(build.level);
+            if number(item, "tier") > max_tier {
                 issues.push(issue_error(
-                    "level_too_low",
-                    "勇士等级低于装备等级",
+                    "tier_locked",
+                    "装备阶数高于当前勇士等级可用阶数",
                     Some(&equipment.item_id),
                     Some(equipment.slot),
                 ));
@@ -1080,8 +1085,7 @@ fn add_core_attachment(
     let core_id = text(core, "uid").unwrap_or("");
     let built_in_tag = if elemental { "lTag2" } else { "lTag3" };
     let affinity_id = if elemental {
-        parse_element(text(core, "elements"))
-            .map_or(core_id, |(element, _)| element)
+        parse_element(text(core, "elements")).map_or(core_id, |(element, _)| element)
     } else {
         core_id
     };
