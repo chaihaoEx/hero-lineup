@@ -4,7 +4,7 @@
     "targets": ["nsis", "msi"],
     "icon": ["icons/icon.ico"],
     "windows": {
-      "webviewInstallMode": { "type": "offlineInstaller" },
+      "webviewInstallMode": { "type": "downloadBootstrapper" },
       "nsis": { "installMode": "currentUser" }
     }
   }
