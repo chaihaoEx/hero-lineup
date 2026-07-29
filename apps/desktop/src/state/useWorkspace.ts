@@ -14,7 +14,7 @@ const invalidateMemberResults = (system: LineupSystem, memberId: string) => {
 const barrierForQuest = (quest: CatalogQuest | undefined): AdventureTask["barrier"] => {
   if (!quest || quest.barrierPower <= 0) return {};
   const elements = quest.barrierElements?.length ? quest.barrierElements : quest.barrierElement ? [quest.barrierElement] : [];
-  return Object.fromEntries(elements.map((element) => [element, quest.barrierPower])) as AdventureTask["barrier"];
+  return Object.fromEntries(elements.map((element) => [element, quest.barrierPower]));
 };
 
 export function useWorkspace(catalog: Catalog) {

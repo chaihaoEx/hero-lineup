@@ -1,5 +1,7 @@
-import type { AdventureTask, BuildTemplate, CalculatedSheet, CanonicalEquipment, CanonicalSystem, Champion, ChampionLoadout, Hero, LineupSystem, PartyUnit, Quality, SimulationProgress, SimulationResult, UnitStats } from "../types/domain";
+import type { AdventureTask, BuildTemplate, CalculatedSheet, CanonicalEquipment, CanonicalSystem, Champion, ChampionLoadout, Hero, LineupSystem, PartyUnit, SimulationProgress, SimulationResult, UnitStats } from "../types/domain";
 import { previewCatalog, type Catalog } from "../data/catalog";
+import { loadBrowserCatalog } from "../data/browserCatalog";
+import { calculateChampionPreview } from "../data/championPreview";
 
 const STORAGE_KEY = "zys.hero-lineup.systems.v1";
 const TEMPLATE_STORAGE_KEY = "zys.hero-lineup.templates.v1";
@@ -50,7 +52,7 @@ const toChampionEquipment = (equipment: NonNullable<ChampionLoadout["familiarEqu
 
 const fromChampionEquipment = (equipment: CanonicalEquipment | undefined): ChampionLoadout["familiarEquipment"] => equipment ? ({
   ...(equipment.itemId ? { itemId: equipment.itemId } : {}), ...(equipment.name === undefined ? {} : { name: equipment.name }),
-  quality: reverseQualities[equipment.quality] as Quality,
+  quality: reverseQualities[equipment.quality],
   ...(equipment.element === undefined ? {} : { element: equipment.element }), ...(equipment.spirit === undefined ? {} : { spirit: equipment.spirit }),
   shiny: equipment.shiny, transcendence: equipment.transcendence || (equipment.transcended ? 1 : 0),
 }) : undefined;
@@ -107,7 +109,7 @@ export function fromCanonicalSystem(system: CanonicalSystem): LineupSystem {
       level: hero.level, rank: hero.rank, seed: hero.seed, titan: hero.titan, cardLevel: hero.cardLevel,
       skills: [...hero.skillIds], stats: hero.stats,
       equipment: hero.equipment.map((equipment) => ({ ...(equipment.itemId ? { itemId: equipment.itemId } : {}), ...(equipment.name === undefined ? {} : { name: equipment.name }),
-        slot: reverseSlots[equipment.slot], quality: reverseQualities[equipment.quality] as Quality,
+        slot: reverseSlots[equipment.slot], quality: reverseQualities[equipment.quality],
         ...(equipment.element === undefined ? {} : { element: equipment.element as LineupSystem["heroes"][number]["element"] }), ...(equipment.spirit === undefined ? {} : { spirit: equipment.spirit }),
         shiny: equipment.shiny, transcendence: equipment.transcendence || (equipment.transcended ? 1 : 0) })),
     })),
@@ -144,7 +146,8 @@ export const desktopBridge = {
 
   async loadCatalog(): Promise<Catalog> {
     if (isTauri()) return invoke<Catalog>("load_catalog");
-    return previewCatalog;
+    if (import.meta.env.MODE === "test") return previewCatalog;
+    return loadBrowserCatalog();
   },
 
   async getContentStatus(): Promise<ContentStatus | null> {
@@ -213,8 +216,10 @@ export const desktopBridge = {
     } });
   },
 
-  async calculateChampion(champion: Champion, loadout: ChampionLoadout, titanTower = false): Promise<CalculatedSheet> {
-    if (!isTauri()) return previewSheet(loadout.stats ?? champion.stats);
+  async calculateChampion(champion: Champion, loadout: ChampionLoadout, titanTower = false, catalog?: Catalog): Promise<CalculatedSheet> {
+    if (!isTauri()) return catalog
+      ? calculateChampionPreview(catalog, champion, loadout, titanTower)
+      : previewSheet(loadout.stats ?? champion.stats);
     const equipment = (itemId: string, slot: "familiar" | "auraSong"): CanonicalEquipment => ({ itemId, slot, quality: "normal", shiny: false, transcended: false, transcendence: 0 });
     const familiar = loadout.familiarEquipment ? toChampionEquipment(loadout.familiarEquipment, "familiar") : (loadout.familiar ? equipment(loadout.familiar, "familiar") : undefined);
     const auraSong = loadout.auraSongEquipment ? toChampionEquipment(loadout.auraSongEquipment, "auraSong") : (loadout.aurasong ? equipment(loadout.aurasong, "auraSong") : undefined);

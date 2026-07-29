@@ -220,10 +220,50 @@ test("shows online affinity badges when the selected equipment matches both atta
   await user.click(screen.getByRole("button", { name: /学徒短剑/ }));
   await user.click(screen.getByRole("button", { name: /余烬元素/ }));
   await user.click(screen.getByRole("button", { name: /比蒙精魂/ }));
+  await user.click(screen.getByRole("button", { name: /^高级$/ }));
   expect(screen.getAllByRole("button", { name: "全部应用" })).toHaveLength(5);
   await user.click(screen.getAllByRole("button", { name: "关闭" }).at(-1)!);
   expect(screen.getByTitle("元素附魔获得 50% 亲和加成")).toHaveTextContent("元素亲和");
   expect(screen.getByTitle("精萃附魔获得 50% 亲和加成")).toHaveTextContent("精萃亲和");
+  const weaponSlot = screen.getByRole("button", { name: "武器装备槽" });
+  expect(weaponSlot).toHaveClass("quality-优质");
+  expect(weaponSlot.querySelector(".slot-quality-flame")).toHaveAttribute("src", expect.stringContaining("Light_05_uncommon.png"));
+  expect(weaponSlot.querySelector(".slot-frame-clip .slot-quality-flame")).toBeInTheDocument();
+  expect(weaponSlot.querySelector(".slot-tier-badge")).toHaveTextContent("1");
+  expect(weaponSlot.querySelector(".element-attachment")).toBeInTheDocument();
+  expect(weaponSlot.querySelector(".spirit-attachment")).toBeInTheDocument();
+});
+
+test("clears element and spirit enchantments when the selected equipment is cancelled", async () => {
+  const user = userEvent.setup();
+  const calculate = vi.spyOn(desktopBridge, "calculateHero");
+  render(<App />);
+  await appReady();
+  await user.click(screen.getByRole("button", { name: "配装" }));
+  await user.click(screen.getByRole("button", { name: "武器装备槽" }));
+  const equipment = screen.getByRole("button", { name: /学徒短剑/ });
+  const element = screen.getByRole("button", { name: /余烬元素/ });
+  const spirit = screen.getByRole("button", { name: /比蒙精魂/ });
+
+  await user.click(equipment);
+  await user.click(element);
+  await user.click(spirit);
+  await waitFor(() => expect(calculate.mock.calls.at(-1)?.[0].equipment[0]).toMatchObject({
+    itemId: "shortsword",
+    element: "ember",
+    spirit: "behemoth",
+  }));
+
+  await user.click(equipment);
+
+  await waitFor(() => {
+    const cancelled = calculate.mock.calls.at(-1)?.[0].equipment[0];
+    expect(cancelled?.itemId).toBeUndefined();
+    expect(cancelled?.element).toBeUndefined();
+    expect(cancelled?.spirit).toBeUndefined();
+  });
+  expect(element).not.toHaveClass("selected");
+  expect(spirit).not.toHaveClass("selected");
 });
 
 test("clones the current hero and navigates circularly like the online editor", async () => {
@@ -322,6 +362,60 @@ test("shows champion soul, full rank range, team skill and full equipment contro
   await user.click(screen.getAllByRole("button", { name: "关闭" }).at(-1)!);
   await user.click(screen.getByRole("button", { name: "光环装备槽" }));
   expect(screen.getByRole("heading", { name: "装备选择 - 光环" })).toBeInTheDocument();
+});
+
+test("keeps champion equipment and enchantment selections synchronized across picker reopen and cancellation", async () => {
+  const catalog = structuredClone(previewCatalog);
+  catalog.items.push(
+    { id: "tyrannosaurus", name: "霸王龙", itemType: "xf", typeName: "使魔", tier: 15, attack: 3090, health: 308, elementAffinity: "earth", spiritAffinity: "dinosaur" },
+    { id: "platinum-element", name: "白金元素", itemType: "z", typeName: "元素附魔", tier: 14, attack: 164, defense: 109, health: 33, elements: "gold+5" },
+  );
+  vi.spyOn(desktopBridge, "loadCatalog").mockResolvedValue(catalog);
+  const user = userEvent.setup();
+  render(<App />);
+  await appReady();
+  await user.click(screen.getByRole("button", { name: "勇士配装 阿尔贡" }));
+  const familiarSlot = screen.getByRole("button", { name: "使魔装备槽" });
+  await user.click(familiarSlot);
+  const picker = screen.getByRole("dialog", { name: "装备选择 - 使魔" });
+  const equipment = within(picker).getByRole("button", { name: /霸王龙/ });
+  const neutralElement = within(picker).getByRole("button", { name: /白金元素/ });
+  const element = within(picker).getByRole("button", { name: /余烬元素/ });
+  const spirit = within(picker).getByRole("button", { name: /比蒙精魂/ });
+
+  expect(neutralElement).not.toHaveClass("selected");
+  expect(element).toBeDisabled();
+  expect(spirit).toBeDisabled();
+
+  await user.click(equipment);
+  expect(neutralElement).not.toHaveClass("selected");
+  await user.click(element);
+  await user.click(spirit);
+  expect(equipment).toHaveClass("selected");
+  expect(element).toHaveClass("selected");
+  expect(spirit).toHaveClass("selected");
+
+  await user.click(within(picker).getByRole("button", { name: "关闭" }));
+  expect(familiarSlot.querySelector(".element-attachment")).toBeInTheDocument();
+  expect(familiarSlot.querySelector(".spirit-attachment")).toBeInTheDocument();
+
+  await user.click(familiarSlot);
+  const reopenedPicker = screen.getByRole("dialog", { name: "装备选择 - 使魔" });
+  const reopenedEquipment = within(reopenedPicker).getByRole("button", { name: /霸王龙/ });
+  const reopenedElement = within(reopenedPicker).getByRole("button", { name: /余烬元素/ });
+  const reopenedSpirit = within(reopenedPicker).getByRole("button", { name: /比蒙精魂/ });
+  expect(reopenedEquipment).toHaveClass("selected");
+  expect(reopenedElement).toHaveClass("selected");
+  expect(reopenedSpirit).toHaveClass("selected");
+
+  await user.click(reopenedEquipment);
+  expect(reopenedElement).not.toHaveClass("selected");
+  expect(reopenedSpirit).not.toHaveClass("selected");
+  expect(reopenedElement).toBeDisabled();
+  expect(reopenedSpirit).toBeDisabled();
+  await user.click(within(reopenedPicker).getByRole("button", { name: "关闭" }));
+  expect(familiarSlot.querySelector(".element-attachment")).not.toBeInTheDocument();
+  expect(familiarSlot.querySelector(".spirit-attachment")).not.toBeInTheDocument();
 });
 
 test("synchronizes champion soul when toggled on and back off", async () => {

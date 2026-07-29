@@ -34,6 +34,13 @@ export interface CatalogChampion {
   teamSkillIds: string[];
   teamSkills: CatalogTeamSkill[];
   stats: UnitStats;
+  calculation?: {
+    levelOne: Pick<UnitStats, "health" | "attack" | "defense">;
+    levelFifty: Pick<UnitStats, "health" | "attack" | "defense">;
+    story: Pick<UnitStats, "health" | "attack" | "defense">;
+    rankMultipliers: number[];
+    titanMultiplier: number;
+  };
 }
 
 export interface CatalogTeamSkill {
@@ -151,6 +158,20 @@ export interface CatalogSkill {
   /** Numeric plus class-mechanic text shown under the fixed innate skill. */
   innateEffects?: string[];
   xpToAttack?: number;
+  modifiers?: {
+    item: number;
+    attack: number;
+    defense: number;
+    health: number;
+    attackFlat: number;
+    defenseFlat: number;
+    healthFlat: number;
+    evasion: number;
+    critical: number;
+    criticalDamage: number;
+    aggro: number;
+    regeneration: number;
+  };
 }
 
 export interface Catalog {

@@ -300,15 +300,20 @@ impl Catalog {
         let mut base = champion_rank_core(champion, build.level, build.rank, options.titan);
         apply_hero_seeds(&mut base, build.seed, &BTreeMap::new());
         let mut equipment = Bonus::default();
+        let mut spirit_percent = Bonus::default();
         for entry in &resolved {
             let mut item = self.item_stats(entry.item, entry.build);
             self.apply_tomb_spirit(&mut item, entry.item, entry.build, options.titan_tower);
             equipment.add(item);
             self.apply_spirit_flat(&mut equipment, entry.item, entry.build);
+            self.apply_spirit_percent(&mut spirit_percent, entry.item, entry.build);
         }
         base.add(equipment);
-        let base_defense = base.def * card_multiplier(build.card_level);
-        apply_card(&mut base, build.card_level);
+        let card = card_multiplier(build.card_level);
+        let base_defense = base.def * card;
+        base.atk = (base.atk * card * (1.0 + spirit_percent.atk)).floor();
+        base.def = (base.def * card * (1.0 + spirit_percent.def)).floor();
+        base.hp = (base.hp * (1.0 + spirit_percent.hp) * card).round();
         let element_value = champion_element_value(build.rank);
 
         CalculatedSheet {
@@ -736,6 +741,36 @@ impl Catalog {
         bonus.regen += number(skill, "regen") * scale;
     }
 
+    fn apply_spirit_percent(&self, bonus: &mut Bonus, item: &Value, build: &Equipment) {
+        let Some(spirit) = effective_attachment(item, build.spirit.as_deref(), "lTag3")
+            .and_then(|id| self.items.get(id))
+        else {
+            return;
+        };
+        let Some(family) = text(spirit, "skill") else {
+            return;
+        };
+        let affinity = text(item, "spiritAffinity")
+            .map(split_list)
+            .is_some_and(|ids| ids.iter().any(|id| id == text(spirit, "uid").unwrap_or("")));
+        let skill_id = if affinity {
+            format!("{family}_plus")
+        } else {
+            family.to_owned()
+        };
+        let Some(skill) = self.skills.get(&skill_id) else {
+            return;
+        };
+        let scale = if text(item, "type") == Some("xi") {
+            2.0
+        } else {
+            1.0
+        };
+        bonus.atk += number(skill, "atk") * scale;
+        bonus.def += number(skill, "def") * scale;
+        bonus.hp += number(skill, "hp") * scale;
+    }
+
     fn apply_tomb_spirit(
         &self,
         item_stats: &mut Bonus,
@@ -1044,10 +1079,16 @@ fn add_core_attachment(
     };
     let core_id = text(core, "uid").unwrap_or("");
     let built_in_tag = if elemental { "lTag2" } else { "lTag3" };
+    let affinity_id = if elemental {
+        parse_element(text(core, "elements"))
+            .map_or(core_id, |(element, _)| element)
+    } else {
+        core_id
+    };
     let affinity = text(item, built_in_tag) == Some(core_id)
         || text(item, affinity_key).map(split_list).is_some_and(|ids| {
             ids.iter()
-                .any(|id| id == core_id || (elemental && id == "all"))
+                .any(|id| id == affinity_id || (elemental && id == "all"))
         });
     let multiplier = if affinity { 1.5 } else { 1.0 };
     result.atk += (number(core, "atk") * multiplier).floor().min(base.atk);
@@ -1613,6 +1654,49 @@ mod tests {
         assert_eq!(result.stats.attack, 3942);
         assert_eq!(result.stats.defense, 5502);
         assert!(result.applied.titan_applied);
+    }
+
+    #[test]
+    fn argon_trex_flawless_fire_and_tomb_matches_reference_sheet() {
+        let catalog = catalog();
+        let mut familiar = equipment("trex", EquipmentSlot::Familiar);
+        familiar.quality = Quality::Flawless;
+        familiar.element = Some("t14fire".to_owned());
+        familiar.spirit = Some("tomb".to_owned());
+        let mut item = catalog.item_stats(catalog.items.get("trex").unwrap(), &familiar);
+        catalog.apply_tomb_spirit(
+            &mut item,
+            catalog.items.get("trex").unwrap(),
+            &familiar,
+            false,
+        );
+        assert_eq!(item.atk, 3218.0);
+        assert_eq!(item.hp, 365.0);
+
+        let build = ChampionBuild {
+            id: "argon".to_owned(),
+            loadout_present: true,
+            name: "阿尔贡".to_owned(),
+            class_id: Some("knight".to_owned()),
+            sprite_path: None,
+            element: "light".to_owned(),
+            level: 40,
+            rank: 11,
+            seed: 0,
+            card_level: 0,
+            titan: false,
+            familiar_id: "trex".to_owned(),
+            aura_song_id: String::new(),
+            stats: UnitStats::default(),
+            familiar: Some(familiar),
+            aura_song: None,
+            card_levels: BTreeMap::new(),
+        };
+        let sheet = catalog.calculate_champion(&build);
+        assert!(sheet.issues.is_empty(), "{:?}", sheet.issues);
+        assert_eq!(sheet.stats.health, 1107);
+        assert_eq!(sheet.stats.attack, 6347);
+        assert_eq!(sheet.stats.defense, 4368);
     }
 
     #[test]
