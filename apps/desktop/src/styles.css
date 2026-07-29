@@ -942,6 +942,9 @@ body { background: #f3f5fa; }
 
 .catalog-tile {
   min-height: 132px;
+  content-visibility: auto;
+  contain: layout paint style;
+  contain-intrinsic-size: 92px 132px;
 }
 
 .catalog-tile.with-preview {

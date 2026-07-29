@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { createContext, useContext, useDeferredValue, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import {
   Archive, Check, Clipboard, Copy, Download,
@@ -52,6 +52,7 @@ const elementBadge: Record<ElementType, { label: string; path: string }> = {
 const equipmentTierByLevel = [1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 10, 10, 11, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16];
 type EquipmentPreviewContextValue = EquipmentPreviewConfig & {
   catalog: Catalog;
+  itemById: ReadonlyMap<string, CatalogItem>;
   itemId?: string | undefined;
   element?: string | undefined;
   spirit?: string | undefined;
@@ -314,7 +315,7 @@ function MemberElementBadge({ unit, catalog, className }: { unit: PartyUnit; cat
 function ItemTile({ item, selected, onClick, compact = false, disabled = false, previewConfig }: { item: CatalogItem; selected: boolean; onClick: () => void; compact?: boolean; disabled?: boolean; previewConfig?: EquipmentPreviewConfig }) {
   const pickerPreviewConfig = useContext(EquipmentPreviewContext);
   const activePreviewConfig = previewConfig ?? (compact ? undefined : pickerPreviewConfig);
-  const selectedEquipment = pickerPreviewConfig?.catalog.items.find((candidate) => candidate.id === pickerPreviewConfig.itemId);
+  const selectedEquipment = pickerPreviewConfig?.itemId ? pickerPreviewConfig.itemById.get(pickerPreviewConfig.itemId) : undefined;
   const effectiveElementId = item.builtInElementId ?? pickerPreviewConfig?.element;
   const effectiveSpiritId = item.builtInSpiritId ?? pickerPreviewConfig?.spirit;
   const unitElement = pickerPreviewConfig?.unitElement ? elementToken[pickerPreviewConfig.unitElement] : undefined;
@@ -323,8 +324,8 @@ function ItemTile({ item, selected, onClick, compact = false, disabled = false, 
     ? previewAttachmentStats(selectedEquipment, item, attachmentKind, pickerPreviewConfig, unitElement)
     : undefined;
   const equipmentStats = activePreviewConfig ? previewEquipmentStats(item, activePreviewConfig, {
-    elementItem: pickerPreviewConfig?.catalog.items.find((candidate) => candidate.id === effectiveElementId),
-    spiritItem: pickerPreviewConfig?.catalog.items.find((candidate) => candidate.id === effectiveSpiritId),
+    elementItem: effectiveElementId ? pickerPreviewConfig?.itemById.get(effectiveElementId) : undefined,
+    spiritItem: effectiveSpiritId ? pickerPreviewConfig?.itemById.get(effectiveSpiritId) : undefined,
     skills: pickerPreviewConfig?.catalog.skills,
     unitElement,
   }) : undefined;
@@ -353,7 +354,7 @@ function ItemTile({ item, selected, onClick, compact = false, disabled = false, 
       path: `Sprite/icon_global_elemental_${affinity}.png`,
     })) ?? []),
     ...(item.spiritAffinity?.split(/[;,]/).map((affinity) => affinity.trim()).filter(Boolean).map((affinity) => {
-      const affinityItem = pickerPreviewConfig?.catalog.items.find((candidate) => candidate.id === affinity);
+      const affinityItem = pickerPreviewConfig?.itemById.get(affinity);
       return {
         id: `spirit-affinity-${affinity}`,
         label: `自带精萃亲和：${affinityItem?.name ?? affinity}`,
@@ -370,7 +371,7 @@ function ItemTile({ item, selected, onClick, compact = false, disabled = false, 
     ...(item.builtInSpiritId ? [{
       id: `built-in-spirit-${item.builtInSpiritId}`,
       label: "装备自带精萃附魔",
-      path: `Sprite/icon_global_skill_${pickerPreviewConfig?.catalog.items.find((candidate) => candidate.id === item.builtInSpiritId)?.skill ?? item.builtInSpiritId}.png`,
+      path: `Sprite/icon_global_skill_${pickerPreviewConfig?.itemById.get(item.builtInSpiritId)?.skill ?? item.builtInSpiritId}.png`,
     }] : []),
   ];
   return <button className={`item-tile catalog-tile ${compact ? "compact" : ""} ${selected ? "selected" : ""} ${activePreviewConfig || attachmentStats ? "with-preview" : ""} ${enhanced ? "enhanced" : ""}`} onClick={onClick} disabled={disabled} title={`${item.name} · T${item.tier} · ${item.typeName}`}>
@@ -582,6 +583,7 @@ function EquipmentModal({ hero, catalog, templates, onClose, onPrevious, onNext,
   const [selectedSlot, setSelectedSlot] = useState(0);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerConfig, setPickerConfig] = useState<EquipmentPreviewConfig>({ quality: "普通", shiny: false, transcendence: 0 });
+  const deferredPickerConfig = useDeferredValue(pickerConfig);
   const [skillPickerIndex, setSkillPickerIndex] = useState<number | null>(null);
   const [sheet, setSheet] = useState<CalculatedSheet | null>(null);
   const [calculating, setCalculating] = useState(false);
@@ -612,6 +614,14 @@ function EquipmentModal({ hero, catalog, templates, onClose, onPrevious, onNext,
     .sort((left, right) => right.tier - left.tier || left.name.localeCompare(right.name)), [catalog]);
   const spiritItems = useMemo(() => catalog.items.filter((item) => item.itemType === "z" && Boolean(item.skill))
     .sort((left, right) => right.tier - left.tier || left.name.localeCompare(right.name)), [catalog]);
+  const catalogItemById = useMemo(() => new Map(catalog.items.map((item) => [item.id, item])), [catalog]);
+  const equipmentPreviewValue = useMemo<EquipmentPreviewContextValue>(() => ({
+    ...slot,
+    ...deferredPickerConfig,
+    catalog,
+    itemById: catalogItemById,
+    unitElement: draft.element,
+  }), [catalog, catalogItemById, deferredPickerConfig, draft.element, slot]);
   useEffect(() => {
     let active = true;
     setCalculating(true);
@@ -676,7 +686,7 @@ function EquipmentModal({ hero, catalog, templates, onClose, onPrevious, onNext,
       setExportingImage(false);
     }
   };
-  return <EquipmentPreviewContext.Provider value={{ ...slot, ...pickerConfig, catalog, unitElement: draft.element }}><div className="modal-backdrop equipment-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+  return <EquipmentPreviewContext.Provider value={equipmentPreviewValue}><div className="modal-backdrop equipment-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
     <button className="equipment-hero-nav previous" aria-label="上一个英雄" onClick={onPrevious}>‹</button>
     <section className="modal equipment-modal equipment-studio" role="dialog" aria-modal="true" aria-labelledby="equipment-title">
       <header className="modal-header">
@@ -806,6 +816,7 @@ function ChampionEquipmentModal({ champion, catalog, loadout, templates, onClose
   const [importText, setImportText] = useState("");
   const [picker, setPicker] = useState<"familiar" | "aurasong" | null>(null);
   const [pickerConfig, setPickerConfig] = useState<EquipmentPreviewConfig>({ quality: "普通", shiny: false, transcendence: 0 });
+  const deferredPickerConfig = useDeferredValue(pickerConfig);
   const [sheets, setSheets] = useState<{ normal: CalculatedSheet | null; titanTower: CalculatedSheet | null }>({
     normal: null,
     titanTower: null,
@@ -854,6 +865,14 @@ function ChampionEquipmentModal({ champion, catalog, loadout, templates, onClose
   const selectedChampionItem = catalog.items.find((item) => item.id === selectedChampionEquipment.itemId);
   const selectedChampionElementId = selectedChampionItem?.builtInElementId ?? selectedChampionEquipment.element;
   const selectedChampionSpiritId = selectedChampionItem?.builtInSpiritId ?? selectedChampionEquipment.spirit;
+  const championItemById = useMemo(() => new Map(catalog.items.map((item) => [item.id, item])), [catalog]);
+  const championPreviewValue = useMemo<EquipmentPreviewContextValue>(() => ({
+    ...selectedChampionEquipment,
+    ...deferredPickerConfig,
+    catalog,
+    itemById: championItemById,
+    unitElement: champion.element,
+  }), [catalog, champion.element, championItemById, deferredPickerConfig, selectedChampionEquipment]);
   const updateChampionEquipment = (patch: Partial<typeof selectedChampionEquipment>) => {
     if (!picker) return;
     const equipment = { ...storedChampionEquipment, [picker]: { ...selectedChampionEquipment, ...patch } };
@@ -945,7 +964,7 @@ function ChampionEquipmentModal({ champion, catalog, loadout, templates, onClose
       setExportingImage(false);
     }
   };
-  return <EquipmentPreviewContext.Provider value={{ ...selectedChampionEquipment, ...pickerConfig, catalog, unitElement: champion.element }}><div className="modal-backdrop equipment-modal-backdrop champion-modal-backdrop" style={championModalStyle} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+  return <EquipmentPreviewContext.Provider value={championPreviewValue}><div className="modal-backdrop equipment-modal-backdrop champion-modal-backdrop" style={championModalStyle} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
     <button className="equipment-hero-nav previous" aria-label="上一个勇士" onClick={onPrevious}>‹</button>
     <section className="modal champion-modal equipment-studio" role="dialog" aria-modal="true" aria-labelledby="champion-equipment-title">
       <header className="modal-header"><div><h2 id="champion-equipment-title">勇士配装模拟 - {champion.name}</h2></div><div className="modal-header-actions"><button className="zys-button blue" onClick={() => void pasteLoadout()}>导入</button><input className="modal-import-code" aria-label="粘贴配置码" placeholder="粘贴配置码" value={importText} onChange={(event) => setImportText(event.target.value)} /><button className="zys-button violet" onClick={() => void copyLoadout()}>导出</button><button className="zys-button violet" disabled={exportingImage} onClick={() => void exportImage()}>{exportingImage ? "导出中..." : "导出图片"}</button><button className="zys-button red" onClick={onClose}>关闭</button></div></header>
