@@ -33,9 +33,11 @@ test("renders online-style roster element badges and sorts same-class heroes by 
   const user = userEvent.setup();
   render(<App />);
   await appReady();
-  await waitFor(() => expect(document.querySelectorAll(".roster-element-badge")).toHaveLength(3));
-  expect(document.querySelector(".champion-icon-card .roster-element-badge")).toHaveAttribute("alt", "light");
-  expect(document.querySelector(".hero-icon-card .roster-element-badge")).toHaveAttribute("alt", "light");
+  await waitFor(() => {
+    expect(document.querySelectorAll(".roster-element-badge")).toHaveLength(3);
+    expect(document.querySelector(".champion-icon-card .roster-element-badge")).toHaveAttribute("alt", "light");
+    expect(document.querySelector(".hero-icon-card .roster-element-badge")).toHaveAttribute("alt", "light");
+  });
   expect([...document.querySelectorAll(".hero-icon-card strong")].map((node) => node.textContent)).toEqual(["骑士A", "骑士B"]);
   expect(screen.getByRole("button", { name: "职业排序" })).toHaveClass("active");
   await user.click(screen.getByRole("button", { name: "元素排序" }));
